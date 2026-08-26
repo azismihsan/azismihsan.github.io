@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>AuditDompet - Expense Tracker</title>
+    <!-- Chart.js untuk grafik -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --danger: #ef4444;
+            --success: #10b981;
+            --bg: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --border: #e5e7eb;
+            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .dark {
+            --primary: #818cf8;
+            --primary-hover: #6366f1;
+            --danger: #f87171;
+            --success: #34d399;
+            --bg: #111827;
+            --card-bg: #1f2937;
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+            --border: #374151;
+            --shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background-color: var(--bg); color: var(--text-main); line-height: 1.6; padding: 20px; min-height: 100vh; transition: background 0.3s, color 0.3s; }
+        .container { max-width: 1100px; margin: 0 auto; }
+        header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 30px; }
+        header h1 { font-size: 2rem; color: var(--primary); }
+        .user-section { display: flex; gap: 10px; align-items: center; }
+        .btn { padding: 10px 16px; border: none; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:hover { background-color: var(--primary-hover); }
+        .btn-secondary { background-color: transparent; border: 1px solid var(--border); color: var(--text-main); }
+        .btn-secondary:hover { background-color: var(--border); }
+        .btn-danger { background-color: var(--danger); color: white; }
+        .btn-sm { padding: 6px 10px; font-size: 0.8rem; }
+        .btn-icon { background: transparent; border: none; cursor: pointer; font-size: 1.1rem; padding: 5px; border-radius: 50%; transition: background 0.2s; }
+        .btn-icon:hover { background: var(--border); }
+        .btn-icon:disabled { opacity: 0.5; cursor: not-allowed; }
+        .balance-card {
+            background: linear-gradient(135deg, var(--primary), #7c3aed);
+            color: white; padding: 20px; border-radius: 12px;
+            box-shadow: var(--shadow); margin-bottom: 20px;
+            display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 15px;
+        }
+        .balance-main h2 { font-size: 1rem; font-weight: 400; opacity: 0.9; }
+        .balance-main .amount { font-size: 2.2rem; font-weight: 700; margin-top: 5px; }
+        .balance-detail { display: flex; gap: 20px; font-size: 0.9rem; }
+        .balance-detail .income { color: #d1fae5; }
+        .balance-detail .expense { color: #fee2e2; }
+        .grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        @media (min-width: 900px) { 
+            .grid { grid-template-columns: 1fr 1.5fr; }
+            .stats-and-chart { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        }
+        .card { background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: var(--shadow); transition: background 0.3s; }
+        .card h2 { font-size: 1.25rem; margin-bottom: 15px; border-bottom: 2px solid var(--border); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 0.875rem; font-weight: 600; margin-bottom: 5px; color: var(--text-muted); }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; background: var(--card-bg); color: var(--text-main); }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--primary); }
+        .filter-bar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
+        .filter-bar input, .filter-bar select { flex: 1; min-width: 120px; padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--card-bg); color: var(--text-main); }
+        .expense-list { max-height: 400px; overflow-y: auto; }
+        .expense-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border); }
+        .expense-item:last-child { border-bottom: none; }
+        .expense-info { display: flex; flex-direction: column; flex: 1; }
+        .expense-desc { font-weight: 600; }
+        .expense-meta { font-size: 0.8rem; color: var(--text-muted); display: flex; gap: 8px; margin-top: 2px; flex-wrap: wrap; }
+        .category-badge { background: #e0e7ff; color: var(--primary); padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+        .dark .category-badge { background: #374151; color: #a5b4fc; }
+        .amount-income { font-weight: 700; color: var(--success); margin-right: 10px; }
+        .amount-expense { font-weight: 700; color: var(--danger); margin-right: 10px; }
+        .actions { display: flex; gap: 5px; }
+        .empty-state { text-align: center; color: var(--text-muted); padding: 20px; font-style: italic; }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .modal { background: var(--card-bg); padding: 25px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: var(--shadow); }
+        .modal h3 { margin-bottom: 20px; }
+        .close-btn { float: right; cursor: pointer; font-size: 1.5rem; background: none; border: none; color: var(--text-main); }
+        .hidden { display: none !important; }
+        .login-container { max-width: 400px; margin: 40px auto; }
+        .login-container h2 { text-align: center; margin-bottom: 20px; }
+        .chart-container { position: relative; height: 250px; width: 100%; }
+        .dark-toggle { background: none; border: none; font-size: 1.5rem; cursor: pointer; }
+        .progress-bar { width: 100%; height: 8px; background-color: var(--border); border-radius: 4px; overflow: hidden; margin-top: 5px; }
+        .progress-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
+        .budget-item { margin-bottom: 15px; }
+        .budget-header { display: flex; justify-content: space-between; font-size: 0.9rem; flex-wrap: wrap; gap: 10px; }
+        .budget-amount { font-weight: 600; }
+        .budget-info { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted); margin-top: 3px; }
+        #recaptcha-container { margin: 10px 0; min-height: 78px; }
+         .login-note { text-align: center; font-size: 0.8rem; color: var(--text-muted); margin-top: 15px; }
+        .alert { padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 0.9rem; }
+        .alert-error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+        .alert-success { background: #d1fae5; color: #065f46; border: 1px solid #86efac; }
+        .alert-info { background: #dbeafe; color: #0c2340; border: 1px solid #93c5fd; }
+        .loading { opacity: 0.6; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="app">
+        <!-- Login Panel -->
+        <div id="auth-panel" class="login-container card hidden">
+            <h2>🔐 Expense Tracker Login</h2>
+            <div id="auth-alert"></div>
+
+            <form id="auth-form">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="nama@email.com" required autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" minlength="6" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn btn-primary" id="login-btn" style="width:100%">Masuk</button>
+            </form>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;">
+                <button type="button" class="btn btn-secondary" id="register-btn">Daftar</button>
+                <button type="button" class="btn btn-secondary" id="reset-password-btn">Reset Password</button>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:10px;margin:18px 0;color:var(--text-muted);font-size:.85rem;">
+                <div style="height:1px;background:var(--border);flex:1;"></div>
+                <span>atau</span>
+                <div style="height:1px;background:var(--border);flex:1;"></div>
+            </div>
+
+            <button type="button" class="btn btn-secondary" id="google-login-btn" style="width:100%">
+                🔵 Masuk dengan Google
+            </button>
+
+            <div class="form-group" style="margin-top:15px;">
+                <label for="phone-number">Nomor HP</label>
+                <input type="tel" id="phone-number" placeholder="+628123456789" autocomplete="tel">
+            </div>
+            <div id="recaptcha-container"></div>
+            <button type="button" class="btn btn-secondary" id="phone-login-btn" style="width:100%">
+                📱 Masuk dengan Nomor HP
+            </button>
+
+            <div class="login-note">
+                Email/password, Google Sign-In, dan Phone Authentication menggunakan Firebase Authentication.
+            </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboard" class="hidden">
+            <header>
+                <h1>💸 AuditDompet</h1>
+                <div class="user-section">
+                    <button class="dark-toggle" id="dark-toggle" title="Toggle Dark Mode">🌓</button>
+                    <button id="export-csv" class="btn btn-secondary btn-sm">📥 Export CSV</button>
+                    <span id="user-email" style="font-size:0.9rem; color:var(--text-muted)"></span>
+                    <button id="logout-btn" class="btn btn-danger btn-sm">Logout</button>
+                </div>
+            </header>
+
+            <!-- Balance Card -->
+            <div class="balance-card">
+                <div class="balance-main">
+                    <h2>Saldo</h2>
+                    <div class="amount">Rp <span id="balance-amount">0</span></div>
+                </div>
+                <div class="balance-detail">
+                    <div>
+                        <div>Pemasukan</div>
+                        <div class="income">+ Rp <span id="total-income">0</span></div>
+                    </div>
+                    <div>
+                        <div>Pengeluaran</div>
+                        <div class="expense">- Rp <span id="total-expense">0</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grafik & Statistik -->
+            <div class="stats-and-chart">
+                <div class="card">
+                    <h2>📊 Statistik Kategori (Pengeluaran)</h2>
+                    <div class="chart-container">
+                        <canvas id="category-chart"></canvas>
+                    </div>
+                </div>
+                <div class="card">
+                    <h2>🔍 Filter & Pencarian</h2>
+                    <div class="filter-bar">
+                        <input type="text" id="search-input" placeholder="Cari deskripsi...">
+                        <select id="filter-category">
+                            <option value="">Semua Kategori</option>
+                        </select>
+                        <select id="filter-type">
+                            <option value="">Semua Tipe</option>
+                            <option value="expense">Pengeluaran</option>
+                            <option value="income">Pemasukan</option>
+                        </select>
+                        <select id="sort-by">
+                            <option value="date-desc">Tanggal Terbaru</option>
+                            <option value="date-asc">Tanggal Terlama</option>
+                            <option value="amount-desc">Jumlah Tertinggi</option>
+                            <option value="amount-asc">Jumlah Terendah</option>
+                        </select>
+                    </div>
+                    <div id="summary-stats" style="margin-top:10px; font-size:0.9rem; color:var(--text-muted);">
+                        Total transaksi: <span id="count-trans">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Anggaran -->
+            <div class="card" style="margin-bottom:20px;">
+                <h2>🎯 Anggaran Bulanan per Kategori 
+                    <button id="set-budget-btn" class="btn btn-primary btn-sm">+ Atur Anggaran</button>
+                </h2>
+                <div id="budget-list">
+                    <div class="empty-state">Belum ada anggaran. Klik tombol di atas untuk menambah.</div>
+                </div>
+            </div>
+
+            <div class="grid">
+                <!-- Form Tambah/Edit Transaksi -->
+                <div class="card">
+                    <h2 id="form-title">Tambah Transaksi</h2>
+                    <form id="expense-form">
+                        <input type="hidden" id="edit-id">
+                        <div class="form-group">
+                            <label for="type">Tipe</label>
+                            <select id="type" required>
+                                <option value="expense">Pengeluaran</option>
+                                <option value="income">Pemasukan</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="description">Deskripsi</label>
+                            <input type="text" id="description" placeholder="Contoh: Gaji, Makan siang" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="amount">Jumlah (Rp)</label>
+                            <input type="number" id="amount" placeholder="50000" min="0" step="1" inputmode="numeric" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="category">Kategori</label>
+                            <select id="category" required>
+                                <!-- Diisi dinamis -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="date">Tanggal</label>
+                            <input type="date" id="date" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="submit-btn">Tambahkan</button>
+                        <button type="button" class="btn btn-secondary hidden" id="cancel-edit" style="margin-top:5px;">Batal Edit</button>
+                    </form>
+                    <button id="add-category-btn" class="btn btn-secondary btn-sm" style="margin-top:10px;">➕ Tambah Kategori Baru</button>
+                </div>
+
+                <!-- Riwayat Transaksi -->
+                <div class="card">
+                    <h2>Riwayat Transaksi</h2>
+                    <div class="expense-list" id="expense-list">
+                        <div class="empty-state">Memuat data...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Hapus -->
+    <div id="delete-modal" class="modal-overlay hidden">
+        <div class="modal">
+            <button class="close-btn" id="close-delete-modal">&times;</button>
+            <h3>Hapus Transaksi</h3>
+            <p>Apakah Anda yakin ingin menghapus transaksi ini?</p>
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button id="confirm-delete" class="btn btn-danger">Ya, Hapus</button>
+                <button id="cancel-delete" class="btn btn-secondary">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Anggaran -->
+    <div id="budget-modal" class="modal-overlay hidden">
+        <div class="modal">
+            <button class="close-btn" id="close-budget-modal">&times;</button>
+            <h3>Atur Anggaran</h3>
+            <div class="form-group">
+                <label for="budget-category">Kategori</label>
+                <select id="budget-category"></select>
+            </div>
+            <div class="form-group">
+                <label for="budget-amount">Jumlah Anggaran (Rp)</label>
+                <input type="number" id="budget-amount" min="0" step="1" inputmode="numeric" required>
+            </div>
+            <button id="save-budget" class="btn btn-primary">Simpan</button>
+        </div>
+    </div>
+
+    <!-- Modal Kategori Baru -->
+    <div id="category-modal" class="modal-overlay hidden">
+        <div class="modal">
+            <button class="close-btn" id="close-category-modal">&times;</button>
+            <h3>Tambah Kategori Baru</h3>
+            <div class="form-group">
+                <label for="new-category-name">Nama Kategori</label>
+                <input type="text" id="new-category-name" placeholder="Contoh: Pendidikan" required>
+            </div>
+            <div class="form-group">
+                <label for="new-category-emoji">Emoji (opsional)</label>
+                <input type="text" id="new-category-emoji" placeholder="📚" maxlength="2">
+            </div>
+            <button id="save-category" class="btn btn-primary">Simpan</button>
+        </div>
+    </div>
+
+    <!-- Firebase & Logika -->
+    <script type="module">
+        // Import Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+        import {
+            getAuth,
+            signInWithEmailAndPassword,
+            createUserWithEmailAndPassword,
+            sendPasswordResetEmail,
+            signOut,
+            onAuthStateChanged,
+            GoogleAuthProvider,
+            signInWithPopup,
+            RecaptchaVerifier,
+            signInWithPhoneNumber
+        } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+        import { 
+            getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, 
+            query, orderBy, onSnapshot, serverTimestamp, setDoc
+        } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+        // CATATAN:
+        // Jalankan aplikasi melalui http://localhost atau HTTPS, bukan file://.
+        // Google Sign-In dan Phone Authentication membutuhkan origin yang diizinkan
+        // dan konfigurasi provider di Firebase Console.
+        //
+        // ================= KONFIGURASI FIREBASE =================
+        // PENTING: Ganti dengan Firebase config Anda sendiri
+        // Lihat README.md untuk instruksi setup
+        const firebaseConfig = {
+            apiKey: "AIzaSyCKGivCVl5J_y-VNJs4-_VG4prbSfNAthg",
+            authDomain: "auditdompet.firebaseapp.com",
+            projectId: "auditdompet",
+            storageBucket: "auditdompet.firebasestorage.app",
+            messagingSenderId: "132113903968",
+            appId: "1:132113903968:web:22acd141e1b6e5571c2e05"
+        };
+        // =========================================================
+
+        // Inisialisasi Firebase dengan penanganan error
+        let app, db, auth;
+        let isInitialized = false;
+
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            isInitialized = true;
+            console.log("✅ Firebase initialized successfully");
+        } catch (error) {
+            console.error("❌ Gagal inisialisasi Firebase:", error);
+            throw error;
+        }
+
+        // DOM Elements
+        const authPanel = document.getElementById('auth-panel');
+        const dashboard = document.getElementById('dashboard');
+        const authForm = document.getElementById('auth-form');
+        const authAlert = document.getElementById('auth-alert');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const phoneInput = document.getElementById('phone-number');
+        const loginBtn = document.getElementById('login-btn');
+        const registerBtn = document.getElementById('register-btn');
+        const resetPasswordBtn = document.getElementById('reset-password-btn');
+        const googleLoginBtn = document.getElementById('google-login-btn');
+        const phoneLoginBtn = document.getElementById('phone-login-btn');
+        const userEmailSpan = document.getElementById('user-email');
+        const logoutBtn = document.getElementById('logout-btn');
+        let confirmationResult = null;
+        let recaptchaVerifier = null;
+
+        const form = document.getElementById('expense-form');
+        const descInput = document.getElementById('description');
+        const amountInput = document.getElementById('amount');
+        const categoryInput = document.getElementById('category');
+        const typeInput = document.getElementById('type');
+        const dateInput = document.getElementById('date');
+        const editIdInput = document.getElementById('edit-id');
+        const formTitle = document.getElementById('form-title');
+        const submitBtn = document.getElementById('submit-btn');
+        const cancelEditBtn = document.getElementById('cancel-edit');
+        const listContainer = document.getElementById('expense-list');
+        const balanceAmountEl = document.getElementById('balance-amount');
+        const totalIncomeEl = document.getElementById('total-income');
+        const totalExpenseEl = document.getElementById('total-expense');
+        const searchInput = document.getElementById('search-input');
+        const filterCategory = document.getElementById('filter-category');
+        const filterType = document.getElementById('filter-type');
+        const sortBy = document.getElementById('sort-by');
+        const countTransEl = document.getElementById('count-trans');
+        const exportCsvBtn = document.getElementById('export-csv');
+        const darkToggle = document.getElementById('dark-toggle');
+        const categoryChartCanvas = document.getElementById('category-chart');
+        const budgetList = document.getElementById('budget-list');
+        const setBudgetBtn = document.getElementById('set-budget-btn');
+        const budgetModal = document.getElementById('budget-modal');
+        const closeBudgetModal = document.getElementById('close-budget-modal');
+        const budgetCategorySelect = document.getElementById('budget-category');
+        const budgetAmountInput = document.getElementById('budget-amount');
+        const saveBudgetBtn = document.getElementById('save-budget');
+        const addCategoryBtn = document.getElementById('add-category-btn');
+        const categoryModal = document.getElementById('category-modal');
+        const closeCategoryModal = document.getElementById('close-category-modal');
+        const newCategoryName = document.getElementById('new-category-name');
+        const newCategoryEmoji = document.getElementById('new-category-emoji');
+        const saveCategoryBtn = document.getElementById('save-category');
+
+        // Modal hapus
+        const deleteModal = document.getElementById('delete-modal');
+        const closeDeleteModal = document.getElementById('close-delete-modal');
+        const cancelDelete = document.getElementById('cancel-delete');
+        const confirmDelete = document.getElementById('confirm-delete');
+        let deleteTargetId = null;
+
+        // State
+        let currentUser = null;
+        let allTransactions = [];
+        let filteredTransactions = [];
+        let categories = [];
+        let budgets = {};
+        let chartInstance = null;
+        let isEditMode = false;
+
+        // Default kategori
+        const defaultCategories = [
+            { name: 'Makanan', emoji: '🍔' },
+            { name: 'Transportasi', emoji: '🚗' },
+            { name: 'Belanja', emoji: '🛍️' },
+            { name: 'Hiburan', emoji: '🎮' },
+            { name: 'Tagihan', emoji: '📄' },
+            { name: 'Lainnya', emoji: '📦' }
+        ];
+
+        // Helper functions
+        function showAuthAlert(message, type = 'error') {
+            const alertClass = type === 'error' ? 'alert-error' : type === 'success' ? 'alert-success' : 'alert-info';
+            authAlert.innerHTML = `<div class="alert ${alertClass}">${message}</div>`;
+            setTimeout(() => {
+                authAlert.innerHTML = '';
+            }, 5000);
+        }
+
+        function getAllCategories() {
+            const custom = categories.map(c => ({ name: c.name, emoji: c.emoji || '📁' }));
+            return [...defaultCategories, ...custom];
+        }
+
+        function populateCategoryDropdowns() {
+            const cats = getAllCategories();
+            categoryInput.innerHTML = '';
+            cats.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat.name;
+                opt.textContent = `${cat.emoji} ${cat.name}`;
+                categoryInput.appendChild(opt);
+            });
+            filterCategory.innerHTML = '<option value="">Semua Kategori</option>';
+            cats.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat.name;
+                opt.textContent = `${cat.emoji} ${cat.name}`;
+                filterCategory.appendChild(opt);
+            });
+            budgetCategorySelect.innerHTML = '';
+            cats.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat.name;
+                opt.textContent = `${cat.emoji} ${cat.name}`;
+                budgetCategorySelect.appendChild(opt);
+            });
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('id-ID').format(amount);
+        }
+
+        function formatDate(dateString) {
+            if(!dateString) return '-';
+            const options = { day: 'numeric', month: 'short', year: 'numeric' };
+            return new Date(dateString).toLocaleDateString('id-ID', options);
+        }
+
+        function showAuthPanel() {
+            authPanel.classList.remove('hidden');
+            dashboard.classList.add('hidden');
+        }
+
+        function showDashboard() {
+            authPanel.classList.add('hidden');
+            dashboard.classList.remove('hidden');
+        }
+
+        // ================= AUTHENTICATION =================
+
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+
+            if (!email || !password) {
+                showAuthAlert('Email dan password wajib diisi.', 'error');
+                return;
+            }
+
+            setAuthButtonsDisabled(true);
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                authForm.reset();
+            } catch (error) {
+                console.error("Login error:", error);
+                showAuthAlert(firebaseAuthError(error), 'error');
+            } finally {
+                setAuthButtonsDisabled(false);
+            }
+        });
+
+        registerBtn.addEventListener('click', async () => {
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+
+            if (!email || password.length < 6) {
+                showAuthAlert('Masukkan email yang valid dan password minimal 6 karakter.', 'error');
+                return;
+            }
+
+            setAuthButtonsDisabled(true);
+            try {
+                await createUserWithEmailAndPassword(auth, email, password);
+                showAuthAlert('Akun berhasil dibuat. Login berhasil.', 'success');
+                authForm.reset();
+            } catch (error) {
+                console.error("Register error:", error);
+                showAuthAlert(firebaseAuthError(error), 'error');
+            } finally {
+                setAuthButtonsDisabled(false);
+            }
+        });
+
+        resetPasswordBtn.addEventListener('click', async () => {
+            const email = emailInput.value.trim();
+
+            if (!email) {
+                showAuthAlert('Masukkan email terlebih dahulu untuk reset password.', 'error');
+                emailInput.focus();
+                return;
+            }
+
+            try {
+                await sendPasswordResetEmail(auth, email);
+                showAuthAlert('Email reset password sudah dikirim. Cek inbox/spam.', 'success');
+            } catch (error) {
+                console.error("Reset password error:", error);
+                showAuthAlert(firebaseAuthError(error), 'error');
+            }
+        });
+
+        googleLoginBtn.addEventListener('click', async () => {
+            const provider = new GoogleAuthProvider();
+            provider.setCustomParameters({ prompt: 'select_account' });
+
+            setAuthButtonsDisabled(true);
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                console.error("Google login error:", error);
+                showAuthAlert(firebaseAuthError(error), 'error');
+            } finally {
+                setAuthButtonsDisabled(false);
+            }
+        });
+
+        phoneLoginBtn.addEventListener('click', async () => {
+            const phoneNumber = phoneInput.value.trim();
+
+            if (!phoneNumber || !/^\+[1-9]\d{7,14}$/.test(phoneNumber)) {
+                showAuthAlert('Format nomor HP harus internasional, contoh: +628123456789.', 'error');
+                return;
+            }
+
+            try {
+                if (!recaptchaVerifier) {
+                    recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                        size: 'normal'
+                    });
+                }
+
+                phoneLoginBtn.disabled = true;
+                confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifier);
+
+                const code = prompt('Masukkan kode OTP 6 digit yang dikirim ke nomor HP:');
+                if (!code) {
+                    showAuthAlert('Login dibatalkan.', 'info');
+                    return;
+                }
+
+                await confirmationResult.confirm(code.trim());
+            } catch (error) {
+                console.error("Phone login error:", error);
+                showAuthAlert(firebaseAuthError(error), 'error');
+
+                if (recaptchaVerifier) {
+                    try {
+                        recaptchaVerifier.clear();
+                    } catch (_) {}
+                    recaptchaVerifier = null;
+                }
+            } finally {
+                phoneLoginBtn.disabled = false;
+            }
+        });
+
+        function setAuthButtonsDisabled(disabled) {
+            loginBtn.disabled = disabled;
+            registerBtn.disabled = disabled;
+            resetPasswordBtn.disabled = disabled;
+            googleLoginBtn.disabled = disabled;
+        }
+
+        function firebaseAuthError(error) {
+            const code = error?.code || '';
+
+            const messages = {
+                'auth/invalid-credential': 'Email atau password salah.',
+                'auth/invalid-login-credentials': 'Email atau password salah.',
+                'auth/user-not-found': 'Akun tidak ditemukan.',
+                'auth/wrong-password': 'Password salah.',
+                'auth/email-already-in-use': 'Email sudah terdaftar.',
+                'auth/weak-password': 'Password terlalu lemah. Gunakan minimal 6 karakter.',
+                'auth/invalid-email': 'Format email tidak valid.',
+                'auth/too-many-requests': 'Terlalu banyak percobaan. Coba lagi nanti.',
+                'auth/popup-closed-by-user': 'Login Google dibatalkan.',
+                'auth/popup-blocked': 'Popup Google diblokir browser. Izinkan popup untuk halaman ini.',
+                'auth/account-exists-with-different-credential': 'Email tersebut sudah terdaftar dengan metode login lain.',
+                'auth/invalid-phone-number': 'Nomor HP tidak valid.',
+                'auth/quota-exceeded': 'Kuota SMS Firebase sudah tercapai. Coba lagi nanti.',
+                'auth/operation-not-allowed': 'Metode login ini belum diaktifkan di Firebase Console.',
+                'auth/invalid-verification-code': 'Kode OTP salah.',
+                'auth/code-expired': 'Kode OTP sudah kedaluwarsa. Minta kode baru.'
+            };
+
+            return messages[code] || `Gagal autentikasi (${code || 'unknown-error'}): ${error?.message || 'Terjadi kesalahan.'}`;
+        }
+
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+            } catch (error) {
+                console.error("Logout error:", error);
+            }
+        });
+
+        // Pantau autentikasi
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                const username = user.email ? user.email.split('@')[0] : user.uid;
+                userEmailSpan.textContent = username;
+                showDashboard();
+                initUserData(user.uid);
+                // Set default date ke hari ini
+                dateInput.valueAsDate = new Date();
+            } else {
+                currentUser = null;
+                allTransactions = [];
+                filteredTransactions = [];
+                categories = [];
+                budgets = {};
+                renderTransactions();
+                updateSummary();
+                renderBudgets();
+                populateCategoryDropdowns();
+                showAuthPanel();
+            }
+        });
+
+        function initUserData(uid) {
+            try {
+                // Listener transaksi
+                const transRef = collection(db, "users", uid, "transactions");
+                const q = query(transRef, orderBy("date", "desc"));
+                onSnapshot(q, (snapshot) => {
+                    allTransactions = [];
+                    snapshot.forEach(doc => {
+                        allTransactions.push({ id: doc.id, ...doc.data() });
+                    });
+                    applyFiltersAndSort();
+                    updateSummary();
+                }, (error) => {
+                    console.error("Error fetching transactions:", error);
+                    listContainer.innerHTML = '<div class="empty-state">❌ Gagal memuat data transaksi.</div>';
+                });
+
+                // Listener kategori custom
+                const catRef = collection(db, "users", uid, "categories");
+                onSnapshot(catRef, (snapshot) => {
+                    categories = [];
+                    snapshot.forEach(doc => {
+                        categories.push({ id: doc.id, ...doc.data() });
+                    });
+                    populateCategoryDropdowns();
+                    renderBudgets();
+                }, (error) => {
+                    console.error("Error fetching categories:", error);
+                });
+
+                // Listener budgets
+                const budgetRef = collection(db, "users", uid, "budgets");
+                onSnapshot(budgetRef, (snapshot) => {
+                    budgets = {};
+                    snapshot.forEach(doc => {
+                        budgets[doc.id] = doc.data().amount;
+                    });
+                    renderBudgets();
+                }, (error) => {
+                    console.error("Error fetching budgets:", error);
+                });
+            } catch (error) {
+                console.error("Error initializing user data:", error);
+            }
+        }
+
+        function applyFiltersAndSort() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            const category = filterCategory.value;
+            const type = filterType.value;
+            const sort = sortBy.value;
+
+            filteredTransactions = allTransactions.filter(trans => {
+                const matchesSearch = String(trans.description || '').toLowerCase().includes(searchTerm);
+                const matchesCategory = category === '' || trans.category === category;
+                const matchesType = type === '' || trans.type === type;
+                return matchesSearch && matchesCategory && matchesType;
+            });
+
+            switch(sort) {
+                case 'date-desc': filteredTransactions.sort((a,b) => (a.date > b.date ? -1 : 1)); break;
+                case 'date-asc': filteredTransactions.sort((a,b) => (a.date > b.date ? 1 : -1)); break;
+                case 'amount-desc': filteredTransactions.sort((a,b) => b.amount - a.amount); break;
+                case 'amount-asc': filteredTransactions.sort((a,b) => a.amount - b.amount); break;
+            }
+            renderTransactions();
+        }
+
+        function renderTransactions() {
+            listContainer.innerHTML = '';
+
+            let allIncome = 0, allExpense = 0;
+            allTransactions.forEach(t => {
+                if (t.type === 'income') allIncome += t.amount;
+                else allExpense += t.amount;
+            });
+            balanceAmountEl.textContent = formatCurrency(allIncome - allExpense);
+            totalIncomeEl.textContent = formatCurrency(allIncome);
+            totalExpenseEl.textContent = formatCurrency(allExpense);
+            countTransEl.textContent = filteredTransactions.length;
+
+            if (filteredTransactions.length === 0) {
+                listContainer.innerHTML = '<div class="empty-state">Tidak ada transaksi.</div>';
+                return;
+            }
+
+            filteredTransactions.forEach(trans => {
+                const item = document.createElement('div');
+                item.className = 'expense-item';
+                const amountClass = trans.type === 'income' ? 'amount-income' : 'amount-expense';
+                const sign = trans.type === 'income' ? '+' : '-';
+                item.innerHTML = `
+                    <div class="expense-info">
+                        <span class="expense-desc">${trans.description}</span>
+                        <div class="expense-meta">
+                            <span class="category-badge">${trans.category}</span>
+                            <span>${formatDate(trans.date)}</span>
+                            <span style="color:${trans.type === 'income' ? 'var(--success)' : 'var(--danger)'}">${trans.type === 'income' ? 'Pemasukan' : 'Pengeluaran'}</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span class="${amountClass}">${sign} Rp ${formatCurrency(trans.amount)}</span>
+                        <div class="actions">
+                            <button class="btn-icon edit-btn" data-id="${trans.id}" title="Edit">✏️</button>
+                            <button class="btn-icon delete-btn" data-id="${trans.id}" title="Hapus">🗑️</button>
+                        </div>
+                    </div>
+                `;
+                listContainer.appendChild(item);
+            });
+
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = e.currentTarget.getAttribute('data-id');
+                    const trans = allTransactions.find(t => t.id === id);
+                    if (trans) enterEditMode(trans);
+                });
+            });
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    deleteTargetId = e.currentTarget.getAttribute('data-id');
+                    deleteModal.classList.remove('hidden');
+                });
+            });
+        }
+
+        function updateSummary() {
+            if (!categoryChartCanvas) return;
+            const expenseTrans = allTransactions.filter(t => t.type === 'expense');
+            const categoryTotals = {};
+            expenseTrans.forEach(t => {
+                if (!categoryTotals[t.category]) categoryTotals[t.category] = 0;
+                categoryTotals[t.category] += t.amount;
+            });
+            const labels = Object.keys(categoryTotals);
+            const data = Object.values(categoryTotals);
+            const colors = ['#4f46e5', '#7c3aed', '#ec4899', '#f59e0b', '#10b981', '#6b7280', '#ef4444', '#3b82f6'];
+
+            if (chartInstance) chartInstance.destroy();
+            if (labels.length === 0) {
+                const ctx = categoryChartCanvas.getContext('2d');
+                ctx.clearRect(0,0, categoryChartCanvas.width, categoryChartCanvas.height);
+                ctx.font = '14px sans-serif';
+                ctx.fillStyle = '#6b7280';
+                ctx.textAlign = 'center';
+                ctx.fillText('Belum ada data pengeluaran', categoryChartCanvas.width/2, categoryChartCanvas.height/2);
+                chartInstance = null;
+            } else {
+                chartInstance = new Chart(categoryChartCanvas, {
+                    type: 'pie',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            backgroundColor: colors.slice(0, labels.length),
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+            }
+
+            renderBudgets();
+        }
+
+        function renderBudgets() {
+            budgetList.innerHTML = '';
+            const cats = getAllCategories();
+            const currentMonth = new Date().toISOString().slice(0,7);
+
+            const monthlyExpense = {};
+            allTransactions.forEach(t => {
+                if (t.type === 'expense' && t.date && t.date.startsWith(currentMonth)) {
+                    if (!monthlyExpense[t.category]) monthlyExpense[t.category] = 0;
+                    monthlyExpense[t.category] += t.amount;
+                }
+            });
+
+            const budgetEntries = Object.entries(budgets);
+            if (budgetEntries.length === 0) {
+                budgetList.innerHTML = '<div class="empty-state">Belum ada anggaran. Klik tombol di atas untuk menambah.</div>';
+                return;
+            }
+
+            budgetEntries.forEach(([cat, amount]) => {
+                const spent = monthlyExpense[cat] || 0;
+                const percent = amount > 0 ? Math.min((spent / amount) * 100, 100) : 0;
+                const remaining = amount - spent;
+                const color = percent > 100 ? 'var(--danger)' : percent > 80 ? '#f59e0b' : 'var(--success)';
+                const catObj = cats.find(c => c.name === cat);
+                const emoji = catObj ? catObj.emoji : '📁';
+
+                const div = document.createElement('div');
+                div.className = 'budget-item';
+                div.innerHTML = `
+                    <div class="budget-header">
+                        <span>${emoji} ${cat}</span>
+                        <span class="budget-amount">Rp ${formatCurrency(spent)} / Rp ${formatCurrency(amount)}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width:${percent}%; background-color:${color};"></div>
+                    </div>
+                    <div class="budget-info">
+                        <span>${percent.toFixed(0)}% terpakai</span>
+                        <span style="color:${remaining >= 0 ? 'var(--success)' : 'var(--danger)'}">
+                            ${remaining >= 0 ? 'Sisa Rp '+formatCurrency(remaining) : 'Lebih Rp '+formatCurrency(Math.abs(remaining))}
+                        </span>
+                    </div>
+                `;
+                budgetList.appendChild(div);
+            });
+        }
+
+        function enterEditMode(trans) {
+            isEditMode = true;
+            editIdInput.value = trans.id;
+            descInput.value = trans.description;
+            amountInput.value = trans.amount;
+            categoryInput.value = trans.category;
+            typeInput.value = trans.type;
+            dateInput.value = trans.date;
+            formTitle.textContent = 'Edit Transaksi';
+            submitBtn.textContent = 'Simpan Perubahan';
+            cancelEditBtn.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function exitEditMode() {
+            isEditMode = false;
+            editIdInput.value = '';
+            form.reset();
+            dateInput.valueAsDate = new Date();
+            typeInput.value = 'expense';
+            formTitle.textContent = 'Tambah Transaksi';
+            submitBtn.textContent = 'Tambahkan';
+            cancelEditBtn.classList.add('hidden');
+        }
+
+        cancelEditBtn.addEventListener('click', exitEditMode);
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentUser || !isInitialized) return;
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = isEditMode ? 'Menyimpan...' : 'Menambahkan...';
+
+            const transData = {
+                type: typeInput.value,
+                description: descInput.value.trim(),
+                amount: parseFloat(amountInput.value),
+                category: categoryInput.value,
+                date: dateInput.value,
+                updatedAt: serverTimestamp()
+            };
+
+            try {
+                const transRef = collection(db, "users", currentUser.uid, "transactions");
+                if (isEditMode) {
+                    const docRef = doc(transRef, editIdInput.value);
+                    await updateDoc(docRef, transData);
+                    exitEditMode();
+                } else {
+                    transData.createdAt = serverTimestamp();
+                    await addDoc(transRef, transData);
+                    form.reset();
+                    dateInput.valueAsDate = new Date();
+                    typeInput.value = 'expense';
+                }
+            } catch (error) {
+                console.error("Error saving transaction:", error);
+                alert("❌ Gagal menyimpan. Periksa koneksi atau aturan Firestore.");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = isEditMode ? 'Simpan Perubahan' : 'Tambahkan';
+            }
+        });
+
+        confirmDelete.addEventListener('click', async () => {
+            if (deleteTargetId && currentUser && isInitialized) {
+                try {
+                    const docRef = doc(db, "users", currentUser.uid, "transactions", deleteTargetId);
+                    await deleteDoc(docRef);
+                    deleteModal.classList.add('hidden');
+                    deleteTargetId = null;
+                } catch (error) {
+                    console.error("Error deleting:", error);
+                    alert("❌ Gagal menghapus transaksi.");
+                }
+            }
+        });
+
+        closeDeleteModal.addEventListener('click', () => deleteModal.classList.add('hidden'));
+        cancelDelete.addEventListener('click', () => deleteModal.classList.add('hidden'));
+
+        searchInput.addEventListener('input', applyFiltersAndSort);
+        filterCategory.addEventListener('change', applyFiltersAndSort);
+        filterType.addEventListener('change', applyFiltersAndSort);
+        sortBy.addEventListener('change', applyFiltersAndSort);
+
+        exportCsvBtn.addEventListener('click', () => {
+            if (filteredTransactions.length === 0) {
+                alert('Tidak ada data untuk diexport.');
+                return;
+            }
+            const headers = ['Tipe', 'Deskripsi', 'Jumlah', 'Kategori', 'Tanggal'];
+            const rows = filteredTransactions.map(t => [
+                t.type === 'income' ? 'Pemasukan' : 'Pengeluaran',
+                `"${t.description}"`,
+                t.amount,
+                t.category,
+                t.date
+            ]);
+            const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `transactions_${new Date().toISOString().slice(0,10)}.csv`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+        });
+
+        darkToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark') ? 'enabled' : 'disabled');
+        });
+        if (localStorage.getItem('darkMode') === 'enabled') {
+            document.body.classList.add('dark');
+        }
+
+        setBudgetBtn.addEventListener('click', () => {
+            populateCategoryDropdowns();
+            budgetModal.classList.remove('hidden');
+        });
+        closeBudgetModal.addEventListener('click', () => budgetModal.classList.add('hidden'));
+        saveBudgetBtn.addEventListener('click', async () => {
+            if (!currentUser || !isInitialized) return;
+            const cat = budgetCategorySelect.value;
+            const amount = parseFloat(budgetAmountInput.value);
+            if (!cat || isNaN(amount) || amount <= 0) {
+                alert('⚠️ Pilih kategori dan masukkan jumlah yang valid.');
+                return;
+            }
+            saveBudgetBtn.disabled = true;
+            try {
+                const budgetDocRef = doc(db, "users", currentUser.uid, "budgets", cat);
+                await setDoc(budgetDocRef, { amount: amount, updatedAt: serverTimestamp() });
+                budgetModal.classList.add('hidden');
+                budgetAmountInput.value = '';
+            } catch (error) {
+                console.error("Error saving budget:", error);
+                alert("❌ Gagal menyimpan anggaran.");
+            } finally {
+                saveBudgetBtn.disabled = false;
+            }
+        });
+
+        addCategoryBtn.addEventListener('click', () => {
+            categoryModal.classList.remove('hidden');
+        });
+        closeCategoryModal.addEventListener('click', () => categoryModal.classList.add('hidden'));
+        saveCategoryBtn.addEventListener('click', async () => {
+            if (!currentUser || !isInitialized) return;
+            const name = newCategoryName.value.trim();
+            const emoji = newCategoryEmoji.value.trim() || '📁';
+            if (!name) {
+                alert('⚠️ Nama kategori tidak boleh kosong.');
+                return;
+            }
+            const allCats = getAllCategories();
+            if (allCats.some(c => c.name.toLowerCase() === name.toLowerCase())) {
+                alert('⚠️ Kategori sudah ada.');
+                return;
+            }
+            saveCategoryBtn.disabled = true;
+            try {
+                const catRef = collection(db, "users", currentUser.uid, "categories");
+                await addDoc(catRef, { name: name, emoji: emoji, createdAt: serverTimestamp() });
+                categoryModal.classList.add('hidden');
+                newCategoryName.value = '';
+                newCategoryEmoji.value = '';
+            } catch (error) {
+                console.error("Error adding category:", error);
+                alert("❌ Gagal menambah kategori.");
+            } finally {
+                saveCategoryBtn.disabled = false;
+            }
+        });
+
+        // Global error handler
+        window.addEventListener('error', (event) => {
+            console.error('⚠️ Global Error:', event.error);
+        });
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('⚠️ Unhandled Rejection:', event.reason);
+        });
+    </script>
+</body>
+</html>
