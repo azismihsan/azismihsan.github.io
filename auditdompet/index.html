@@ -7,17 +7,9 @@
 <title>AuditDompet — Smart Family Finance Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
 <style>
 /* =========================================================
-   AUDITDOMPET - v8.0 SMART FAMILY EDITION
-   Basis v7.0 (TIDAK ADA YANG DIHAPUS) + Fitur Baru:
-   - Skor Kesehatan Keuangan
-   - Smart Category (saran kategori otomatis)
-   - Grafik Perbandingan Anggota
-   - Analisis diperkaya + alert anggaran
-   - Dark mode otomatis mengikuti sistem
-   - Dompet lama tanpa pemilik = milik Suami
+   AUDITDOMPET v9.1 - Smart Family Pro + Transfer Fix
 ========================================================= */
 :root {
     --primary: #7667d9; --primary-dark: #5e50c7; --primary-soft: #eeeaff;
@@ -52,14 +44,12 @@ body {
     background: radial-gradient(circle at 0% 0%, rgba(118,103,217,0.08), transparent 28%),
                 radial-gradient(circle at 100% 0%, rgba(66,184,131,0.06), transparent 25%), var(--bg);
     color: var(--text); min-height: 100vh; line-height: 1.5;
-    transition: background .3s ease, color .3s ease; padding-bottom: 80px;
+    transition: background .3s ease, color .3s ease; padding-bottom: 85px;
 }
-button, input, select { font: inherit; }
+button, input, select, textarea { font: inherit; }
 button { cursor: pointer; }
 .hidden { display: none !important; }
 .container { width: min(1180px, calc(100% - 32px)); margin: 0 auto; padding: 24px 0 20px; }
-
-/* PIN Lock Screen */
 .pin-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
 .pin-box { max-width: 320px; width: 100%; }
 .pin-logo { font-size: 48px; margin-bottom: 16px; }
@@ -68,30 +58,19 @@ button { cursor: pointer; }
 .pin-input { width: 100%; text-align: center; font-size: 24px; letter-spacing: 12px; font-weight: 700; padding: 16px; border: 2px solid var(--border); border-radius: 16px; background: var(--surface); color: var(--text); outline: none; transition: border .2s; }
 .pin-input:focus { border-color: var(--primary); }
 .pin-input.shake { animation: shake 0.5s; }
-@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+@keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
 .pin-error { color: var(--danger); font-size: 12px; margin-top: 12px; min-height: 18px; }
 .pin-forgot { margin-top: 20px; font-size: 12px; color: var(--text-light); cursor: pointer; text-decoration: underline; }
-
-/* Login */
 .login-container { max-width: 440px; margin: 8vh auto; animation: fadeIn .4s ease; }
 .login-card { background: var(--surface); border: 1px solid var(--border); border-radius: 26px; box-shadow: var(--shadow); padding: 34px; }
 .login-logo { text-align: center; margin-bottom: 26px; }
 .logo-circle { width: 68px; height: 68px; margin: 0 auto 14px; border-radius: 22px; display: flex; align-items: center; justify-content: center; font-size: 31px; background: linear-gradient(135deg, #8b7de8, #6a9de8); box-shadow: 0 12px 28px rgba(118,103,217,.24); }
 .login-logo h1 { font-size: 27px; letter-spacing: -0.5px; }
 .login-logo p { color: var(--text-soft); font-size: 14px; margin-top: 4px; }
-
-/* Forms */
 .form-group { margin-bottom: 16px; }
 .form-group label { display: block; color: var(--text-soft); font-size: 13px; font-weight: 650; margin-bottom: 7px; }
 .form-group input, .form-group select, .filter-control { width: 100%; min-height: 45px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--text); padding: 11px 13px; outline: none; transition: border .2s, box-shadow .2s; }
 .form-group input:focus, .form-group select:focus, .filter-control:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(118,103,217,.10); }
-
-/* BARU v8: Smart category suggestion */
-.category-suggestion { display: flex; align-items: center; gap: 8px; margin: -8px 0 16px; padding: 8px 12px; background: var(--blue-soft); border-radius: 10px; font-size: 12px; color: var(--blue); }
-.category-suggestion button { border: 0; background: var(--blue); color: white; border-radius: 8px; padding: 4px 10px; font-size: 11px; font-weight: 700; cursor: pointer; }
-.category-suggestion button:hover { background: var(--primary); }
-
-/* Buttons */
 .btn { min-height: 43px; border: 0; border-radius: 12px; padding: 10px 16px; font-weight: 650; transition: transform .15s, box-shadow .2s, background .2s; }
 .btn:hover { transform: translateY(-1px); }
 .btn:active { transform: translateY(1px); }
@@ -101,31 +80,23 @@ button { cursor: pointer; }
 .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
 .btn-danger { background: var(--expense); color: white; }
 .btn-success { background: var(--success); color: white; }
-.btn-warning { background: var(--warning); color: white; }
 .btn-sm { min-height: 36px; padding: 7px 11px; font-size: 12px; }
 .btn-full { width: 100%; }
-
-/* Alerts & Toast */
 .alert { padding: 12px 14px; border-radius: 12px; margin-bottom: 16px; font-size: 13px; }
 .alert-error { background: var(--expense-soft); color: #a94e61; border: 1px solid rgba(237,113,132,.22); }
 .alert-success { background: var(--income-soft); color: #287c5a; border: 1px solid rgba(66,184,131,.22); }
 .alert-info { background: var(--blue-soft); color: #4d73a8; border: 1px solid rgba(93,156,236,.22); }
-.toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; box-shadow: var(--shadow-hover); font-size: 13px; font-weight: 600; z-index: 10000; opacity: 0; transition: all .3s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; align-items: center; gap: 12px; max-width: 90%; }
+.toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; box-shadow: var(--shadow-hover); font-size: 13px; font-weight: 600; z-index: 10000; opacity: 0; transition: all .3s cubic-bezier(0.175,0.885,0.32,1.275); display: flex; align-items: center; gap: 12px; max-width: 90%; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 .toast-action { background: var(--primary); color: white; border: 0; padding: 6px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; white-space: nowrap; font-size: 12px; }
-.toast-action:hover { background: var(--primary-dark); }
 .toast-countdown { font-size: 11px; color: var(--text-light); margin-left: 4px; }
-
-/* Header */
-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 24px; }
+header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 20px; }
 .brand { display: flex; align-items: center; gap: 12px; }
 .brand-icon { width: 48px; height: 48px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 23px; background: linear-gradient(135deg, #8173df, #75a0e3); box-shadow: 0 8px 20px rgba(118,103,217,.18); }
 .brand h1 { font-size: 21px; letter-spacing: -0.3px; }
 .brand p { font-size: 12px; color: var(--text-soft); }
 .header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .user-pill { display: flex; align-items: center; gap: 7px; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 7px 12px; font-size: 12px; color: var(--text-soft); }
-
-/* Balance Card */
 .balance-card { position: relative; overflow: hidden; border-radius: 25px; padding: 27px; color: white; background: linear-gradient(135deg, #7567d5 0%, #7e78db 45%, #6b9bdd 100%); box-shadow: 0 15px 38px rgba(106,92,190,.20); margin-bottom: 20px; transition: transform .3s ease; }
 .balance-card:hover { transform: translateY(-2px); }
 .balance-card::before { content: ""; position: absolute; width: 220px; height: 220px; border-radius: 50%; background: rgba(255,255,255,.07); top: -110px; right: -60px; }
@@ -143,8 +114,6 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 .balance-mini strong { display: block; margin-top: 3px; font-size: 15px; }
 .balance-mini.income strong { color: #c9f3dc; }
 .balance-mini.expense strong { color: #ffd3db; }
-
-/* BARU v8: Health Score */
 .health-badge { padding: 6px 12px; border-radius: 999px; font-size: 11px; font-weight: 700; background: var(--surface-2); color: var(--text-soft); }
 .health-score-row { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
 .health-score { font-size: 34px; font-weight: 800; min-width: 60px; }
@@ -155,8 +124,8 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 .health-part-label { font-size: 10px; color: var(--text-light); margin-bottom: 5px; display: flex; justify-content: space-between; }
 .health-part-bar { height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
 .health-part-fill { height: 100%; border-radius: inherit; transition: width .6s; }
-
-/* Period Selector */
+.networth-value { font-size: 30px; font-weight: 800; color: var(--primary); }
+.networth-breakdown { font-size: 12px; color: var(--text-soft); margin-top: 6px; }
 .period-selector { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 14px; margin-bottom: 20px; box-shadow: var(--shadow); }
 .period-selector-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px; }
 .period-selector-title { font-size: 14px; font-weight: 700; color: var(--text); }
@@ -165,24 +134,12 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 .period-quick-btn:hover { border-color: var(--primary); color: var(--primary); }
 .period-quick-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
 .period-custom { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-
-/* Owner Summary */
 .owner-summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 14px; }
 .owner-summary-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 12px; border-top: 3px solid var(--owner-color, var(--primary)); }
 .owner-summary-name { font-size: 12px; font-weight: 700; display: flex; gap: 6px; align-items: center; color: var(--text); }
 .owner-summary-count { font-size: 10px; color: var(--text-light); margin: 2px 0 6px; }
 .owner-summary-total { font-size: 14px; font-weight: 720; color: var(--text); }
 .wallet-owner { display: inline-block; padding: 2px 8px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text-soft); font-size: 10px; font-weight: 600; margin-top: 6px; }
-
-/* Analysis items */
-.analysis-item { display: flex; gap: 10px; padding: 12px 14px; border-radius: 12px; background: var(--surface-2); border-left: 4px solid var(--primary); margin-bottom: 10px; font-size: 12.5px; color: var(--text); line-height: 1.6; }
-.analysis-item.good { border-left-color: var(--success); }
-.analysis-item.warn { border-left-color: var(--warning); }
-.analysis-item.danger { border-left-color: var(--danger); }
-.analysis-icon { font-size: 18px; flex: 0 0 auto; }
-.analysis-text b { font-weight: 700; }
-
-/* Wallet Cards */
 .wallets-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-bottom: 20px; }
 .wallet-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 16px; box-shadow: var(--shadow); transition: transform .2s, box-shadow .2s; position: relative; overflow: hidden; }
 .wallet-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
@@ -193,8 +150,6 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 .wallet-name { font-size: 12px; color: var(--text-soft); margin-bottom: 4px; }
 .wallet-balance { font-size: 18px; font-weight: 720; color: var(--text); }
 .wallet-type { display: inline-block; padding: 2px 8px; border-radius: 999px; background: var(--surface-2); color: var(--text-light); font-size: 10px; font-weight: 600; margin-top: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
-
-/* Stats */
 .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
 .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); transition: transform .2s, box-shadow .2s; }
 .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
@@ -205,22 +160,15 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 .stat-card.count .stat-icon { background: var(--blue-soft); }
 .stat-label { color: var(--text-soft); font-size: 12px; margin-top: 13px; }
 .stat-value { font-size: 19px; font-weight: 720; margin-top: 2px; }
-
-/* Cards */
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; margin-bottom: 20px; }
 .card-title { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
 .card-title h2 { font-size: 16px; }
 .card-title p { font-size: 12px; color: var(--text-soft); }
-.card-subtitle { font-size: 11px; color: var(--text-light); margin-top: 2px; }
-
-/* Type Selector */
 .type-selector { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 17px; }
 .type-option { border: 1px solid var(--border); border-radius: 12px; background: var(--surface); padding: 11px; text-align: center; color: var(--text-soft); font-size: 13px; font-weight: 650; cursor: pointer; transition: .2s; }
 .type-option.active.expense { background: var(--expense-soft); color: var(--expense); border-color: rgba(237,113,132,.30); }
 .type-option.active.income { background: var(--income-soft); color: var(--income); border-color: rgba(66,184,131,.30); }
 .type-option.active.transfer { background: var(--blue-soft); color: var(--blue); border-color: rgba(93,156,236,.30); }
-
-/* Profile Selector & Summary */
 .profile-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .profile-option { border: 2px solid var(--border); border-radius: 12px; background: var(--surface); padding: 12px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: .2s; }
 .profile-option:hover { border-color: var(--primary); }
@@ -243,16 +191,11 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 .profile-list-info { flex: 1; }
 .profile-list-name { font-weight: 700; font-size: 14px; }
 .profile-list-actions { display: flex; gap: 4px; }
-
-/* Filters */
 .filter-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
 .filter-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 15px; }
-.filter-dates { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
 .search-box { position: relative; }
 .search-box input { width: 100%; min-height: 42px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--text); padding: 10px 12px 10px 38px; outline: none; }
 .search-box span { position: absolute; left: 13px; top: 10px; }
-
-/* Transaction List */
 .expense-list { max-height: 520px; overflow-y: auto; padding-right: 3px; }
 .expense-list::-webkit-scrollbar { width: 5px; }
 .expense-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
@@ -280,8 +223,6 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 .transaction-actions { display: flex; justify-content: flex-end; gap: 2px; margin-top: 3px; }
 .icon-btn { border: 0; background: transparent; width: 27px; height: 27px; border-radius: 8px; color: var(--text-light); transition: .2s; display: flex; align-items: center; justify-content: center; }
 .icon-btn:hover { background: var(--primary-soft); color: var(--primary); }
-
-/* Split Transaction Items */
 .split-items-container { margin-bottom: 16px; }
 .split-item { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; margin-bottom: 8px; align-items: center; }
 .split-item input, .split-item select { min-height: 42px; }
@@ -290,33 +231,25 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 .split-total { padding: 12px; background: var(--primary-soft); border-radius: 12px; display: flex; justify-content: space-between; align-items: center; font-weight: 700; margin-bottom: 16px; }
 .split-total-label { color: var(--primary); font-size: 13px; }
 .split-total-value { color: var(--primary); font-size: 16px; }
-
-/* Photo Attachment */
 .attachment-container { margin-bottom: 16px; }
 .attachment-preview { position: relative; display: inline-block; margin-top: 8px; }
 .attachment-preview img { max-width: 200px; max-height: 200px; border-radius: 12px; border: 2px solid var(--border); object-fit: cover; }
-.attachment-remove { position: absolute; top: -8px; right: -8px; background: var(--expense); color: white; border: 0; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+.attachment-remove { position: absolute; top: -8px; right: -8px; background: var(--expense); color: white; border: 0; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; }
 .attachment-upload-btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 14px; background: var(--surface); border: 1px dashed var(--border); border-radius: 12px; color: var(--text-soft); cursor: pointer; transition: .2s; font-size: 13px; }
 .attachment-upload-btn:hover { border-color: var(--primary); color: var(--primary); }
-
-/* Charts */
 .chart-wrap { height: 280px; position: relative; margin-bottom: 15px; }
 .chart-empty { height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-light); font-size: 13px; }
-
-/* Budget & Progress */
 .budget-item { padding: 15px 0; border-bottom: 1px solid var(--border); }
 .budget-item:last-child { border-bottom: 0; }
 .budget-header { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; }
 .budget-name { font-weight: 680; }
 .budget-number { color: var(--text-soft); }
 .progress { height: 8px; background: var(--border); border-radius: 99px; overflow: hidden; margin: 8px 0 5px; }
-.progress-fill { height: 100%; border-radius: inherit; transition: width .6s cubic-bezier(0.4, 0, 0.2, 1); }
+.progress-fill { height: 100%; border-radius: inherit; transition: width .6s cubic-bezier(0.4,0,0.2,1); }
 .progress-safe { background: var(--success); }
 .progress-warning { background: var(--warning); }
 .progress-danger { background: var(--danger); }
 .budget-footer { display: flex; justify-content: space-between; color: var(--text-light); font-size: 10px; }
-
-/* Goals */
 .goal-item { padding: 15px; background: var(--surface-2); border-radius: 14px; margin-bottom: 12px; transition: transform .2s; }
 .goal-item:hover { transform: translateY(-1px); }
 .goal-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px; }
@@ -326,8 +259,6 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 .goal-actions { display: flex; gap: 6px; }
 .goal-actions button { border: 0; background: var(--primary-soft); color: var(--primary); padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 600; cursor: pointer; transition: .2s; }
 .goal-actions button:hover { background: var(--primary); color: white; }
-
-/* Debt Items */
 .debt-item { padding: 15px; background: var(--surface-2); border-radius: 14px; margin-bottom: 12px; border-left: 4px solid var(--warning); transition: transform .2s; }
 .debt-item.piutang { border-left-color: var(--income); }
 .debt-item:hover { transform: translateY(-1px); }
@@ -347,46 +278,38 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 .debt-btn-edit:hover { background: var(--primary); color: white; }
 .debt-btn-delete { background: var(--expense-soft); color: var(--expense); }
 .debt-btn-delete:hover { background: var(--expense); color: white; }
-
-/* Insights */
 .insight-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 15px; }
 .insight-card { background: var(--surface-2); border-radius: 12px; padding: 15px; border-left: 4px solid var(--primary); transition: transform .2s; }
 .insight-card:hover { transform: translateY(-1px); }
 .insight-label { font-size: 11px; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.5px; }
 .insight-value { font-size: 18px; font-weight: 720; margin-top: 5px; color: var(--text); }
-
-/* Empty State */
-.empty-state { padding: 35px 15px; text-align: center; color: var(--text-light); font-size: 13px; }
+.analysis-item { display: flex; gap: 10px; padding: 12px 14px; border-radius: 12px; background: var(--surface-2); border-left: 4px solid var(--primary); margin-bottom: 10px; font-size: 12.5px; color: var(--text); line-height: 1.6; }
+.analysis-item.good { border-left-color: var(--success); }
+.analysis-item.warn { border-left-color: var(--warning); }
+.analysis-item.danger { border-left-color: var(--danger); }
+.analysis-icon { font-size: 18px; flex: 0 0 auto; }
+.analysis-text b { font-weight: 700; }
+.empty-state { padding: 30px 15px; text-align: center; color: var(--text-light); font-size: 13px; }
 .empty-icon { font-size: 32px; margin-bottom: 7px; }
-
-/* Modal */
 .modal-overlay { position: fixed; inset: 0; background: rgba(20,20,35,.45); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 9999; opacity: 0; pointer-events: none; transition: opacity .2s ease; }
 .modal-overlay.active { opacity: 1; pointer-events: auto; }
-.modal { width: min(460px, 100%); background: var(--surface); border: 1px solid var(--border); border-radius: 22px; padding: 23px; box-shadow: 0 25px 70px rgba(0,0,0,.20); transform: translateY(10px) scale(.98); transition: transform .25s cubic-bezier(0.175, 0.885, 0.32, 1.275); max-height: 90vh; overflow-y: auto; }
+.modal { width: min(480px, 100%); background: var(--surface); border: 1px solid var(--border); border-radius: 22px; padding: 23px; box-shadow: 0 25px 70px rgba(0,0,0,.20); transform: translateY(10px) scale(.98); transition: transform .25s cubic-bezier(0.175,0.885,0.32,1.275); max-height: 90vh; overflow-y: auto; }
 .modal-overlay.active .modal { transform: translateY(0) scale(1); }
 .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
 .modal-header h3 { font-size: 17px; }
 .close-btn { border: 0; background: var(--surface-2); width: 34px; height: 34px; border-radius: 10px; color: var(--text-soft); font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-
-/* Bottom Nav */
-.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: stretch; height: 70px; z-index: 100; box-shadow: 0 -4px 20px rgba(54, 48, 98, 0.08); padding-bottom: env(safe-area-inset-bottom); }
+.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: stretch; height: 70px; z-index: 100; box-shadow: 0 -4px 20px rgba(54,48,98,0.08); padding-bottom: env(safe-area-inset-bottom); }
 .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: none; background: transparent; color: var(--text-light); cursor: pointer; font-size: 11px; font-weight: 600; transition: all .2s ease; position: relative; }
 .nav-item:hover { color: var(--text); }
 .nav-item.active { color: var(--primary); }
 .nav-item.active::after { content: ''; position: absolute; top: 0; left: 20%; right: 20%; height: 3px; background: var(--primary); border-radius: 0 0 4px 4px; }
 .nav-icon { font-size: 22px; }
-
-/* Tabs */
-.tab-section { display: none; opacity: 0; transform: translateY(10px); transition: opacity 0.3s ease, transform 0.3s ease; }
-.tab-section.active { display: block; animation: tabFadeIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+.tab-section { display: none; opacity: 0; transform: translateY(10px); }
+.tab-section.active { display: block; animation: tabFadeIn 0.35s cubic-bezier(0.175,0.885,0.32,1.275) forwards; }
 @keyframes tabFadeIn { to { opacity: 1; transform: translateY(0); } }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-/* Spinner */
 .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
-
-/* Responsive */
 @media (max-width: 900px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } .insight-grid { grid-template-columns: 1fr; } .filter-grid-4 { grid-template-columns: repeat(2, 1fr); } .profile-summary-grid { grid-template-columns: 1fr; } .health-parts { grid-template-columns: 1fr; } }
 @media (max-width: 650px) {
     .container { width: min(100% - 20px, 1180px); padding-top: 14px; }
@@ -398,7 +321,7 @@ header { display: flex; justify-content: space-between; align-items: center; gap
     .balance-value { font-size: 30px; }
     .balance-details { grid-template-columns: 1fr; }
     .stats-grid { grid-template-columns: 1fr; }
-    .filter-grid, .filter-dates, .period-custom, .filter-grid-4 { grid-template-columns: 1fr; }
+    .filter-grid, .filter-grid-4, .period-custom { grid-template-columns: 1fr; }
     .profile-selector { grid-template-columns: 1fr; }
     .card { padding: 16px; border-radius: 16px; }
     .transaction { gap: 9px; }
@@ -408,8 +331,6 @@ header { display: flex; justify-content: space-between; align-items: center; gap
     .wallets-grid { grid-template-columns: 1fr; }
     .type-selector { grid-template-columns: 1fr; }
 }
-
-/* Print */
 @media print {
     body { background: white !important; padding: 0 !important; color: black !important; }
     .bottom-nav, header, .btn, .icon-btn, .nav-item, .modal-overlay, .toast, .balance-actions, .transaction-actions { display: none !important; }
@@ -418,15 +339,13 @@ header { display: flex; justify-content: space-between; align-items: center; gap
     .balance-card { background: #f0f0f0 !important; color: black !important; }
     .balance-card * { color: black !important; }
     .tab-section { display: block !important; opacity: 1 !important; transform: none !important; page-break-inside: avoid; }
-    #tab-transaksi, #tab-tambah, #tab-anggaran, #tab-utang, #tab-settings { display: none !important; }
+    #tab-transaksi, #tab-tambah, #tab-anggaran, #tab-utang, #tab-analytics, #tab-settings { display: none !important; }
     .chart-wrap { height: 200px; }
 }
 </style>
 </head>
-
 <body>
 
-<!-- PIN LOCK OVERLAY -->
 <div id="pin-overlay" class="pin-overlay hidden">
     <div class="pin-box">
         <div class="pin-logo">🔒</div>
@@ -439,7 +358,6 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 </div>
 
 <div class="container">
-    <!-- LOGIN PANEL -->
     <div id="auth-panel" class="login-container hidden">
         <div class="login-card">
             <div class="login-logo">
@@ -449,14 +367,8 @@ header { display: flex; justify-content: space-between; align-items: center; gap
             </div>
             <div id="auth-alert"></div>
             <form id="auth-form">
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" placeholder="nama@email.com" autocomplete="email" required>
-                </div>
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" placeholder="Minimal 6 karakter" minlength="6" autocomplete="current-password" required>
-                </div>
+                <div class="form-group"><label for="email">Email</label><input type="email" id="email" placeholder="nama@email.com" autocomplete="email" required></div>
+                <div class="form-group"><label for="password">Password</label><input type="password" id="password" placeholder="Minimal 6 karakter" minlength="6" autocomplete="current-password" required></div>
                 <button type="submit" id="login-btn" class="btn btn-primary btn-full">Masuk</button>
             </form>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:9px;">
@@ -470,7 +382,6 @@ header { display: flex; justify-content: space-between; align-items: center; gap
         </div>
     </div>
 
-    <!-- DASHBOARD -->
     <div id="dashboard" class="hidden">
         <header>
             <div class="brand">
@@ -485,8 +396,9 @@ header { display: flex; justify-content: space-between; align-items: center; gap
             </div>
         </header>
 
-        <!-- OVERVIEW TAB -->
+        <!-- OVERVIEW -->
         <div id="tab-overview" class="tab-section active">
+            <div id="greeting-bar" class="alert alert-info"></div>
             <div class="period-selector">
                 <div class="period-selector-header">
                     <div class="period-selector-title">📅 Periode Laporan</div>
@@ -505,7 +417,15 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 
             <div id="profile-summary-grid" class="profile-summary-grid"></div>
 
-            <!-- BARU v8: Skor Kesehatan Keuangan -->
+            <div class="card">
+                <div class="card-title">
+                    <div><h2>🏦 Kekayaan Bersih</h2><p>Total aset dompet + piutang − utang</p></div>
+                    <div id="streak-badge" class="health-badge">-</div>
+                </div>
+                <div class="networth-value">Rp <span id="net-worth">0</span></div>
+                <div id="net-worth-breakdown" class="networth-breakdown"></div>
+            </div>
+
             <div class="card">
                 <div class="card-title">
                     <div><h2>🩺 Skor Kesehatan Keuangan</h2><p>Analisis cepat kondisi keuangan keluarga</p></div>
@@ -520,13 +440,18 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 
             <div class="card">
                 <div class="card-title">
-                    <div><h2>💳 Dompet Keluarga</h2><p>Saldo per pemilik: Suami, Istri, dan Gabungan</p></div>
+                    <div><h2>⏰ Pengingat & Tagihan</h2><p>Jatuh tempo & transaksi berulang belum tercatat</p></div>
+                </div>
+                <div id="reminders-list"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    <div><h2>💳 Dompet Keluarga</h2><p>Saldo per pemilik: Suami, Istri, Gabungan</p></div>
                     <button id="add-wallet-btn" class="btn btn-primary btn-sm">+ Tambah</button>
                 </div>
                 <div id="wallet-owner-summary" class="owner-summary-grid"></div>
-                <div id="wallets-grid" class="wallets-grid">
-                    <div class="empty-state"><div class="empty-icon">💳</div>Belum ada dompet.</div>
-                </div>
+                <div id="wallets-grid" class="wallets-grid"><div class="empty-state"><div class="empty-icon">💳</div>Belum ada dompet.</div></div>
             </div>
 
             <section class="balance-card">
@@ -536,9 +461,7 @@ header { display: flex; justify-content: space-between; align-items: center; gap
                             <div class="balance-label">Total Saldo (Semua Dompet)</div>
                             <div class="balance-value">Rp <span id="balance-amount">0</span></div>
                         </div>
-                        <div class="balance-actions">
-                            <button id="toggle-balance" class="balance-icon-btn" title="Sembunyikan saldo">👁️</button>
-                        </div>
+                        <div class="balance-actions"><button id="toggle-balance" class="balance-icon-btn" title="Sembunyikan saldo">👁️</button></div>
                     </div>
                     <div class="balance-details">
                         <div class="balance-mini income"><span>Pemasukan Periode</span><strong>+ Rp <span id="total-income">0</span></strong></div>
@@ -554,9 +477,7 @@ header { display: flex; justify-content: space-between; align-items: center; gap
             </section>
 
             <div class="card">
-                <div class="card-title">
-                    <div><h2>📊 Ringkasan Periode</h2><p id="period-label">Bulan ini</p></div>
-                </div>
+                <div class="card-title"><div><h2>📊 Ringkasan Periode</h2><p id="period-label">Bulan ini</p></div></div>
                 <div class="insight-grid">
                     <div class="insight-card"><div class="insight-label">Savings Rate</div><div class="insight-value" id="savings-rate">0%</div></div>
                     <div class="insight-card" style="border-left-color: var(--income);"><div class="insight-label">Rata-rata Harian</div><div class="insight-value" id="daily-avg">Rp 0</div></div>
@@ -565,9 +486,7 @@ header { display: flex; justify-content: space-between; align-items: center; gap
             </div>
 
             <div class="card">
-                <div class="card-title">
-                    <div><h2>📊 Pengeluaran per Kategori</h2><p>Distribusi pengeluaran periode ini</p></div>
-                </div>
+                <div class="card-title"><div><h2>📊 Pengeluaran per Kategori</h2><p>Distribusi pengeluaran periode ini</p></div></div>
                 <div class="chart-wrap">
                     <canvas id="category-chart"></canvas>
                     <div id="chart-empty" class="chart-empty hidden">Belum ada data pengeluaran.</div>
@@ -575,20 +494,15 @@ header { display: flex; justify-content: space-between; align-items: center; gap
             </div>
         </div>
 
-        <!-- TRANSAKSI TAB -->
+        <!-- TRANSAKSI -->
         <div id="tab-transaksi" class="tab-section">
             <div class="card">
-                <div class="card-title">
-                    <div><h2>💳 Riwayat Transaksi</h2><p>Cari dan kelola transaksi</p></div>
-                </div>
+                <div class="card-title"><div><h2>💳 Riwayat Transaksi</h2><p>Cari dan kelola transaksi</p></div></div>
                 <div class="filter-grid">
                     <div class="search-box"><span>🔎</span><input type="text" id="search-input" placeholder="Cari transaksi..."></div>
                     <select id="filter-category" class="filter-control"><option value="">Semua Kategori</option></select>
                     <select id="filter-type" class="filter-control">
-                        <option value="">Semua Tipe</option>
-                        <option value="income">Pemasukan</option>
-                        <option value="expense">Pengeluaran</option>
-                        <option value="transfer">Transfer</option>
+                        <option value="">Semua Tipe</option><option value="income">Pemasukan</option><option value="expense">Pengeluaran</option><option value="transfer">Transfer</option>
                     </select>
                 </div>
                 <div class="filter-grid-4">
@@ -600,26 +514,24 @@ header { display: flex; justify-content: space-between; align-items: center; gap
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; color:var(--text-light); font-size:11px;">
                     <span>Menampilkan <strong id="count-trans-filter">0</strong> transaksi</span>
                     <select id="sort-by" class="filter-control" style="width:auto; min-height:34px; padding:5px 9px;">
-                        <option value="date-desc">Terbaru</option>
-                        <option value="date-asc">Terlama</option>
-                        <option value="amount-desc">Terbesar</option>
-                        <option value="amount-asc">Terkecil</option>
+                        <option value="date-desc">Terbaru</option><option value="date-asc">Terlama</option><option value="amount-desc">Terbesar</option><option value="amount-asc">Terkecil</option>
                     </select>
                 </div>
-                <div id="expense-list" class="expense-list">
-                    <div class="empty-state"><div class="empty-icon">⏳</div>Memuat transaksi...</div>
-                </div>
+                <div id="expense-list" class="expense-list"><div class="empty-state"><div class="empty-icon">⏳</div>Memuat transaksi...</div></div>
             </div>
         </div>
 
-        <!-- TAMBAH TAB -->
+        <!-- TAMBAH -->
         <div id="tab-tambah" class="tab-section">
             <div class="card">
-                <div class="card-title">
-                    <div><h2 id="form-title">Tambah Transaksi</h2><p>Catat pemasukan, pengeluaran, atau transfer</p></div>
-                </div>
+                <div class="card-title"><div><h2 id="form-title">Tambah Transaksi</h2><p>Catat pemasukan, pengeluaran, atau transfer</p></div></div>
                 <form id="expense-form">
                     <input type="hidden" id="edit-id">
+                    <!-- BARU v9: isi cepat -->
+                    <div id="quick-add-container" class="hidden" style="margin-bottom:14px;">
+                        <label style="display:block; color:var(--text-soft); font-size:13px; font-weight:650; margin-bottom:7px;">⚡ Isi Cepat (transaksi sering)</label>
+                        <div id="quick-add-chips" class="period-quick-btns"></div>
+                    </div>
                     <div class="form-group">
                         <label>Siapa yang bertransaksi?</label>
                         <div id="profile-selector" class="profile-selector"></div>
@@ -630,16 +542,8 @@ header { display: flex; justify-content: space-between; align-items: center; gap
                         <div class="type-option transfer" data-type="transfer" id="transfer-type-btn">🔵 Transfer</div>
                     </div>
                     <input type="hidden" id="type" value="expense">
-                    <div class="form-group">
-                        <label for="description">Deskripsi</label>
-                        <input type="text" id="description" placeholder="Contoh: Belanja supermarket" maxlength="120" required>
-                    </div>
-                    <!-- BARU v8: saran kategori otomatis -->
-                    <div id="category-suggestion" class="category-suggestion hidden">💡 Saran kategori: <b></b><button type="button" id="apply-suggestion">Pakai</button></div>
-                    <div class="form-group">
-                        <label for="date">Tanggal</label>
-                        <input type="date" id="date" required>
-                    </div>
+                    <div class="form-group"><label for="description">Deskripsi</label><input type="text" id="description" placeholder="Contoh: Belanja supermarket" maxlength="120" required></div>
+                    <div class="form-group"><label for="date">Tanggal</label><input type="date" id="date" required></div>
                     <div id="wallet-select-container">
                         <div class="form-group" id="from-wallet-group">
                             <label id="wallet-label">Dari Dompet</label>
@@ -650,13 +554,15 @@ header { display: flex; justify-content: space-between; align-items: center; gap
                             <select id="to-wallet"></select>
                         </div>
                     </div>
+                    <!-- FIX v9.1: kolom jumlah transfer -->
+                    <div class="form-group hidden" id="transfer-amount-group">
+                        <label for="transfer-amount">Jumlah Transfer (Rp)</label>
+                        <input type="number" id="transfer-amount" min="0" step="any" inputmode="decimal" placeholder="Contoh: 100000">
+                    </div>
                     <div class="form-group">
                         <label for="recurring">Tipe Transaksi</label>
                         <select id="recurring" required>
-                            <option value="once">Sekali Saja</option>
-                            <option value="daily">Harian (Berulang)</option>
-                            <option value="weekly">Mingguan (Berulang)</option>
-                            <option value="monthly">Bulanan (Berulang)</option>
+                            <option value="once">Sekali Saja</option><option value="daily">Harian (Berulang)</option><option value="weekly">Mingguan (Berulang)</option><option value="monthly">Bulanan (Berulang)</option>
                         </select>
                     </div>
                     <div class="form-group" id="split-container-group">
@@ -664,7 +570,7 @@ header { display: flex; justify-content: space-between; align-items: center; gap
                         <div id="split-items-container" class="split-items-container"></div>
                         <button type="button" id="add-split-item-btn" class="btn btn-secondary btn-sm" style="width:100%;">+ Tambah Kategori Lain</button>
                     </div>
-                    <div class="split-total">
+                    <div class="split-total" id="split-total-row">
                         <span class="split-total-label">Total</span>
                         <span class="split-total-value">Rp <span id="split-total-amount">0</span></span>
                     </div>
@@ -681,31 +587,22 @@ header { display: flex; justify-content: space-between; align-items: center; gap
             </div>
         </div>
 
-        <!-- ANGGARAN TAB -->
+        <!-- ANGGARAN -->
         <div id="tab-anggaran" class="tab-section">
             <div class="card">
-                <div class="card-title">
-                    <div><h2>🎁 Target Tabungan</h2><p>Pantau target tabungan Anda</p></div>
-                    <button id="add-goal-btn" class="btn btn-primary btn-sm">+ Tambah</button>
-                </div>
+                <div class="card-title"><div><h2>🎁 Target Tabungan</h2><p>Pantau target tabungan Anda</p></div><button id="add-goal-btn" class="btn btn-primary btn-sm">+ Tambah</button></div>
                 <div id="goals-list"><div class="empty-state"><div class="empty-icon">🎁</div>Belum ada target tabungan.</div></div>
             </div>
             <div class="card">
-                <div class="card-title">
-                    <div><h2>🎯 Anggaran Bulanan</h2><p>Pantau batas pengeluaran</p></div>
-                    <button id="set-budget-btn" class="btn btn-primary btn-sm">+ Atur</button>
-                </div>
+                <div class="card-title"><div><h2>🎯 Anggaran Bulanan</h2><p>Pantau batas pengeluaran</p></div><button id="set-budget-btn" class="btn btn-primary btn-sm">+ Atur</button></div>
                 <div id="budget-list"><div class="empty-state"><div class="empty-icon">🎯</div>Belum ada anggaran.</div></div>
             </div>
         </div>
 
-        <!-- UTANG TAB -->
+        <!-- UTANG -->
         <div id="tab-utang" class="tab-section">
             <div class="card">
-                <div class="card-title">
-                    <div><h2>💸 Utang & Piutang</h2><p>Pantau kasbon dan tagihan</p></div>
-                    <button id="add-debt-btn" class="btn btn-primary btn-sm">+ Tambah</button>
-                </div>
+                <div class="card-title"><div><h2>💸 Utang & Piutang</h2><p>Pantau kasbon dan tagihan</p></div><button id="add-debt-btn" class="btn btn-primary btn-sm">+ Tambah</button></div>
                 <div class="insight-grid" style="margin-bottom: 15px;">
                     <div class="insight-card" style="border-left-color: var(--expense);"><div class="insight-label">Total Utang Saya</div><div class="insight-value" id="total-utang">Rp 0</div></div>
                     <div class="insight-card" style="border-left-color: var(--income);"><div class="insight-label">Total Piutang</div><div class="insight-value" id="total-piutang">Rp 0</div></div>
@@ -714,12 +611,10 @@ header { display: flex; justify-content: space-between; align-items: center; gap
             </div>
         </div>
 
-        <!-- ANALYTICS TAB -->
+        <!-- ANALYTICS -->
         <div id="tab-analytics" class="tab-section">
             <div class="card">
-                <div class="card-title">
-                    <div><h2>📈 Analytics & Insights</h2><p id="analytics-period-label">-</p></div>
-                </div>
+                <div class="card-title"><div><h2>📈 Analytics & Insights</h2><p id="analytics-period-label">-</p></div></div>
                 <div style="margin-bottom: 14px;">
                     <div class="period-quick-btns" id="analytics-period-btns">
                         <button class="period-quick-btn" data-ap="today">Hari Ini</button>
@@ -739,7 +634,6 @@ header { display: flex; justify-content: space-between; align-items: center; gap
                     <div class="insight-card" style="border-left-color: var(--warning);"><div class="insight-label">Rata-rata Transaksi</div><div class="insight-value" id="avg-transaction">Rp 0</div></div>
                 </div>
                 <div class="chart-wrap"><canvas id="analytics-chart"></canvas></div>
-                <!-- BARU v8: perbandingan anggota -->
                 <div style="font-weight: 680; font-size: 13px; margin: 16px 0 8px;">👥 Perbandingan Pemasukan vs Pengeluaran per Anggota</div>
                 <div class="chart-wrap"><canvas id="profile-comparison-chart"></canvas></div>
                 <div style="margin-top: 20px; padding: 15px; background: var(--income-soft); border-radius: 12px;">
@@ -748,60 +642,50 @@ header { display: flex; justify-content: space-between; align-items: center; gap
                 </div>
             </div>
             <div class="card">
-                <div class="card-title">
-                    <div><h2>🤖 Analisis & Saran Cerdas</h2><p>Saran otomatis berdasarkan data periode terpilih</p></div>
-                </div>
+                <div class="card-title"><div><h2>🤖 Analisis & Saran Cerdas</h2><p>Saran otomatis berdasarkan data periode terpilih</p></div></div>
                 <div id="smart-analysis-list"></div>
             </div>
         </div>
 
-        <!-- SETTINGS TAB -->
+        <!-- SETTINGS -->
         <div id="tab-settings" class="tab-section">
             <div class="card">
-                <div class="card-title">
-                    <div><h2>⚙️ Pengaturan</h2><p>Kelola preferensi aplikasi</p></div>
-                </div>
-                <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div class="card-title"><div><h2>⚙️ Pengaturan</h2><p>Kelola aplikasi</p></div></div>
+                <div style="display:flex; flex-direction:column; gap:12px;">
                     <div style="padding: 15px; background: var(--pink-soft); border-radius: 12px;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                            <div>
-                                <div style="font-weight: 650; font-size: 13px;">👨‍‍ Anggota Keluarga</div>
-                                <div style="font-size: 12px; color: var(--text-soft); margin-top: 3px;">Edit nama, emoji, dan warna profil</div>
-                            </div>
+                            <div><div style="font-weight: 650; font-size: 13px;">👨‍👩‍👧 Anggota Keluarga</div><div style="font-size: 12px; color: var(--text-soft); margin-top: 3px;">Edit nama, emoji, dan warna profil</div></div>
                             <button id="add-profile-btn" class="btn btn-primary btn-sm">+ Tambah</button>
                         </div>
                         <div id="profile-list-settings"></div>
                     </div>
                     <div style="padding: 15px; background: var(--primary-soft); border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
                         <div><div style="font-weight: 650; font-size: 13px;">Mode Gelap</div><div style="font-size: 12px; color: var(--text-soft); margin-top: 3px;">Ganti tema tampilan</div></div>
-                        <button id="dark-toggle-settings" class="balance-icon-btn" style="color:var(--primary); border:1px solid var(--primary);" title="Toggle Dark Mode">🌙</button>
+                        <button id="dark-toggle-settings" class="btn btn-secondary btn-sm">🌙</button>
                     </div>
                     <div style="padding: 15px; background: var(--yellow-soft); border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
                         <div><div style="font-weight: 650; font-size: 13px;">Kunci Aplikasi (PIN)</div><div style="font-size: 12px; color: var(--text-soft); margin-top: 3px;">Keamanan ekstra (PIN di-hash SHA-256)</div></div>
-                        <button id="setup-pin-btn" class="balance-icon-btn" style="color:var(--warning); border:1px solid var(--warning);" title="Setup PIN">🔒</button>
+                        <button id="setup-pin-btn" class="balance-icon-btn" style="color:var(--warning); border:1px solid var(--warning); background:var(--surface);" title="Setup PIN">🔒</button>
                     </div>
                     <div style="padding: 15px; background: var(--cyan-soft); border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
                         <div><div style="font-weight: 650; font-size: 13px;">Proses Transaksi Berulang</div><div style="font-size: 12px; color: var(--text-soft); margin-top: 3px;">Generate transaksi bulan ini</div></div>
-                        <button id="process-recurring-btn" class="balance-icon-btn" style="color:var(--cyan); border:1px solid var(--cyan);" title="Proses">🔄</button>
+                        <button id="process-recurring-btn" class="balance-icon-btn" style="color:var(--cyan); border:1px solid var(--cyan); background:var(--surface);" title="Proses">🔄</button>
                     </div>
                     <div style="padding: 15px; background: var(--income-soft); border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
                         <div><div style="font-weight: 650; font-size: 13px;">Backup & Restore</div><div style="font-size: 12px; color: var(--text-soft); margin-top: 3px;">Cadangkan data JSON</div></div>
                         <div style="display:flex; gap:6px;">
-                            <button id="backup-btn" class="balance-icon-btn" style="color:var(--success); border:1px solid var(--success);" title="Backup">💾</button>
-                            <button id="restore-btn" class="balance-icon-btn" style="color:var(--success); border:1px solid var(--success);" title="Restore">📂</button>
+                            <button id="backup-btn" class="balance-icon-btn" style="color:var(--success); border:1px solid var(--success); background:var(--surface);" title="Backup">💾</button>
+                            <button id="restore-btn" class="balance-icon-btn" style="color:var(--success); border:1px solid var(--success); background:var(--surface);" title="Restore">📂</button>
                         </div>
                     </div>
-                    <button id="logout-btn" class="btn btn-danger btn-full" style="margin-top: 10px;">🚪 Keluar</button>
+                    <button id="logout-btn" class="btn btn-danger btn-full">🚪 Keluar</button>
                 </div>
             </div>
         </div>
-        <div style="text-align: center; color: var(--text-light); font-size: 11px; margin-top: 15px;">
-            AuditDompet • v8.0 (Smart Family Edition)
-        </div>
+        <div style="text-align: center; color: var(--text-light); font-size: 11px; margin-top: 15px;">AuditDompet • v9.1 (Smart Family Pro + Transfer Fix)</div>
     </div>
 </div>
 
-<!-- BOTTOM NAVIGATION -->
 <nav id="bottom-nav" class="bottom-nav hidden">
     <button class="nav-item active" data-tab="overview"><div class="nav-icon">📊</div><div>Overview</div></button>
     <button class="nav-item" data-tab="transaksi"><div class="nav-icon">💳</div><div>Transaksi</div></button>
@@ -813,154 +697,21 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 </nav>
 
 <!-- MODALS -->
-<div id="delete-modal" class="modal-overlay">
-    <div class="modal">
-        <div class="modal-header"><h3>🗑️ Hapus Transaksi</h3><button class="close-modal close-btn" data-target="delete-modal">×</button></div>
-        <p style="color:var(--text-soft); font-size:13px;">Yakin ingin menghapus transaksi ini? Anda punya 5 detik untuk membatalkan.</p>
-        <div style="display:flex; gap:8px; margin-top:20px;">
-            <button id="confirm-delete" class="btn btn-danger">Ya, Hapus</button>
-            <button class="close-modal btn btn-secondary" data-target="delete-modal">Batal</button>
-        </div>
-    </div>
-</div>
-
-<div id="budget-modal" class="modal-overlay">
-    <div class="modal">
-        <div class="modal-header"><h3>🎯 Atur Anggaran</h3><button class="close-modal close-btn" data-target="budget-modal">×</button></div>
-        <div class="form-group"><label>Kategori</label><select id="budget-category"></select></div>
-        <div class="form-group"><label>Anggaran Bulanan (Rp)</label><input type="number" id="budget-amount" min="0" step="any" inputmode="decimal" placeholder="2000000"></div>
-        <button id="save-budget" class="btn btn-primary btn-full">💾 Simpan</button>
-    </div>
-</div>
-
-<div id="category-modal" class="modal-overlay">
-    <div class="modal">
-        <div class="modal-header"><h3>🏷️ Tambah Kategori</h3><button class="close-modal close-btn" data-target="category-modal">×</button></div>
-        <div class="form-group"><label>Nama Kategori</label><input type="text" id="new-category-name" placeholder="Contoh: Pendidikan" maxlength="40"></div>
-        <div class="form-group"><label>Emoji</label><input type="text" id="new-category-emoji" placeholder="📚" maxlength="4"></div>
-        <button id="save-category" class="btn btn-primary btn-full">💾 Simpan</button>
-    </div>
-</div>
-
-<div id="goal-modal" class="modal-overlay">
-    <div class="modal">
-        <div class="modal-header"><h3>🎁 Tambah Target</h3><button class="close-modal close-btn" data-target="goal-modal">×</button></div>
-        <div class="form-group"><label>Nama Target</label><input type="text" id="goal-name" placeholder="Liburan Bali" maxlength="50" required></div>
-        <div class="form-group"><label>Target (Rp)</label><input type="number" id="goal-amount" min="0" step="any" inputmode="decimal" placeholder="5000000" required></div>
-        <div class="form-group"><label>Deadline</label><input type="date" id="goal-deadline" required></div>
-        <button id="save-goal" class="btn btn-primary btn-full">💾 Simpan</button>
-    </div>
-</div>
-
-<div id="pin-setup-modal" class="modal-overlay">
-    <div class="modal">
-        <div class="modal-header"><h3>🔒 Atur PIN Keamanan</h3><button class="close-modal close-btn" data-target="pin-setup-modal">×</button></div>
-        <p style="font-size:13px; color:var(--text-soft); margin-bottom:15px;">PIN akan di-hash dengan SHA-256 untuk keamanan.</p>
-        <div class="form-group"><label>PIN (4 Digit)</label><input type="password" id="new-pin-input" maxlength="4" inputmode="numeric" style="text-align:center; letter-spacing:8px; font-size:20px;"></div>
-        <button id="save-pin-btn" class="btn btn-primary btn-full">Aktifkan PIN</button>
-        <button id="disable-pin-btn" class="btn btn-secondary btn-full" style="margin-top:8px;">Nonaktifkan PIN</button>
-    </div>
-</div>
-
-<div id="photo-view-modal" class="modal-overlay">
-    <div class="modal" style="max-width: 600px;">
-        <div class="modal-header"><h3>📷 Lampiran</h3><button class="close-modal close-btn" data-target="photo-view-modal">×</button></div>
-        <img id="photo-view-img" src="" style="width:100%; border-radius:12px;">
-    </div>
-</div>
-
-<div id="wallet-modal" class="modal-overlay">
-    <div class="modal">
-        <div class="modal-header"><h3>💳 Tambah Dompet</h3><button class="close-modal close-btn" data-target="wallet-modal">×</button></div>
-        <div class="form-group"><label>Nama Dompet</label><input type="text" id="wallet-name" placeholder="Contoh: BCA, GoPay, Tunai" maxlength="30" required></div>
-        <div class="form-group"><label>Pemilik Dompet</label><select id="wallet-owner"></select></div>
-        <div class="form-group">
-            <label>Tipe Dompet</label>
-            <select id="wallet-type">
-                <option value="cash">💵 Uang Tunai</option>
-                <option value="bank">🏦 Bank</option>
-                <option value="ewallet">📱 E-Wallet</option>
-                <option value="investment">📈 Investasi</option>
-                <option value="other">📦 Lainnya</option>
-            </select>
-        </div>
-        <div class="form-group"><label>Saldo Awal (Rp)</label><input type="number" id="wallet-balance" min="0" step="any" inputmode="decimal" placeholder="0"></div>
-        <div class="form-group">
-            <label>Ikon</label>
-            <select id="wallet-icon">
-                <option value="💵">💵 Uang Tunai</option>
-                <option value="🏦">🏦 Bank</option>
-                <option value="💳">💳 Kartu</option>
-                <option value="📱"> HP</option>
-                <option value="🐷">🐷 Celengan</option>
-                <option value="💰">💰 Uang</option>
-                <option value="📈">📈 Investasi</option>
-                <option value="🎁"> Hadiah</option>
-            </select>
-        </div>
-        <div class="form-group"><label>Warna</label><input type="color" id="wallet-color" value="#7667d9" style="height: 50px; cursor: pointer;"></div>
-        <button id="save-wallet" class="btn btn-primary btn-full">💾 Simpan Dompet</button>
-    </div>
-</div>
-
-<div id="debt-modal" class="modal-overlay">
-    <div class="modal">
-        <div class="modal-header"><h3 id="debt-modal-title">💸 Tambah Utang/Piutang</h3><button class="close-modal close-btn" data-target="debt-modal">×</button></div>
-        <input type="hidden" id="edit-debt-id">
-        <div class="form-group">
-            <label>Tipe</label>
-            <select id="debt-type">
-                <option value="utang">Utang (Saya pinjam)</option>
-                <option value="piutang">Piutang (Orang pinjam dari saya)</option>
-            </select>
-        </div>
-        <div class="form-group"><label>Nama Orang</label><input type="text" id="debt-person" placeholder="Contoh: Budi" maxlength="50" required></div>
-        <div class="form-group"><label>Jumlah (Rp)</label><input type="number" id="debt-amount" min="0" step="any" inputmode="decimal" placeholder="50000" required></div>
-        <div class="form-group"><label>Tanggal Pinjam</label><input type="date" id="debt-date" required></div>
-        <div class="form-group"><label>Jatuh Tempo (Opsional)</label><input type="date" id="debt-due-date"></div>
-        <div class="form-group"><label>Catatan (Opsional)</label><input type="text" id="debt-note" placeholder="Contoh: Pinjam untuk makan" maxlength="100"></div>
-        <button id="save-debt" class="btn btn-primary btn-full">💾 Simpan</button>
-    </div>
-</div>
-
-<div id="profile-modal" class="modal-overlay">
-    <div class="modal">
-        <div class="modal-header"><h3 id="profile-modal-title">👤 Tambah Anggota</h3><button class="close-modal close-btn" data-target="profile-modal">×</button></div>
-        <input type="hidden" id="edit-profile-id">
-        <div class="form-group"><label>Nama</label><input type="text" id="profile-name" placeholder="Contoh: Suami, Istri, Anak" maxlength="30" required></div>
-        <div class="form-group">
-            <label>Emoji / Avatar</label>
-            <select id="profile-emoji">
-                <option value="👨"> Pria</option>
-                <option value="👩"> Wanita</option>
-                <option value="👦">👦 Anak Laki</option>
-                <option value="👧">👧 Anak Perempuan</option>
-                <option value="🧑"> Orang</option>
-                <option value="👴">👴 Kakek</option>
-                <option value="👵"> Nenek</option>
-            </select>
-        </div>
-        <div class="form-group"><label>Warna Identitas</label><input type="color" id="profile-color" value="#7667d9" style="height: 50px; cursor: pointer;"></div>
-        <button id="save-profile" class="btn btn-primary btn-full">💾 Simpan Anggota</button>
-    </div>
-</div>
-
+<div id="delete-modal" class="modal-overlay"><div class="modal"><div class="modal-header"><h3>🗑️ Hapus Transaksi</h3><button class="close-modal close-btn" data-target="delete-modal">×</button></div><p style="color:var(--text-soft); font-size:13px;">Yakin ingin menghapus transaksi ini? Anda punya 5 detik untuk membatalkan.</p><div style="display:flex; gap:8px; margin-top:20px;"><button id="confirm-delete" class="btn btn-danger">Ya, Hapus</button><button class="close-modal btn btn-secondary" data-target="delete-modal">Batal</button></div></div></div>
+<div id="budget-modal" class="modal-overlay"><div class="modal"><div class="modal-header"><h3>🎯 Atur Anggaran</h3><button class="close-modal close-btn" data-target="budget-modal">×</button></div><div class="form-group"><label>Kategori</label><select id="budget-category"></select></div><div class="form-group"><label>Anggaran Bulanan (Rp)</label><input type="number" id="budget-amount" min="0" step="any" inputmode="decimal" placeholder="2000000"></div><button id="save-budget" class="btn btn-primary btn-full">💾 Simpan</button></div></div>
+<div id="category-modal" class="modal-overlay"><div class="modal"><div class="modal-header"><h3>🏷️ Tambah Kategori</h3><button class="close-modal close-btn" data-target="category-modal">×</button></div><div class="form-group"><label>Nama Kategori</label><input type="text" id="new-category-name" placeholder="Contoh: Pendidikan" maxlength="40"></div><div class="form-group"><label>Emoji</label><input type="text" id="new-category-emoji" placeholder="📚" maxlength="4"></div><button id="save-category" class="btn btn-primary btn-full">💾 Simpan</button></div></div>
+<div id="goal-modal" class="modal-overlay"><div class="modal"><div class="modal-header"><h3>🎁 Tambah Target</h3><button class="close-modal close-btn" data-target="goal-modal">×</button></div><div class="form-group"><label>Nama Target</label><input type="text" id="goal-name" placeholder="Liburan Bali" maxlength="50" required></div><div class="form-group"><label>Target (Rp)</label><input type="number" id="goal-amount" min="0" step="any" inputmode="decimal" placeholder="5000000" required></div><div class="form-group"><label>Deadline</label><input type="date" id="goal-deadline" required></div><button id="save-goal" class="btn btn-primary btn-full">💾 Simpan</button></div></div>
+<div id="pin-setup-modal" class="modal-overlay"><div class="modal"><div class="modal-header"><h3>🔒 Atur PIN Keamanan</h3><button class="close-modal close-btn" data-target="pin-setup-modal">×</button></div><p style="font-size:13px; color:var(--text-soft); margin-bottom:15px;">PIN akan di-hash dengan SHA-256 untuk keamanan.</p><div class="form-group"><label>PIN (4 Digit)</label><input type="password" id="new-pin-input" maxlength="4" inputmode="numeric" style="text-align:center; letter-spacing:8px; font-size:20px;"></div><button id="save-pin-btn" class="btn btn-primary btn-full">Aktifkan PIN</button><button id="disable-pin-btn" class="btn btn-secondary btn-full" style="margin-top:8px;">Nonaktifkan PIN</button></div></div>
+<div id="photo-view-modal" class="modal-overlay"><div class="modal" style="max-width:600px;"><div class="modal-header"><h3>📷 Lampiran</h3><button class="close-modal close-btn" data-target="photo-view-modal">×</button></div><img id="photo-view-img" src="" style="width:100%; border-radius:12px;"></div></div>
+<div id="wallet-modal" class="modal-overlay"><div class="modal"><div class="modal-header"><h3>💳 Tambah Dompet</h3><button class="close-modal close-btn" data-target="wallet-modal">×</button></div><div class="form-group"><label>Nama Dompet</label><input type="text" id="wallet-name" placeholder="Contoh: BCA, GoPay, Tunai" maxlength="30" required></div><div class="form-group"><label>Pemilik Dompet</label><select id="wallet-owner"></select></div><div class="form-group"><label>Tipe Dompet</label><select id="wallet-type"><option value="cash">💵 Uang Tunai</option><option value="bank">🏦 Bank</option><option value="ewallet">📱 E-Wallet</option><option value="investment">📈 Investasi</option><option value="other">📦 Lainnya</option></select></div><div class="form-group"><label>Saldo Awal (Rp)</label><input type="number" id="wallet-balance" min="0" step="any" inputmode="decimal" placeholder="0"></div><div class="form-group"><label>Ikon</label><select id="wallet-icon"><option value="💵">💵 Uang Tunai</option><option value="🏦"> Bank</option><option value="💳">💳 Kartu</option><option value="📱">📱 HP</option><option value="🐷">🐷 Celengan</option><option value="💰">💰 Uang</option><option value="📈">📈 Investasi</option><option value="🎁">🎁 Hadiah</option></select></div><div class="form-group"><label>Warna</label><input type="color" id="wallet-color" value="#7667d9" style="height: 50px; cursor: pointer;"></div><button id="save-wallet" class="btn btn-primary btn-full">💾 Simpan Dompet</button></div></div>
+<div id="debt-modal" class="modal-overlay"><div class="modal"><div class="modal-header"><h3 id="debt-modal-title">💸 Tambah Utang/Piutang</h3><button class="close-modal close-btn" data-target="debt-modal">×</button></div><input type="hidden" id="edit-debt-id"><div class="form-group"><label>Tipe</label><select id="debt-type"><option value="utang">Utang (Saya pinjam)</option><option value="piutang">Piutang (Orang pinjam dari saya)</option></select></div><div class="form-group"><label>Nama Orang</label><input type="text" id="debt-person" placeholder="Contoh: Budi" maxlength="50" required></div><div class="form-group"><label>Jumlah (Rp)</label><input type="number" id="debt-amount" min="0" step="any" inputmode="decimal" placeholder="50000" required></div><div class="form-group"><label>Tanggal Pinjam</label><input type="date" id="debt-date" required></div><div class="form-group"><label>Jatuh Tempo (Opsional)</label><input type="date" id="debt-due-date"></div><div class="form-group"><label>Catatan (Opsional)</label><input type="text" id="debt-note" placeholder="Contoh: Pinjam untuk makan" maxlength="100"></div><button id="save-debt" class="btn btn-primary btn-full">💾 Simpan</button></div></div>
+<div id="profile-modal" class="modal-overlay"><div class="modal"><div class="modal-header"><h3 id="profile-modal-title">👤 Tambah Anggota</h3><button class="close-modal close-btn" data-target="profile-modal">×</button></div><input type="hidden" id="edit-profile-id"><div class="form-group"><label>Nama</label><input type="text" id="profile-name" placeholder="Contoh: Suami, Istri, Anak" maxlength="30" required></div><div class="form-group"><label>Emoji / Avatar</label><select id="profile-emoji"><option value="👨">👨 Pria</option><option value="👩">👩 Wanita</option><option value="👦">👦 Anak Laki</option><option value="👧">👧 Anak Perempuan</option><option value="🧑"> Orang</option><option value="👴">👴 Kakek</option><option value="👵">👵 Nenek</option></select></div><div class="form-group"><label>Warna Identitas</label><input type="color" id="profile-color" value="#7667d9" style="height: 50px; cursor: pointer;"></div><button id="save-profile" class="btn btn-primary btn-full">💾 Simpan Anggota</button></div></div>
 <input type="file" id="restore-file" style="display: none;" accept=".json">
 
 <script type="module">
-// =========================================================
-// FIREBASE IMPORTS
-// =========================================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
-import {
-    getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
-    sendPasswordResetEmail, signOut, onAuthStateChanged,
-    GoogleAuthProvider, signInWithPopup
-} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
-import {
-    getFirestore, collection, addDoc, deleteDoc, doc, updateDoc,
-    query, orderBy, onSnapshot, serverTimestamp, setDoc, writeBatch
-} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, query, orderBy, onSnapshot, serverTimestamp, setDoc, writeBatch } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyCKGivCVl5J_y-VNJs4-_VG4prbSfNAthg",
@@ -969,19 +720,10 @@ const firebaseConfig = {
     messagingSenderId: "132113903968",
     appId: "1:132113903968:web:22acd141e1b6e5571c2e05"
 };
-
 let app, db, auth;
-try {
-    app = initializeApp(firebaseConfig);
-    db = getFirestore(app);
-    auth = getAuth(app);
-} catch (error) {
-    console.error("Firebase initialization error:", error);
-}
+try { app = initializeApp(firebaseConfig); db = getFirestore(app); auth = getAuth(app); } catch (error) { console.error("Firebase initialization error:", error); }
 
-// =========================================================
-// DOM ELEMENTS
-// =========================================================
+// DOM
 const authPanel = document.getElementById("auth-panel");
 const dashboard = document.getElementById("dashboard");
 const bottomNav = document.getElementById("bottom-nav");
@@ -1021,6 +763,10 @@ const fromWalletGroup = document.getElementById("from-wallet-group");
 const toWalletGroup = document.getElementById("to-wallet-group");
 const walletLabel = document.getElementById("wallet-label");
 const splitContainerGroup = document.getElementById("split-container-group");
+// FIX v9.1
+const transferAmountGroup = document.getElementById("transfer-amount-group");
+const transferAmountInput = document.getElementById("transfer-amount");
+const splitTotalRow = document.getElementById("split-total-row");
 const balanceAmountEl = document.getElementById("balance-amount");
 const totalIncomeEl = document.getElementById("total-income");
 const totalExpenseEl = document.getElementById("total-expense");
@@ -1100,7 +846,13 @@ const periodQuickBtns = document.querySelectorAll(".period-quick-btn");
 const periodCustomContainer = document.getElementById("period-custom-container");
 const periodStartInput = document.getElementById("period-start");
 const periodEndInput = document.getElementById("period-end");
-const profileSelector = document.getElementById("profile-selector");
+const greetingBar = document.getElementById("greeting-bar");
+const streakBadge = document.getElementById("streak-badge");
+const netWorthEl = document.getElementById("net-worth");
+const netWorthBreakdown = document.getElementById("net-worth-breakdown");
+const remindersList = document.getElementById("reminders-list");
+const quickAddContainer = document.getElementById("quick-add-container");
+const quickAddChips = document.getElementById("quick-add-chips");
 const profileSummaryGrid = document.getElementById("profile-summary-grid");
 const profileListSettings = document.getElementById("profile-list-settings");
 const addProfileBtn = document.getElementById("add-profile-btn");
@@ -1110,21 +862,17 @@ const profileNameInput = document.getElementById("profile-name");
 const profileEmojiSelect = document.getElementById("profile-emoji");
 const profileColorInput = document.getElementById("profile-color");
 const saveProfileBtn = document.getElementById("save-profile");
+const profileSelector = document.getElementById("profile-selector");
 const analyticsPeriodLabel = document.getElementById("analytics-period-label");
 const analyticsPeriodBtns = document.querySelectorAll("#analytics-period-btns .period-quick-btn");
 const profileAnalyticsGrid = document.getElementById("profile-analytics-grid");
 const smartAnalysisList = document.getElementById("smart-analysis-list");
-// BARU v8
 const healthScoreEl = document.getElementById("health-score");
 const healthFillEl = document.getElementById("health-fill");
 const healthPartsEl = document.getElementById("health-parts");
 const healthBadgeEl = document.getElementById("health-score-badge");
-const categorySuggestion = document.getElementById("category-suggestion");
-const applySuggestionBtn = document.getElementById("apply-suggestion");
 
-// =========================================================
 // STATE
-// =========================================================
 let currentUser = null;
 let allTransactions = [];
 let filteredTransactions = [];
@@ -1134,8 +882,6 @@ let goals = {};
 let wallets = [];
 let debts = [];
 let profiles = [];
-let selectedProfileId = null;
-let seededUid = null;
 let chartInstance = null;
 let monthlyComparisonChart = null;
 let analyticsChartInstance = null;
@@ -1150,41 +896,21 @@ let pendingDeleteTimeout = null;
 let pendingDeleteId = null;
 let currentPeriod = { type: "this-month", start: null, end: null };
 let currentAnalyticsPeriod = "1m";
-let budgetAlertShown = false;   // BARU v8
-let pendingSuggestion = null;   // BARU v8
-
+let selectedProfileId = null;
+let seededUid = null;
+let stockAlertShown = false;
 const PIN_SALT = "auditdompet_secure_salt_2024_v5";
 
 const defaultCategories = [
-    { name: "Makanan", emoji: "🍔" },
-    { name: "Transportasi", emoji: "🚗" },
-    { name: "Belanja", emoji: "🛍️" },
-    { name: "Hiburan", emoji: "🎮" },
-    { name: "Tagihan", emoji: "📄" },
-    { name: "Kesehatan", emoji: "💊" },
-    { name: "Pendidikan", emoji: "📚" },
-    { name: "Rumah", emoji: "🏠" },
-    { name: "Tabungan", emoji: "🐷" },
-    { name: "Lainnya", emoji: "📦" }
+    { name: "Makanan", emoji: "🍔" }, { name: "Transportasi", emoji: "🚗" },
+    { name: "Belanja", emoji: "🛍️" }, { name: "Hiburan", emoji: "🎮" },
+    { name: "Tagihan", emoji: "📄" }, { name: "Kesehatan", emoji: "💊" },
+    { name: "Pendidikan", emoji: "📚" }, { name: "Rumah", emoji: "🏠" },
+    { name: "Tabungan", emoji: "🐷" }, { name: "Lainnya", emoji: "📦" }
 ];
-
 const walletTypeLabels = { cash: "💵 Tunai", bank: "🏦 Bank", ewallet: "📱 E-Wallet", investment: "📈 Investasi", other: "📦 Lainnya" };
 
-// BARU v8: peta kata kunci untuk saran kategori
-const CATEGORY_KEYWORDS = [
-    { cat: "Makanan", keys: ["makan", "nasi", "resto", "cafe", "kopi", "gofood", "grabfood", "shopeefood", "warteg", "bakso", "ayam", "pizza", "snack", "jajan", "sarapan"] },
-    { cat: "Transportasi", keys: ["grab", "gojek", "bensin", "pertalite", "pertamax", "tol", "parkir", "bus", "kereta", "krl", "ojek", "servis", "ban"] },
-    { cat: "Belanja", keys: ["shopee", "tokopedia", "lazada", "mall", "baju", "sepatu", "skincare", "kosmetik", "barang"] },
-    { cat: "Tagihan", keys: ["listrik", "pln", "air", "pdam", "internet", "wifi", "indihome", "pulsa", "kuota", "bpjs", "sewa"] },
-    { cat: "Kesehatan", keys: ["obat", "apotek", "rs", "klinik", "dokter", "vitamin"] },
-    { cat: "Hiburan", keys: ["nonton", "bioskop", "netflix", "spotify", "game", "top up", "konser"] },
-    { cat: "Pendidikan", keys: ["spp", "buku", "kursus", "sekolah", "kuliah", "les"] },
-    { cat: "Rumah", keys: ["kos", "kontrakan", "sembako", "gas", "galon", "deterjen"] }
-];
-
-// =========================================================
-// HELPER FUNCTIONS
-// =========================================================
+// HELPERS
 async function hashPin(pin) {
     const encoder = new TextEncoder();
     const data = encoder.encode(pin + PIN_SALT);
@@ -1192,7 +918,6 @@ async function hashPin(pin) {
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
-
 async function compressImage(file, maxWidth = 800, quality = 0.7) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -1213,7 +938,6 @@ async function compressImage(file, maxWidth = 800, quality = 0.7) {
         reader.readAsDataURL(file);
     });
 }
-
 function showToast(message, type = "info") {
     const toast = document.createElement("div");
     toast.className = "toast";
@@ -1224,7 +948,6 @@ function showToast(message, type = "info") {
     requestAnimationFrame(() => toast.classList.add("show"));
     setTimeout(() => { toast.classList.remove("show"); setTimeout(() => toast.remove(), 300); }, 3000);
 }
-
 function showToastWithUndo(message, onUndo, onConfirm, duration = 5000) {
     if (pendingDeleteTimeout) { clearTimeout(pendingDeleteTimeout); document.querySelectorAll('.toast').forEach(t => t.remove()); }
     const toast = document.createElement("div");
@@ -1258,37 +981,16 @@ function showToastWithUndo(message, onUndo, onConfirm, duration = 5000) {
         if (onConfirm) onConfirm();
     }, duration);
 }
-
-function escapeHtml(value) {
-    return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-}
+function escapeHtml(value) { return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
 function formatCurrency(amount) { return new Intl.NumberFormat("id-ID", { maximumFractionDigits: 0 }).format(Number(amount) || 0); }
-function formatDate(dateString) {
-    if (!dateString) return "-";
-    return new Date(`${dateString}T00:00:00`).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
-}
+function formatDate(dateString) { if (!dateString) return "-"; return new Date(`${dateString}T00:00:00`).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }); }
 function toDateStr(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; }
 function addDays(date, n) { const x = new Date(date); x.setDate(x.getDate() + n); return x; }
-function getAllCategories() {
-    const custom = categories.map(c => ({ name: c.name, emoji: c.emoji || "📁" }));
-    return [...defaultCategories, ...custom];
-}
-function getCategoryEmoji(category) {
-    const found = getAllCategories().find(c => c.name === category);
-    return found ? found.emoji : "📁";
-}
-function getTransactionAmount(trans) {
-    if (trans.isSplit && Array.isArray(trans.items)) return trans.items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
-    return Number(trans.amount) || 0;
-}
-function getTransactionCategories(trans) {
-    if (trans.isSplit && Array.isArray(trans.items)) return trans.items.map(item => item.category);
-    return trans.category ? [trans.category] : [];
-}
-function getWalletName(walletId) {
-    const wallet = wallets.find(w => w.id === walletId);
-    return wallet ? `${wallet.icon} ${wallet.name}` : "Tidak Diketahui";
-}
+function getAllCategories() { const custom = categories.map(c => ({ name: c.name, emoji: c.emoji || "📁" })); return [...defaultCategories, ...custom]; }
+function getCategoryEmoji(category) { const found = getAllCategories().find(c => c.name === category); return found ? found.emoji : "📁"; }
+function getTransactionAmount(trans) { if (trans.isSplit && Array.isArray(trans.items)) return trans.items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0); return Number(trans.amount) || 0; }
+function getTransactionCategories(trans) { if (trans.isSplit && Array.isArray(trans.items)) return trans.items.map(item => item.category); return trans.category ? [trans.category] : []; }
+function getWalletName(walletId) { const wallet = wallets.find(w => w.id === walletId); return wallet ? `${wallet.icon} ${wallet.name}` : "Tidak Diketahui"; }
 function getWalletBalance(walletId) {
     const wallet = wallets.find(w => w.id === walletId);
     if (!wallet) return 0;
@@ -1303,34 +1005,15 @@ function getWalletBalance(walletId) {
     return balance;
 }
 function getProfile(profileId) { return profiles.find(p => p.id === profileId); }
-function getProfileBadge(profileId) {
-    const p = getProfile(profileId);
-    if (!p) return '';
-    return `<span class="profile-badge" style="background:${p.color}20; color:${p.color};">${p.emoji} ${escapeHtml(p.name)}</span>`;
-}
-function getOwnerLabel(owner) {
-    if (!owner || owner === "joint") return "🤝 Bersama";
-    const p = getProfile(owner);
-    return p ? `${p.emoji} ${p.name}` : "🤝 Bersama";
-}
-// BARU v8: dompet lama tanpa pemilik dianggap milik Suami
+function getProfileBadge(profileId) { const p = getProfile(profileId); if (!p) return ''; return `<span class="profile-badge" style="background:${p.color}20; color:${p.color};">${p.emoji} ${escapeHtml(p.name)}</span>`; }
+// Dompet lama tanpa pemilik dianggap milik Suami
 function getDefaultOwnerId() {
     const suami = profiles.find(p => (p.name || "").toLowerCase() === "suami");
     if (suami) return suami.id;
     return profiles[0]?.id || "joint";
 }
-function getWalletOwner(wallet) {
-    if (wallet.owner) return wallet.owner;
-    return getDefaultOwnerId();
-}
-// BARU v8: saran kategori dari deskripsi
-function suggestCategory(desc) {
-    const d = (desc || "").toLowerCase();
-    for (const row of CATEGORY_KEYWORDS) {
-        if (row.keys.some(k => d.includes(k))) return row.cat;
-    }
-    return null;
-}
+function getWalletOwner(wallet) { if (wallet.owner) return wallet.owner; return getDefaultOwnerId(); }
+function getOwnerLabel(owner) { if (!owner || owner === "joint") return "🤝 Bersama"; const p = getProfile(owner); return p ? `${p.emoji} ${p.name}` : "🤝 Bersama"; }
 
 function populateCategoryDropdowns() {
     const cats = getAllCategories();
@@ -1345,7 +1028,6 @@ function populateCategoryDropdowns() {
     cats.forEach(cat => { const o = document.createElement("option"); o.value = cat.name; o.textContent = `${cat.emoji} ${cat.name}`; filterCategory.appendChild(o); });
     filterCategory.value = currentFilter;
 }
-
 function populateWalletDropdowns() {
     const currentFrom = fromWalletSelect.value, currentTo = toWalletSelect.value, currentFilter = filterWallet.value;
     [fromWalletSelect, toWalletSelect].forEach(select => {
@@ -1358,14 +1040,6 @@ function populateWalletDropdowns() {
     if (currentTo && wallets.some(w => w.id === currentTo)) toWalletSelect.value = currentTo;
     if (currentFilter && wallets.some(w => w.id === currentFilter)) filterWallet.value = currentFilter;
 }
-
-function populateProfileDropdowns() {
-    const current = filterProfile.value;
-    filterProfile.innerHTML = '<option value="">Semua Anggota</option>';
-    profiles.forEach(p => { const o = document.createElement("option"); o.value = p.id; o.textContent = `${p.emoji} ${p.name}`; filterProfile.appendChild(o); });
-    if (current && profiles.some(p => p.id === current)) filterProfile.value = current;
-}
-
 function populateWalletOwnerSelect() {
     const current = walletOwnerSelect.value;
     walletOwnerSelect.innerHTML = "";
@@ -1376,7 +1050,12 @@ function populateWalletOwnerSelect() {
     walletOwnerSelect.appendChild(joint);
     if (current) walletOwnerSelect.value = current;
 }
-
+function populateProfileDropdowns() {
+    const current = filterProfile.value;
+    filterProfile.innerHTML = '<option value="">Semua Anggota</option>';
+    profiles.forEach(p => { const o = document.createElement("option"); o.value = p.id; o.textContent = `${p.emoji} ${p.name}`; filterProfile.appendChild(o); });
+    if (current && profiles.some(p => p.id === current)) filterProfile.value = current;
+}
 function renderProfileSelector() {
     profileSelector.innerHTML = "";
     profiles.forEach(p => {
@@ -1389,89 +1068,10 @@ function renderProfileSelector() {
         profileSelector.appendChild(div);
     });
 }
-
-function renderProfileSummary() {
-    if (profiles.length === 0) { profileSummaryGrid.innerHTML = ''; return; }
-    const period = getPeriodDates();
-    profileSummaryGrid.innerHTML = "";
-    profiles.forEach(profile => {
-        let income = 0, expense = 0, count = 0;
-        allTransactions.forEach(trans => {
-            if (trans.profileId === profile.id && trans.date >= period.start && trans.date <= period.end) {
-                const amount = getTransactionAmount(trans);
-                if (trans.type === "income") income += amount;
-                else if (trans.type === "expense") expense += amount;
-                count++;
-            }
-        });
-        const card = document.createElement("div");
-        card.className = "profile-summary-card";
-        card.style.setProperty('--profile-color', profile.color);
-        card.innerHTML = `
-            <div class="profile-summary-header">
-                <div class="profile-summary-avatar" style="background:${profile.color}20;">${profile.emoji}</div>
-                <div class="profile-summary-name">${escapeHtml(profile.name)}</div>
-            </div>
-            <div class="profile-summary-stats">
-                <div><div class="profile-stat-label">Pemasukan</div><div class="profile-stat-value income">+Rp ${balanceHidden ? "••••" : formatCurrency(income)}</div></div>
-                <div><div class="profile-stat-label">Pengeluaran</div><div class="profile-stat-value expense">-Rp ${balanceHidden ? "••••" : formatCurrency(expense)}</div></div>
-                <div style="grid-column:1/-1; margin-top:4px; padding-top:8px; border-top:1px solid var(--border);">
-                    <div class="profile-stat-label">Jumlah Transaksi</div>
-                    <div class="profile-stat-value">${count} transaksi</div>
-                </div>
-            </div>`;
-        profileSummaryGrid.appendChild(card);
-    });
-}
-
-function renderProfileListSettings() {
-    if (profiles.length === 0) { profileListSettings.innerHTML = '<div style="text-align:center; padding:10px; color:var(--text-light); font-size:12px;">Belum ada anggota.</div>'; return; }
-    profileListSettings.innerHTML = "";
-    profiles.forEach(p => {
-        const item = document.createElement("div");
-        item.className = "profile-list-item";
-        item.innerHTML = `
-            <div class="profile-list-avatar" style="background:${p.color}20;">${p.emoji}</div>
-            <div class="profile-list-info"><div class="profile-list-name">${escapeHtml(p.name)}</div></div>
-            <div class="profile-list-actions">
-                <button class="icon-btn edit-profile-btn" data-id="${p.id}" title="Edit">✏️</button>
-                <button class="icon-btn delete-profile-btn" data-id="${p.id}" title="Hapus">🗑️</button>
-            </div>`;
-        profileListSettings.appendChild(item);
-    });
-    profileListSettings.querySelectorAll(".edit-profile-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-            const p = profiles.find(x => x.id === btn.dataset.id);
-            if (!p) return;
-            editProfileIdInput.value = p.id;
-            profileNameInput.value = p.name;
-            profileEmojiSelect.value = p.emoji;
-            profileColorInput.value = p.color;
-            profileModalTitle.textContent = "✏️ Edit Anggota";
-            document.getElementById("profile-modal").classList.add("active");
-        });
-    });
-    profileListSettings.querySelectorAll(".delete-profile-btn").forEach(btn => {
-        btn.addEventListener("click", async () => {
-            if (profiles.length <= 1) { showToast("Minimal harus ada 1 profil anggota", "error"); return; }
-            const p = profiles.find(x => x.id === btn.dataset.id);
-            const hasTrans = allTransactions.some(t => t.profileId === btn.dataset.id);
-            const msg = hasTrans ? `"${p.name}" memiliki transaksi. Transaksi tetap ada namun tanpa profil. Lanjutkan?` : `Hapus profil "${p.name}"?`;
-            if (!confirm(msg)) return;
-            try {
-                await deleteDoc(doc(db, "users", currentUser.uid, "profiles", btn.dataset.id));
-                if (selectedProfileId === btn.dataset.id) selectedProfileId = profiles.find(x => x.id !== btn.dataset.id)?.id || null;
-                showToast("Profil dihapus", "success");
-            } catch (error) { showToast("Gagal menghapus profil", "error"); }
-        });
-    });
-}
-
 function switchTab(tabName) {
     currentTab = tabName;
     document.querySelectorAll(".tab-section").forEach(s => s.classList.remove("active"));
-    const activeTab = document.getElementById(`tab-${tabName}`);
-    if (activeTab) activeTab.classList.add("active");
+    document.getElementById(`tab-${tabName}`)?.classList.add("active");
     document.querySelectorAll(".nav-item").forEach(item => item.classList.remove("active"));
     document.querySelector(`[data-tab="${tabName}"]`)?.classList.add("active");
     if ((tabName === "overview" || tabName === "analytics") && chartsInitialized) {
@@ -1483,7 +1083,7 @@ function switchTab(tabName) {
         }, 50);
     }
 }
-
+// FIX v9.1: tampilkan kolom jumlah transfer, sembunyikan split & total split
 function setTransactionType(type) {
     typeInput.value = type;
     expenseTypeBtn.classList.toggle("active", type === "expense");
@@ -1493,63 +1093,43 @@ function setTransactionType(type) {
         toWalletGroup.classList.remove("hidden");
         walletLabel.textContent = "Dari Dompet";
         splitContainerGroup.classList.add("hidden");
-        categorySuggestion.classList.add("hidden");
+        splitTotalRow.classList.add("hidden");
+        transferAmountGroup.classList.remove("hidden");
     } else {
         toWalletGroup.classList.add("hidden");
         walletLabel.textContent = type === "income" ? "Ke Dompet" : "Dari Dompet";
         splitContainerGroup.classList.remove("hidden");
+        splitTotalRow.classList.remove("hidden");
+        transferAmountGroup.classList.add("hidden");
     }
 }
-
 function showAuthAlert(message, type = "error") {
     const className = type === "success" ? "alert-success" : "alert-error";
     authAlert.innerHTML = `<div class="alert ${className}">${escapeHtml(message)}</div>`;
     setTimeout(() => { authAlert.innerHTML = ""; }, 5000);
 }
-
 function firebaseAuthError(error) {
     const messages = {
-        "auth/invalid-credential": "Email atau password salah.",
-        "auth/user-not-found": "Akun tidak ditemukan.",
-        "auth/wrong-password": "Password salah.",
-        "auth/email-already-in-use": "Email sudah terdaftar.",
-        "auth/weak-password": "Password minimal 6 karakter.",
-        "auth/invalid-email": "Format email tidak valid.",
-        "auth/too-many-requests": "Terlalu banyak percobaan. Coba lagi nanti.",
-        "auth/popup-closed-by-user": "Login dibatalkan."
+        "auth/invalid-credential": "Email atau password salah.", "auth/user-not-found": "Akun tidak ditemukan.",
+        "auth/wrong-password": "Password salah.", "auth/email-already-in-use": "Email sudah terdaftar.",
+        "auth/weak-password": "Password minimal 6 karakter.", "auth/invalid-email": "Format email tidak valid.",
+        "auth/too-many-requests": "Terlalu banyak percobaan. Coba lagi nanti.", "auth/popup-closed-by-user": "Login dibatalkan."
     };
     return messages[error?.code] || `Gagal: ${error?.message || "Terjadi kesalahan"}`;
 }
 
-// =========================================================
-// PERIOD SELECTOR (OVERVIEW)
-// =========================================================
+// PERIOD
 function getPeriodDates() {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
+    const now = new Date(); const year = now.getFullYear(); const month = now.getMonth();
     switch (currentPeriod.type) {
-        case "this-month":
-            return { start: `${year}-${String(month + 1).padStart(2, "0")}-01`, end: `${year}-${String(month + 1).padStart(2, "0")}-${String(new Date(year, month + 1, 0).getDate()).padStart(2, "0")}`, label: "Bulan ini" };
-        case "last-month": {
-            const lastMonth = month === 0 ? 11 : month - 1;
-            const lastYear = month === 0 ? year - 1 : year;
-            return { start: `${lastYear}-${String(lastMonth + 1).padStart(2, "0")}-01`, end: `${lastYear}-${String(lastMonth + 1).padStart(2, "0")}-${String(new Date(lastYear, lastMonth + 1, 0).getDate()).padStart(2, "0")}`, label: "Bulan lalu" };
-        }
-        case "this-year":
-            return { start: `${year}-01-01`, end: `${year}-12-31`, label: "Tahun ini" };
-        case "custom":
-            return { start: periodStartInput.value || `${year}-${String(month + 1).padStart(2, "0")}-01`, end: periodEndInput.value || `${year}-${String(month + 1).padStart(2, "0")}-${String(new Date(year, month + 1, 0).getDate()).padStart(2, "0")}`, label: "Periode kustom" };
-        default:
-            return { start: `${year}-${String(month + 1).padStart(2, "0")}-01`, end: `${year}-${String(month + 1).padStart(2, "0")}-${String(new Date(year, month + 1, 0).getDate()).padStart(2, "0")}`, label: "Bulan ini" };
+        case "this-month": return { start: `${year}-${String(month + 1).padStart(2, "0")}-01`, end: `${year}-${String(month + 1).padStart(2, "0")}-${String(new Date(year, month + 1, 0).getDate()).padStart(2, "0")}`, label: "Bulan ini" };
+        case "last-month": { const lastMonth = month === 0 ? 11 : month - 1; const lastYear = month === 0 ? year - 1 : year; return { start: `${lastYear}-${String(lastMonth + 1).padStart(2, "0")}-01`, end: `${lastYear}-${String(lastMonth + 1).padStart(2, "0")}-${String(new Date(lastYear, lastMonth + 1, 0).getDate()).padStart(2, "0")}`, label: "Bulan lalu" }; }
+        case "this-year": return { start: `${year}-01-01`, end: `${year}-12-31`, label: "Tahun ini" };
+        case "custom": return { start: periodStartInput.value || `${year}-${String(month + 1).padStart(2, "0")}-01`, end: periodEndInput.value || `${year}-${String(month + 1).padStart(2, "0")}-${String(new Date(year, month + 1, 0).getDate()).padStart(2, "0")}`, label: "Periode kustom" };
+        default: return { start: `${year}-${String(month + 1).padStart(2, "0")}-01`, end: `${year}-${String(month + 1).padStart(2, "0")}-${String(new Date(year, month + 1, 0).getDate()).padStart(2, "0")}`, label: "Bulan ini" };
     }
 }
-
-function updatePeriodLabel() {
-    const period = getPeriodDates();
-    periodLabel.textContent = `${period.label} (${formatDate(period.start)} - ${formatDate(period.end)})`;
-}
-
+function updatePeriodLabel() { const period = getPeriodDates(); periodLabel.textContent = `${period.label} (${formatDate(period.start)} - ${formatDate(period.end)})`; }
 periodQuickBtns.forEach(btn => {
     btn.addEventListener("click", () => {
         periodQuickBtns.forEach(b => b.classList.remove("active"));
@@ -1561,23 +1141,14 @@ periodQuickBtns.forEach(btn => {
             if (!periodStartInput.value) periodStartInput.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
             if (!periodEndInput.value) periodEndInput.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()).padStart(2, "0")}`;
         } else periodCustomContainer.classList.add("hidden");
-        updatePeriodLabel();
-        updateSummary();
-        renderProfileSummary();
-        renderTransactions();
+        updatePeriodLabel(); updateSummary(); renderProfileSummary(); renderTransactions();
     });
 });
-[periodStartInput, periodEndInput].forEach(input => {
-    input.addEventListener("change", () => { updatePeriodLabel(); updateSummary(); renderProfileSummary(); renderTransactions(); });
-});
+[periodStartInput, periodEndInput].forEach(input => input.addEventListener("change", () => { updatePeriodLabel(); updateSummary(); renderProfileSummary(); renderTransactions(); }));
 
-// =========================================================
-// ANALYTICS PERIOD (v7)
-// =========================================================
+// ANALYTICS PERIOD
 function getAnalyticsPeriodDates() {
-    const now = new Date();
-    const end = toDateStr(now);
-    let start;
+    const now = new Date(); const end = toDateStr(now); let start;
     switch (currentAnalyticsPeriod) {
         case "today": start = end; break;
         case "7d": start = toDateStr(addDays(now, -6)); break;
@@ -1591,7 +1162,6 @@ function getAnalyticsPeriodDates() {
     }
     return { start, end };
 }
-
 analyticsPeriodBtns.forEach(btn => {
     btn.addEventListener("click", () => {
         analyticsPeriodBtns.forEach(b => b.classList.remove("active"));
@@ -1601,9 +1171,7 @@ analyticsPeriodBtns.forEach(btn => {
     });
 });
 
-// =========================================================
 // PIN LOCK
-// =========================================================
 async function checkPinLock() {
     const savedPinHash = localStorage.getItem("auditdompet_pin");
     if (savedPinHash && currentUser) { pinOverlay.classList.remove("hidden"); document.getElementById("pin-input").focus(); }
@@ -1630,12 +1198,9 @@ document.getElementById("save-pin-btn").addEventListener("click", async () => {
 });
 document.getElementById("disable-pin-btn").addEventListener("click", () => { localStorage.removeItem("auditdompet_pin"); document.getElementById("pin-setup-modal").classList.remove("active"); showToast("PIN dinonaktifkan", "success"); });
 
-// =========================================================
-// AUTHENTICATION
-// =========================================================
+// AUTH
 authForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    loginBtn.disabled = true;
+    e.preventDefault(); loginBtn.disabled = true;
     try { await signInWithEmailAndPassword(auth, emailInput.value.trim(), passwordInput.value); authForm.reset(); }
     catch (error) { showAuthAlert(firebaseAuthError(error)); }
     finally { loginBtn.disabled = false; }
@@ -1655,8 +1220,7 @@ resetPasswordBtn.addEventListener("click", async () => {
 googleLoginBtn.addEventListener("click", async () => {
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: "select_account" });
-    try { await signInWithPopup(auth, provider); }
-    catch (error) { showAuthAlert(firebaseAuthError(error)); }
+    try { await signInWithPopup(auth, provider); } catch (error) { showAuthAlert(firebaseAuthError(error)); }
 });
 logoutBtn.addEventListener("click", () => signOut(auth));
 
@@ -1664,30 +1228,21 @@ onAuthStateChanged(auth, (user) => {
     if (user) {
         currentUser = user;
         userEmailSpan.textContent = user.email?.split("@")[0] || "User";
-        authPanel.classList.add("hidden");
-        dashboard.classList.remove("hidden");
-        bottomNav.classList.remove("hidden");
-        dateInput.valueAsDate = new Date();
-        debtDateInput.valueAsDate = new Date();
+        authPanel.classList.add("hidden"); dashboard.classList.remove("hidden"); bottomNav.classList.remove("hidden");
+        dateInput.valueAsDate = new Date(); debtDateInput.valueAsDate = new Date();
         populateCategoryDropdowns();
         initUserData(user.uid);
         checkPinLock();
         setTimeout(() => { autoProcessRecurring(); }, 2000);
     } else {
         currentUser = null;
-        allTransactions = []; filteredTransactions = []; categories = [];
-        budgets = {}; goals = {}; wallets = []; debts = []; profiles = [];
+        allTransactions = []; filteredTransactions = []; categories = []; budgets = {}; goals = {}; wallets = []; debts = []; profiles = [];
         selectedProfileId = null;
-        authPanel.classList.remove("hidden");
-        dashboard.classList.add("hidden");
-        bottomNav.classList.add("hidden");
-        pinOverlay.classList.add("hidden");
+        authPanel.classList.remove("hidden"); dashboard.classList.add("hidden"); bottomNav.classList.add("hidden"); pinOverlay.classList.add("hidden");
     }
 });
 
-// =========================================================
-// AUTO PROCESS RECURRING
-// =========================================================
+// AUTO RECURRING
 async function autoProcessRecurring() {
     if (!currentUser) return;
     const now = new Date();
@@ -1721,9 +1276,7 @@ async function autoProcessRecurring() {
     }
 }
 
-// =========================================================
-// USER DATA INITIALIZATION
-// =========================================================
+// DATA LISTENERS
 function initUserData(uid) {
     const profilesRef = collection(db, "users", uid, "profiles");
     onSnapshot(profilesRef, async (snapshot) => {
@@ -1748,82 +1301,166 @@ function initUserData(uid) {
         renderWallets();
         updateAnalytics();
     });
-
-    const transRef = collection(db, "users", uid, "transactions");
-    const transactionQuery = query(transRef, orderBy("date", "desc"));
-    onSnapshot(transactionQuery, (snapshot) => {
+    onSnapshot(query(collection(db, "users", uid, "transactions"), orderBy("date", "desc")), (snapshot) => {
         allTransactions = [];
-        snapshot.forEach((firestoreDoc) => {
-            const data = firestoreDoc.data();
-            if (!data.deletedAt) allTransactions.push({ id: firestoreDoc.id, ...data });
-        });
+        snapshot.forEach((firestoreDoc) => { const data = firestoreDoc.data(); if (!data.deletedAt) allTransactions.push({ id: firestoreDoc.id, ...data }); });
         requestAnimationFrame(() => {
-            applyFiltersAndSort();
-            updateSummary();
-            updateAnalytics();
-            renderWallets();
-            renderDebts();
-            renderProfileSummary();
+            applyFiltersAndSort(); updateSummary(); updateAnalytics(); renderWallets(); renderDebts();
+            renderGreeting(); renderStreak(); renderNetWorth(); renderReminders(); renderQuickAdd(); renderProfileSummary();
         });
-    }, (error) => {
-        console.error("Transaction error:", error);
-        listContainer.innerHTML = '<div class="empty-state">❌ Gagal memuat transaksi.</div>';
-    });
-
+    }, (error) => { console.error("Transaction error:", error); listContainer.innerHTML = '<div class="empty-state">❌ Gagal memuat transaksi.</div>'; });
     onSnapshot(collection(db, "users", uid, "categories"), (snapshot) => {
-        categories = [];
-        snapshot.forEach((doc) => categories.push({ id: doc.id, ...doc.data() }));
-        populateCategoryDropdowns();
-        renderBudgets();
+        categories = []; snapshot.forEach((doc) => categories.push({ id: doc.id, ...doc.data() }));
+        populateCategoryDropdowns(); renderBudgets();
     });
     onSnapshot(collection(db, "users", uid, "budgets"), (snapshot) => {
-        budgets = {};
-        snapshot.forEach((doc) => { budgets[doc.id] = Number(doc.data().amount) || 0; });
+        budgets = {}; snapshot.forEach((doc) => { budgets[doc.id] = Number(doc.data().amount) || 0; });
         renderBudgets();
     });
     onSnapshot(collection(db, "users", uid, "goals"), (snapshot) => {
-        goals = {};
-        snapshot.forEach((doc) => { goals[doc.id] = { id: doc.id, ...doc.data() }; });
+        goals = {}; snapshot.forEach((doc) => { goals[doc.id] = { id: doc.id, ...doc.data() }; });
         renderGoals();
     });
     onSnapshot(collection(db, "users", uid, "wallets"), (snapshot) => {
-        wallets = [];
-        snapshot.forEach((doc) => wallets.push({ id: doc.id, ...doc.data() }));
-        populateWalletDropdowns();
-        renderWallets();
+        wallets = []; snapshot.forEach((doc) => wallets.push({ id: doc.id, ...doc.data() }));
+        populateWalletDropdowns(); renderWallets(); renderNetWorth();
     });
     onSnapshot(collection(db, "users", uid, "debts"), (snapshot) => {
-        debts = [];
-        snapshot.forEach((doc) => debts.push({ id: doc.id, ...doc.data() }));
-        renderDebts();
+        debts = []; snapshot.forEach((doc) => debts.push({ id: doc.id, ...doc.data() }));
+        renderDebts(); renderNetWorth(); renderReminders();
     });
 }
 
-// =========================================================
-// BARU v8: SMART CATEGORY SUGGESTION
-// =========================================================
-descInput.addEventListener("input", () => {
-    if (typeInput.value === "transfer") { categorySuggestion.classList.add("hidden"); return; }
-    const s = suggestCategory(descInput.value);
-    if (s) {
-        pendingSuggestion = s;
-        categorySuggestion.querySelector("b").textContent = `${getCategoryEmoji(s)} ${s}`;
-        categorySuggestion.classList.remove("hidden");
-    } else {
-        pendingSuggestion = null;
-        categorySuggestion.classList.add("hidden");
-    }
-});
-applySuggestionBtn.addEventListener("click", () => {
-    if (!pendingSuggestion) return;
-    const first = splitItemsContainer.querySelector(".split-category");
-    if (first) first.value = pendingSuggestion;
-    categorySuggestion.classList.add("hidden");
-});
+// BARU v9: greeting, streak, net worth, reminders, quick add
+function renderGreeting() {
+    const h = new Date().getHours();
+    const greet = h < 10 ? "Selamat pagi" : h < 15 ? "Selamat siang" : h < 18 ? "Selamat sore" : "Selamat malam";
+    const today = toDateStr(new Date());
+    let exp = 0, inc = 0;
+    allTransactions.forEach(t => { if (t.date === today) { const a = getTransactionAmount(t); if (t.type === "income") inc += a; else if (t.type === "expense") exp += a; } });
+    const name = userEmailSpan.textContent || "";
+    greetingBar.innerHTML = `👋 <b>${greet}${name ? ", " + escapeHtml(name) : ""}!</b> Hari ini: pengeluaran <b style="color:var(--expense)">Rp ${formatCurrency(exp)}</b>${inc > 0 ? `, pemasukan <b style="color:var(--income)">Rp ${formatCurrency(inc)}</b>` : ""}.`;
+}
+function renderStreak() {
+    const days = new Set(allTransactions.map(t => t.date).filter(Boolean));
+    let streak = 0; let cursor = new Date();
+    if (!days.has(toDateStr(cursor))) cursor = addDays(cursor, -1);
+    while (days.has(toDateStr(cursor))) { streak++; cursor = addDays(cursor, -1); }
+    streakBadge.textContent = streak > 0 ? `🔥 ${streak} hari rutin mencatat` : "Mulai rutin mencatat yuk!";
+}
+function renderNetWorth() {
+    const assets = wallets.reduce((s, w) => s + getWalletBalance(w.id), 0);
+    const piutang = debts.filter(d => d.status !== "lunas" && d.type === "piutang").reduce((s, d) => s + (Number(d.amount) || 0), 0);
+    const utang = debts.filter(d => d.status !== "lunas" && d.type === "utang").reduce((s, d) => s + (Number(d.amount) || 0), 0);
+    const net = assets + piutang - utang;
+    netWorthEl.textContent = balanceHidden ? "••••••" : formatCurrency(net);
+    netWorthBreakdown.innerHTML = `Aset dompet: Rp ${balanceHidden ? "••••" : formatCurrency(assets)} • Piutang: Rp ${balanceHidden ? "••••" : formatCurrency(piutang)} • Utang: Rp ${balanceHidden ? "••••" : formatCurrency(utang)}`;
+}
+function renderReminders() {
+    const items = [];
+    const today = new Date(); const todayStr = toDateStr(today); const in7 = toDateStr(addDays(today, 7));
+    debts.filter(d => d.status !== "lunas" && d.dueDate).forEach(d => {
+        if (d.dueDate < todayStr) items.push({ icon: "🚨", type: "danger", text: `<b>${escapeHtml(d.person)}</b> — ${d.type === "utang" ? "utang" : "piutang"} Rp ${formatCurrency(d.amount)} <b>lewat jatuh tempo</b> (${formatDate(d.dueDate)}).` });
+        else if (d.dueDate <= in7) items.push({ icon: "⏰", type: "warn", text: `${d.type === "utang" ? "Bayar ke" : "Tagih dari"} <b>${escapeHtml(d.person)}</b> Rp ${formatCurrency(d.amount)}, jatuh tempo ${formatDate(d.dueDate)}.` });
+    });
+    const cm = todayStr.substring(0, 7);
+    allTransactions.filter(t => t.recurring && t.recurring !== "once").forEach(t => {
+        const recorded = allTransactions.some(x => x.description === t.description && x.date?.startsWith(cm) && x.id !== t.id);
+        if (!recorded) items.push({ icon: "🔄", type: "info", text: `Transaksi berulang "<b>${escapeHtml(t.description)}</b>" (~Rp ${formatCurrency(getTransactionAmount(t))}) belum tercatat bulan ini.` });
+    });
+    if (items.length === 0) { remindersList.innerHTML = '<div class="empty-state" style="padding:15px;">✅ Tidak ada pengingat mendesak.</div>'; return; }
+    remindersList.innerHTML = items.slice(0, 6).map(it => `<div class="analysis-item ${it.type}"><div class="analysis-icon">${it.icon}</div><div class="analysis-text">${it.text}</div></div>`).join("");
+}
+function renderQuickAdd() {
+    const freq = {};
+    allTransactions.forEach(t => {
+        if (t.type === "transfer") return;
+        const cat = t.isSplit ? (t.items?.[0]?.category || "Lainnya") : (t.category || "Lainnya");
+        const key = JSON.stringify([t.description, cat, t.amount, t.type]);
+        freq[key] = (freq[key] || 0) + 1;
+    });
+    const top = Object.entries(freq).filter(([, c]) => c >= 2).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    if (top.length === 0) { quickAddContainer.classList.add("hidden"); return; }
+    quickAddContainer.classList.remove("hidden");
+    quickAddChips.innerHTML = "";
+    top.forEach(([key]) => {
+        const [desc, cat, amount, type] = JSON.parse(key);
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "period-quick-btn";
+        chip.textContent = `${getCategoryEmoji(cat)} ${desc} • ${formatCurrency(amount)}`;
+        chip.addEventListener("click", () => {
+            setTransactionType(type);
+            descInput.value = desc;
+            const first = splitItemsContainer.querySelector(".split-category");
+            const amt = splitItemsContainer.querySelector(".split-amount");
+            if (first) first.value = cat;
+            if (amt) { amt.value = amount; updateSplitTotal(); }
+            showToast("⚡ Form diisi dari transaksi cepat", "info");
+        });
+        quickAddChips.appendChild(chip);
+    });
+}
+function renderProfileSummary() {
+    if (profiles.length === 0) { profileSummaryGrid.innerHTML = ''; return; }
+    const period = getPeriodDates();
+    profileSummaryGrid.innerHTML = "";
+    profiles.forEach(profile => {
+        let income = 0, expense = 0, count = 0;
+        allTransactions.forEach(trans => {
+            if (trans.profileId === profile.id && trans.date >= period.start && trans.date <= period.end) {
+                const amount = getTransactionAmount(trans);
+                if (trans.type === "income") income += amount; else if (trans.type === "expense") expense += amount;
+                count++;
+            }
+        });
+        const card = document.createElement("div");
+        card.className = "profile-summary-card";
+        card.style.setProperty('--profile-color', profile.color);
+        card.innerHTML = `
+            <div class="profile-summary-header"><div class="profile-summary-avatar" style="background:${profile.color}20;">${profile.emoji}</div><div class="profile-summary-name">${escapeHtml(profile.name)}</div></div>
+            <div class="profile-summary-stats">
+                <div><div class="profile-stat-label">Pemasukan</div><div class="profile-stat-value income">+Rp ${balanceHidden ? "••••" : formatCurrency(income)}</div></div>
+                <div><div class="profile-stat-label">Pengeluaran</div><div class="profile-stat-value expense">-Rp ${balanceHidden ? "••••" : formatCurrency(expense)}</div></div>
+                <div style="grid-column:1/-1; margin-top:4px; padding-top:8px; border-top:1px solid var(--border);"><div class="profile-stat-label">Jumlah Transaksi</div><div class="profile-stat-value">${count} transaksi</div></div>
+            </div>`;
+        profileSummaryGrid.appendChild(card);
+    });
+}
+function renderProfileListSettings() {
+    if (profiles.length === 0) { profileListSettings.innerHTML = '<div style="text-align:center; padding:10px; color:var(--text-light); font-size:12px;">Belum ada anggota.</div>'; return; }
+    profileListSettings.innerHTML = "";
+    profiles.forEach(p => {
+        const item = document.createElement("div");
+        item.className = "profile-list-item";
+        item.innerHTML = `<div class="profile-list-avatar" style="background:${p.color}20;">${p.emoji}</div><div class="profile-list-info"><div class="profile-list-name">${escapeHtml(p.name)}</div></div><div class="profile-list-actions"><button class="icon-btn edit-profile-btn" data-id="${p.id}" title="Edit">✏️</button><button class="icon-btn delete-profile-btn" data-id="${p.id}" title="Hapus">🗑️</button></div>`;
+        profileListSettings.appendChild(item);
+    });
+    profileListSettings.querySelectorAll(".edit-profile-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const p = profiles.find(x => x.id === btn.dataset.id);
+            if (!p) return;
+            editProfileIdInput.value = p.id; profileNameInput.value = p.name; profileEmojiSelect.value = p.emoji; profileColorInput.value = p.color;
+            profileModalTitle.textContent = "✏️ Edit Anggota";
+            document.getElementById("profile-modal").classList.add("active");
+        });
+    });
+    profileListSettings.querySelectorAll(".delete-profile-btn").forEach(btn => {
+        btn.addEventListener("click", async () => {
+            if (profiles.length <= 1) { showToast("Minimal harus ada 1 profil anggota", "error"); return; }
+            const p = profiles.find(x => x.id === btn.dataset.id);
+            const hasTrans = allTransactions.some(t => t.profileId === btn.dataset.id);
+            if (!confirm(hasTrans ? `"${p.name}" memiliki transaksi. Transaksi tetap ada namun tanpa profil. Lanjutkan?` : `Hapus profil "${p.name}"?`)) return;
+            try {
+                await deleteDoc(doc(db, "users", currentUser.uid, "profiles", btn.dataset.id));
+                if (selectedProfileId === btn.dataset.id) selectedProfileId = profiles.find(x => x.id !== btn.dataset.id)?.id || null;
+                showToast("Profil dihapus", "success");
+            } catch (error) { showToast("Gagal menghapus profil", "error"); }
+        });
+    });
+}
 
-// =========================================================
-// SPLIT TRANSACTION UI
-// =========================================================
+// SPLIT UI
 let splitItemCount = 0;
 function addSplitItem(category = "", amount = "") {
     splitItemCount++;
@@ -1831,14 +1468,10 @@ function addSplitItem(category = "", amount = "") {
     const div = document.createElement("div");
     div.className = "split-item";
     let categoryOptions = cats.map(c => `<option value="${escapeHtml(c.name)}" ${c.name === category ? 'selected' : ''}>${c.emoji} ${escapeHtml(c.name)}</option>`).join("");
-    div.innerHTML = `
-        <select class="split-category" required>${categoryOptions}</select>
-        <input type="number" class="split-amount" placeholder="Jumlah" min="0" step="any" inputmode="decimal" value="${amount}" required>
-        <button type="button" class="split-remove-btn" title="Hapus">×</button>`;
+    div.innerHTML = `<select class="split-category" required>${categoryOptions}</select><input type="number" class="split-amount" placeholder="Jumlah" min="0" step="any" inputmode="decimal" value="${amount}" required><button type="button" class="split-remove-btn" title="Hapus">×</button>`;
     splitItemsContainer.appendChild(div);
     div.querySelector(".split-remove-btn").addEventListener("click", () => {
-        if (splitItemsContainer.children.length > 1) { div.remove(); updateSplitTotal(); }
-        else showToast("Minimal harus ada 1 kategori", "error");
+        if (splitItemsContainer.children.length > 1) { div.remove(); updateSplitTotal(); } else showToast("Minimal harus ada 1 kategori", "error");
     });
     div.querySelector(".split-amount").addEventListener("input", updateSplitTotal);
     updateSplitTotal();
@@ -1860,9 +1493,7 @@ function getSplitItems() {
 function clearSplitItems() { splitItemsContainer.innerHTML = ""; splitItemCount = 0; addSplitItem(); }
 addSplitItemBtn.addEventListener("click", () => addSplitItem());
 
-// =========================================================
-// PHOTO ATTACHMENT
-// =========================================================
+// PHOTO
 attachmentInput.addEventListener("change", async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -1876,18 +1507,12 @@ attachmentInput.addEventListener("change", async (e) => {
         attachmentPreview.innerHTML = `<img src="${compressedBase64}" alt="Preview"><button type="button" class="attachment-remove" id="remove-attachment">×</button>`;
         attachmentPreview.classList.remove("hidden");
         attachmentLabel.textContent = "Ganti foto";
-        document.getElementById("remove-attachment").addEventListener("click", () => {
-            currentAttachmentBase64 = null; attachmentInput.value = "";
-            attachmentPreview.classList.add("hidden"); attachmentPreview.innerHTML = "";
-            attachmentLabel.textContent = "Pilih Foto";
-        });
+        document.getElementById("remove-attachment").addEventListener("click", () => { currentAttachmentBase64 = null; attachmentInput.value = ""; attachmentPreview.classList.add("hidden"); attachmentPreview.innerHTML = ""; attachmentLabel.textContent = "Pilih Foto"; });
         showToast("Foto berhasil dikompres!", "success");
     } catch (error) { console.error("Compress error:", error); showToast("Gagal mengompres foto", "error"); attachmentInput.value = ""; }
 });
 
-// =========================================================
 // FILTER & SORT
-// =========================================================
 function applyFiltersAndSort() {
     const searchTerm = searchInput.value.toLowerCase().trim();
     const category = filterCategory.value;
@@ -1918,17 +1543,14 @@ function applyFiltersAndSort() {
     renderTransactions();
 }
 
-// =========================================================
 // RENDER TRANSACTIONS
-// =========================================================
 function renderTransactions() {
     const period = getPeriodDates();
     let totalIncome = 0, totalExpense = 0;
     allTransactions.forEach(trans => {
         if (trans.date >= period.start && trans.date <= period.end) {
             const amount = getTransactionAmount(trans);
-            if (trans.type === "income") totalIncome += amount;
-            else if (trans.type === "expense") totalExpense += amount;
+            if (trans.type === "income") totalIncome += amount; else if (trans.type === "expense") totalExpense += amount;
         }
     });
     const balance = totalIncome - totalExpense;
@@ -1939,12 +1561,8 @@ function renderTransactions() {
     statExpenseEl.textContent = balanceHidden ? "Rp ••••••" : `Rp ${formatCurrency(totalExpense)}`;
     countTransEl.textContent = allTransactions.length;
     countTransFilterEl.textContent = filteredTransactions.length;
-
     const fragment = document.createDocumentFragment();
-    if (filteredTransactions.length === 0) {
-        listContainer.innerHTML = '<div class="empty-state"><div class="empty-icon">🧾</div>Tidak ada transaksi.</div>';
-        return;
-    }
+    if (filteredTransactions.length === 0) { listContainer.innerHTML = '<div class="empty-state"><div class="empty-icon">🧾</div>Tidak ada transaksi.</div>'; return; }
     filteredTransactions.forEach(trans => {
         const amount = getTransactionAmount(trans);
         const isIncome = trans.type === "income";
@@ -1956,19 +1574,16 @@ function renderTransactions() {
         const item = document.createElement("div");
         item.className = "transaction";
         let iconHtml;
-        if (trans.attachmentBase64) {
-            iconHtml = `<img src="${trans.attachmentBase64}" class="transaction-thumb" alt="attachment">`;
-        } else {
+        if (trans.attachmentBase64) iconHtml = `<img src="${trans.attachmentBase64}" class="transaction-thumb" alt="attachment">`;
+        else {
             const typeClass = isTransfer ? "transfer" : (isIncome ? "income" : "expense");
             const emoji = isTransfer ? "🔄" : mainEmoji;
             iconHtml = `<div class="transaction-icon ${typeClass}">${emoji}${isRecurring ? '<div class="transaction-badge" title="Berulang">🔄</div>' : ''}${isSplit ? '<div class="transaction-badge" title="Multi-kategori" style="top:auto;bottom:-4px;">📊</div>' : ''}</div>`;
         }
         let categoryBadges = "";
         if (isTransfer) categoryBadges = `<span class="category-badge transfer-badge">🔄 Transfer</span>`;
-        else if (isSplit) {
-            categoryBadges = trans.items.map(it => `<span class="category-badge">${getCategoryEmoji(it.category)} ${escapeHtml(it.category)}</span>`).join("");
-            categoryBadges = `<span class="category-badge split-badge">📊 Split</span>` + categoryBadges;
-        } else categoryBadges = `<span class="category-badge">${mainEmoji} ${escapeHtml(transCategories[0] || "Lainnya")}</span>`;
+        else if (isSplit) { categoryBadges = trans.items.map(it => `<span class="category-badge">${getCategoryEmoji(it.category)} ${escapeHtml(it.category)}</span>`).join(""); categoryBadges = `<span class="category-badge split-badge">📊 Split</span>` + categoryBadges; }
+        else categoryBadges = `<span class="category-badge">${mainEmoji} ${escapeHtml(transCategories[0] || "Lainnya")}</span>`;
         let walletBadge = "";
         if (isTransfer) walletBadge = `<span class="category-badge wallet-badge">${getWalletName(trans.fromWallet)} → ${getWalletName(trans.toWallet)}</span>`;
         else if (trans.walletId) walletBadge = `<span class="category-badge wallet-badge">${getWalletName(trans.walletId)}</span>`;
@@ -1977,17 +1592,10 @@ function renderTransactions() {
             ${iconHtml}
             <div class="transaction-info">
                 <div class="transaction-title">${escapeHtml(trans.description)}</div>
-                <div class="transaction-meta">
-                    ${profileBadge}
-                    ${categoryBadges}
-                    ${walletBadge}
-                    <span>${formatDate(trans.date)}</span>
-                </div>
+                <div class="transaction-meta">${profileBadge}${categoryBadges}${walletBadge}<span>${formatDate(trans.date)}</span></div>
             </div>
             <div class="transaction-right">
-                <div class="transaction-amount ${isTransfer ? "transfer" : (isIncome ? "income" : "expense")}">
-                    ${isTransfer ? "→" : (isIncome ? "+" : "-")}Rp ${balanceHidden ? "••••" : formatCurrency(amount)}
-                </div>
+                <div class="transaction-amount ${isTransfer ? "transfer" : (isIncome ? "income" : "expense")}">${isTransfer ? "→" : (isIncome ? "+" : "-")}Rp ${balanceHidden ? "••••" : formatCurrency(amount)}</div>
                 <div class="transaction-actions">
                     <button class="icon-btn edit-btn" data-id="${trans.id}" title="Edit">✏️</button>
                     <button class="icon-btn delete-btn" data-id="${trans.id}" title="Hapus">🗑️</button>
@@ -1998,10 +1606,7 @@ function renderTransactions() {
     listContainer.innerHTML = "";
     listContainer.appendChild(fragment);
     listContainer.querySelectorAll(".edit-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-            const trans = allTransactions.find(t => t.id === btn.dataset.id);
-            if (trans) { enterEditMode(trans); switchTab("tambah"); }
-        });
+        btn.addEventListener("click", () => { const trans = allTransactions.find(t => t.id === btn.dataset.id); if (trans) { enterEditMode(trans); switchTab("tambah"); } });
     });
     listContainer.querySelectorAll(".delete-btn").forEach(btn => {
         btn.addEventListener("click", () => { deleteTargetId = btn.dataset.id; document.getElementById("delete-modal").classList.add("active"); });
@@ -2011,83 +1616,14 @@ function renderTransactions() {
     });
 }
 
-// =========================================================
-// BARU v8: HEALTH SCORE
-// =========================================================
-function healthColor(v) { return v < 40 ? "var(--danger)" : v < 70 ? "var(--warning)" : "var(--success)"; }
-
-function renderHealth(periodIncome, periodExpense) {
-    const totalBalance = wallets.reduce((s, w) => s + getWalletBalance(w.id), 0);
-    // 1. Savings rate (bobot 30%)
-    const rate = periodIncome > 0 ? ((periodIncome - periodExpense) / periodIncome) * 100 : 0;
-    const savingsScore = Math.max(0, Math.min(100, (rate / 50) * 100));
-    // 2. Beban utang (bobot 25%)
-    const activeDebt = debts.filter(d => d.status !== "lunas" && d.type === "utang").reduce((s, d) => s + (Number(d.amount) || 0), 0);
-    const incomeBase = periodIncome > 0 ? periodIncome : 1;
-    const debtScore = activeDebt <= 0 ? 100 : Math.max(0, Math.min(100, 100 - (activeDebt / incomeBase) * 100));
-    // 3. Kepatuhan anggaran (bobot 25%)
-    const entries = Object.entries(budgets);
-    let budgetScore;
-    if (entries.length === 0) budgetScore = 70;
-    else {
-        const now = new Date();
-        const cm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-        const spent = {};
-        allTransactions.forEach(t => {
-            if (t.type === "expense" && t.date?.startsWith(cm)) {
-                if (t.isSplit && Array.isArray(t.items)) t.items.forEach(it => { spent[it.category] = (spent[it.category] || 0) + (Number(it.amount) || 0); });
-                else spent[t.category] = (spent[t.category] || 0) + (Number(t.amount) || 0);
-            }
-        });
-        const ok = entries.filter(([c, a]) => (spent[c] || 0) <= a).length;
-        budgetScore = (ok / entries.length) * 100;
-    }
-    // 4. Likuiditas / dana darurat (bobot 20%)
-    const now2 = new Date();
-    let sumExp = 0, cnt = 0;
-    for (let i = 0; i < 3; i++) {
-        const d = new Date(now2.getFullYear(), now2.getMonth() - i, 1);
-        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-        let s = 0;
-        allTransactions.forEach(t => { if (t.type === "expense" && t.date?.startsWith(key)) s += getTransactionAmount(t); });
-        if (s > 0) { sumExp += s; cnt++; }
-    }
-    const avgMonthlyExpense = cnt > 0 ? sumExp / cnt : 0;
-    const monthsCovered = avgMonthlyExpense > 0 ? totalBalance / avgMonthlyExpense : (totalBalance > 0 ? 6 : 0);
-    const liquidityScore = Math.max(0, Math.min(100, (monthsCovered / 6) * 100));
-
-    const score = Math.round(savingsScore * 0.3 + debtScore * 0.25 + budgetScore * 0.25 + liquidityScore * 0.2);
-    const label = score < 40 ? "Perlu Perhatian" : score < 60 ? "Cukup" : score < 80 ? "Sehat" : "Luar Biasa";
-
-    healthScoreEl.textContent = score;
-    healthScoreEl.style.color = healthColor(score);
-    healthFillEl.style.width = score + "%";
-    healthFillEl.style.background = healthColor(score);
-    healthBadgeEl.textContent = label;
-    healthBadgeEl.style.background = score < 40 ? "var(--expense-soft)" : score < 60 ? "var(--yellow-soft)" : "var(--income-soft)";
-    healthBadgeEl.style.color = healthColor(score);
-
-    healthPartsEl.innerHTML = `
-        <div class="health-part"><div class="health-part-label"><span>💹 Savings Rate</span><span>${Math.round(savingsScore)}</span></div><div class="health-part-bar"><div class="health-part-fill" style="width:${savingsScore}%; background:${healthColor(savingsScore)}"></div></div></div>
-        <div class="health-part"><div class="health-part-label"><span>🛡️ Beban Utang</span><span>${Math.round(debtScore)}</span></div><div class="health-part-bar"><div class="health-part-fill" style="width:${debtScore}%; background:${healthColor(debtScore)}"></div></div></div>
-        <div class="health-part"><div class="health-part-label"><span>🎯 Kepatuhan Anggaran</span><span>${Math.round(budgetScore)}</span></div><div class="health-part-bar"><div class="health-part-fill" style="width:${budgetScore}%; background:${healthColor(budgetScore)}"></div></div></div>
-        <div class="health-part"><div class="health-part-label"><span>🏦 Dana Darurat (${monthsCovered.toFixed(1)} bln)</span><span>${Math.round(liquidityScore)}</span></div><div class="health-part-bar"><div class="health-part-fill" style="width:${liquidityScore}%; background:${healthColor(liquidityScore)}"></div></div></div>`;
-}
-
-// =========================================================
-// OWNER SUMMARY + WALLETS
-// =========================================================
+// RENDER WALLETS
 function makeOwnerCard(emoji, name, count, total, color) {
     const div = document.createElement("div");
     div.className = "owner-summary-card";
     div.style.setProperty('--owner-color', color);
-    div.innerHTML = `
-        <div class="owner-summary-name">${emoji} ${escapeHtml(name)}</div>
-        <div class="owner-summary-count">${count} dompet</div>
-        <div class="owner-summary-total">Rp ${balanceHidden ? "••••••" : formatCurrency(total)}</div>`;
+    div.innerHTML = `<div class="owner-summary-name">${emoji} ${escapeHtml(name)}</div><div class="owner-summary-count">${count} dompet</div><div class="owner-summary-total">Rp ${balanceHidden ? "••••••" : formatCurrency(total)}</div>`;
     return div;
 }
-
 function renderWalletOwnerSummary() {
     walletOwnerSummary.innerHTML = "";
     profiles.forEach(p => {
@@ -2101,13 +1637,9 @@ function renderWalletOwnerSummary() {
     const allTotal = wallets.reduce((s, w) => s + getWalletBalance(w.id), 0);
     walletOwnerSummary.appendChild(makeOwnerCard("💰", "Total Keluarga", wallets.length, allTotal, "#7667d9"));
 }
-
 function renderWallets() {
     renderWalletOwnerSummary();
-    if (wallets.length === 0) {
-        walletsGrid.innerHTML = '<div class="empty-state"><div class="empty-icon">💳</div>Belum ada dompet. Klik "+ Tambah" untuk membuat dompet pertama Anda.</div>';
-        return;
-    }
+    if (wallets.length === 0) { walletsGrid.innerHTML = '<div class="empty-state"><div class="empty-icon">💳</div>Belum ada dompet. Klik "+ Tambah" untuk membuat dompet pertama Anda.</div>'; return; }
     walletsGrid.innerHTML = "";
     wallets.forEach(wallet => {
         const balance = getWalletBalance(wallet.id);
@@ -2116,13 +1648,7 @@ function renderWallets() {
         card.style.setProperty('--wallet-color', wallet.color || '#7667d9');
         card.style.setProperty('--wallet-color-soft', (wallet.color || '#7667d9') + '20');
         card.innerHTML = `
-            <div class="wallet-card-header">
-                <div class="wallet-icon">${wallet.icon || '💳'}</div>
-                <div class="wallet-actions">
-                    <button class="icon-btn edit-wallet-btn" data-id="${wallet.id}" title="Edit">✏️</button>
-                    <button class="icon-btn delete-wallet-btn" data-id="${wallet.id}" title="Hapus">🗑️</button>
-                </div>
-            </div>
+            <div class="wallet-card-header"><div class="wallet-icon">${wallet.icon || '💳'}</div><div class="wallet-actions"><button class="icon-btn edit-wallet-btn" data-id="${wallet.id}" title="Edit">✏️</button><button class="icon-btn delete-wallet-btn" data-id="${wallet.id}" title="Hapus">🗑️</button></div></div>
             <div class="wallet-name">${escapeHtml(wallet.name)}</div>
             <div class="wallet-balance">Rp ${balanceHidden ? "••••••" : formatCurrency(balance)}</div>
             <div class="wallet-type">${walletTypeLabels[wallet.type] || '📦 Lainnya'}</div>
@@ -2155,14 +1681,10 @@ function renderWallets() {
     });
 }
 
-// =========================================================
 // RENDER DEBTS
-// =========================================================
 function renderDebts() {
     let totalUtang = 0, totalPiutang = 0;
-    debts.forEach(d => {
-        if (d.status !== "lunas") { if (d.type === "utang") totalUtang += Number(d.amount) || 0; else totalPiutang += Number(d.amount) || 0; }
-    });
+    debts.forEach(d => { if (d.status !== "lunas") { if (d.type === "utang") totalUtang += Number(d.amount) || 0; else totalPiutang += Number(d.amount) || 0; } });
     totalUtangEl.textContent = `Rp ${formatCurrency(totalUtang)}`;
     totalPiutangEl.textContent = `Rp ${formatCurrency(totalPiutang)}`;
     if (debts.length === 0) { debtsList.innerHTML = '<div class="empty-state"><div class="empty-icon">💸</div>Belum ada utang/piutang.</div>'; return; }
@@ -2173,13 +1695,7 @@ function renderDebts() {
         const item = document.createElement("div");
         item.className = `debt-item ${debt.type} ${isLunas ? 'lunas' : ''}`;
         item.innerHTML = `
-            <div class="debt-header">
-                <div>
-                    <div class="debt-person">${debt.type === "utang" ? "📤" : "📥"} ${escapeHtml(debt.person)}</div>
-                    <div class="debt-meta">${debt.type === "utang" ? "Utang Saya" : "Piutang"} • Jatuh tempo: ${dueDate}</div>
-                </div>
-                <div class="debt-amount">Rp ${formatCurrency(debt.amount)}</div>
-            </div>
+            <div class="debt-header"><div><div class="debt-person">${debt.type === "utang" ? "📤" : "📥"} ${escapeHtml(debt.person)}</div><div class="debt-meta">${debt.type === "utang" ? "Utang Saya" : "Piutang"} • Jatuh tempo: ${dueDate}</div></div><div class="debt-amount">Rp ${formatCurrency(debt.amount)}</div></div>
             ${debt.note ? `<div class="debt-note">"${escapeHtml(debt.note)}"</div>` : ''}
             <div class="debt-actions">
                 ${!isLunas ? `<button class="debt-btn-lunas" data-id="${debt.id}">✓ Tandai Lunas</button>` : '<span style="font-size:11px; color:var(--success); font-weight:600;">✓ LUNAS</span>'}
@@ -2198,13 +1714,7 @@ function renderDebts() {
         btn.addEventListener("click", () => {
             const debt = debts.find(d => d.id === btn.dataset.id);
             if (debt) {
-                editDebtIdInput.value = debt.id;
-                debtTypeSelect.value = debt.type;
-                debtPersonInput.value = debt.person;
-                debtAmountInput.value = debt.amount;
-                debtDateInput.value = debt.date;
-                debtDueDateInput.value = debt.dueDate || "";
-                debtNoteInput.value = debt.note || "";
+                editDebtIdInput.value = debt.id; debtTypeSelect.value = debt.type; debtPersonInput.value = debt.person; debtAmountInput.value = debt.amount; debtDateInput.value = debt.date; debtDueDateInput.value = debt.dueDate || ""; debtNoteInput.value = debt.note || "";
                 debtModalTitle.textContent = "✏️ Edit Utang/Piutang";
                 document.getElementById("debt-modal").classList.add("active");
             }
@@ -2219,9 +1729,58 @@ function renderDebts() {
     });
 }
 
-// =========================================================
-// SUMMARY & CHARTS (OVERVIEW)
-// =========================================================
+// HEALTH SCORE
+function healthColor(v) { return v < 40 ? "var(--danger)" : v < 70 ? "var(--warning)" : "var(--success)"; }
+function renderHealth(periodIncome, periodExpense) {
+    const totalBalance = wallets.reduce((s, w) => s + getWalletBalance(w.id), 0);
+    const rate = periodIncome > 0 ? ((periodIncome - periodExpense) / periodIncome) * 100 : 0;
+    const savingsScore = Math.max(0, Math.min(100, (rate / 50) * 100));
+    const activeDebt = debts.filter(d => d.status !== "lunas" && d.type === "utang").reduce((s, d) => s + (Number(d.amount) || 0), 0);
+    const incomeBase = periodIncome > 0 ? periodIncome : 1;
+    const debtScore = activeDebt <= 0 ? 100 : Math.max(0, Math.min(100, 100 - (activeDebt / incomeBase) * 100));
+    const entries = Object.entries(budgets);
+    let budgetScore;
+    if (entries.length === 0) budgetScore = 70;
+    else {
+        const now = new Date(); const cm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+        const spent = {};
+        allTransactions.forEach(t => {
+            if (t.type === "expense" && t.date?.startsWith(cm)) {
+                if (t.isSplit && Array.isArray(t.items)) t.items.forEach(it => { spent[it.category] = (spent[it.category] || 0) + (Number(it.amount) || 0); });
+                else spent[t.category] = (spent[t.category] || 0) + (Number(t.amount) || 0);
+            }
+        });
+        const ok = entries.filter(([c, a]) => (spent[c] || 0) <= a).length;
+        budgetScore = (ok / entries.length) * 100;
+    }
+    const now2 = new Date(); let sumExp = 0, cnt = 0;
+    for (let i = 0; i < 3; i++) {
+        const d = new Date(now2.getFullYear(), now2.getMonth() - i, 1);
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+        let s = 0;
+        allTransactions.forEach(t => { if (t.type === "expense" && t.date?.startsWith(key)) s += getTransactionAmount(t); });
+        if (s > 0) { sumExp += s; cnt++; }
+    }
+    const avgMonthlyExpense = cnt > 0 ? sumExp / cnt : 0;
+    const monthsCovered = avgMonthlyExpense > 0 ? totalBalance / avgMonthlyExpense : (totalBalance > 0 ? 6 : 0);
+    const liquidityScore = Math.max(0, Math.min(100, (monthsCovered / 6) * 100));
+    const score = Math.round(savingsScore * 0.3 + debtScore * 0.25 + budgetScore * 0.25 + liquidityScore * 0.2);
+    const label = score < 40 ? "Perlu Perhatian" : score < 60 ? "Cukup" : score < 80 ? "Sehat" : "Luar Biasa";
+    healthScoreEl.textContent = score;
+    healthScoreEl.style.color = healthColor(score);
+    healthFillEl.style.width = score + "%";
+    healthFillEl.style.background = healthColor(score);
+    healthBadgeEl.textContent = label;
+    healthBadgeEl.style.background = score < 40 ? "var(--expense-soft)" : score < 60 ? "var(--yellow-soft)" : "var(--income-soft)";
+    healthBadgeEl.style.color = healthColor(score);
+    healthPartsEl.innerHTML = `
+        <div class="health-part"><div class="health-part-label"><span>💹 Savings Rate</span><span>${Math.round(savingsScore)}</span></div><div class="health-part-bar"><div class="health-part-fill" style="width:${savingsScore}%; background:${healthColor(savingsScore)}"></div></div></div>
+        <div class="health-part"><div class="health-part-label"><span>🛡️ Beban Utang</span><span>${Math.round(debtScore)}</span></div><div class="health-part-bar"><div class="health-part-fill" style="width:${debtScore}%; background:${healthColor(debtScore)}"></div></div></div>
+        <div class="health-part"><div class="health-part-label"><span>🎯 Kepatuhan Anggaran</span><span>${Math.round(budgetScore)}</span></div><div class="health-part-bar"><div class="health-part-fill" style="width:${budgetScore}%; background:${healthColor(budgetScore)}"></div></div></div>
+        <div class="health-part"><div class="health-part-label"><span>🏦 Dana Darurat (${monthsCovered.toFixed(1)} bln)</span><span>${Math.round(liquidityScore)}</span></div><div class="health-part-bar"><div class="health-part-fill" style="width:${liquidityScore}%; background:${healthColor(liquidityScore)}"></div></div></div>`;
+}
+
+// SUMMARY & CHARTS
 function updateSummary() {
     const period = getPeriodDates();
     updatePeriodLabel();
@@ -2229,20 +1788,15 @@ function updateSummary() {
     allTransactions.forEach(trans => {
         if (trans.date >= period.start && trans.date <= period.end) {
             const amount = getTransactionAmount(trans);
-            if (trans.type === "income") monthlyIncome += amount;
-            else if (trans.type === "expense") monthlyExpense += amount;
+            if (trans.type === "income") monthlyIncome += amount; else if (trans.type === "expense") monthlyExpense += amount;
         }
     });
     const savingsRate = monthlyIncome > 0 ? Math.round(((monthlyIncome - monthlyExpense) / monthlyIncome) * 100) : 0;
-    const startDate = new Date(period.start);
-    const endDate = new Date(period.end);
+    const startDate = new Date(period.start); const endDate = new Date(period.end);
     const daysInPeriod = Math.max(1, Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1);
     savingsRateEl.textContent = `${savingsRate}%`;
     dailyAvgEl.textContent = `Rp ${formatCurrency(Math.round(monthlyExpense / daysInPeriod))}`;
-
-    // BARU v8: health score
     renderHealth(monthlyIncome, monthlyExpense);
-
     if (!monthlyComparisonChart) {
         monthlyComparisonChart = new Chart(monthlyComparisonCanvas, {
             type: "bar",
@@ -2252,7 +1806,6 @@ function updateSummary() {
     }
     monthlyComparisonChart.data.datasets[0].data = [monthlyIncome, monthlyExpense];
     monthlyComparisonChart.update('none');
-
     const categoryTotals = {};
     allTransactions.filter(t => t.type === "expense" && t.date >= period.start && t.date <= period.end).forEach(trans => {
         if (trans.isSplit && Array.isArray(trans.items)) trans.items.forEach(item => { const cat = item.category || "Lainnya"; categoryTotals[cat] = (categoryTotals[cat] || 0) + (Number(item.amount) || 0); });
@@ -2262,8 +1815,7 @@ function updateSummary() {
     const data = Object.values(categoryTotals);
     if (labels.length === 0) { categoryChartCanvas.classList.add("hidden"); chartEmpty.classList.remove("hidden"); }
     else {
-        categoryChartCanvas.classList.remove("hidden");
-        chartEmpty.classList.add("hidden");
+        categoryChartCanvas.classList.remove("hidden"); chartEmpty.classList.add("hidden");
         const palette = ["#8b7de8", "#6fa3e8", "#67c59a", "#ed7e91", "#e5b65f", "#d783c5", "#57bbc5", "#e99361"];
         if (!chartInstance) {
             chartInstance = new Chart(categoryChartCanvas, {
@@ -2277,9 +1829,7 @@ function updateSummary() {
     renderBudgets();
 }
 
-// =========================================================
-// ANALYTICS (per anggota + periode + perbandingan + saran)
-// =========================================================
+// ANALYTICS
 function renderProfileAnalytics(start, end) {
     profileAnalyticsGrid.innerHTML = "";
     if (profiles.length === 0) return;
@@ -2295,22 +1845,15 @@ function renderProfileAnalytics(start, end) {
         card.className = "profile-summary-card";
         card.style.setProperty('--profile-color', p.color);
         card.innerHTML = `
-            <div class="profile-summary-header">
-                <div class="profile-summary-avatar" style="background:${p.color}20;">${p.emoji}</div>
-                <div class="profile-summary-name">${escapeHtml(p.name)}</div>
-            </div>
+            <div class="profile-summary-header"><div class="profile-summary-avatar" style="background:${p.color}20;">${p.emoji}</div><div class="profile-summary-name">${escapeHtml(p.name)}</div></div>
             <div class="profile-summary-stats">
                 <div><div class="profile-stat-label">Pemasukan</div><div class="profile-stat-value income">+Rp ${formatCurrency(inc)}</div></div>
                 <div><div class="profile-stat-label">Pengeluaran</div><div class="profile-stat-value expense">-Rp ${formatCurrency(exp)}</div></div>
-                <div style="grid-column:1/-1; margin-top:4px; padding-top:8px; border-top:1px solid var(--border);">
-                    <div class="profile-stat-label">Selisih</div>
-                    <div class="profile-stat-value" style="color:${net >= 0 ? 'var(--income)' : 'var(--expense)'};">Rp ${formatCurrency(net)}</div>
-                </div>
+                <div style="grid-column:1/-1; margin-top:4px; padding-top:8px; border-top:1px solid var(--border);"><div class="profile-stat-label">Selisih</div><div class="profile-stat-value" style="color:${net >= 0 ? 'var(--income)' : 'var(--expense)'};">Rp ${formatCurrency(net)}</div></div>
             </div>`;
         profileAnalyticsGrid.appendChild(card);
     });
 }
-
 function updateProfileComparison(start, end) {
     if (profiles.length === 0) { profileComparisonCanvas.parentElement.classList.add("hidden"); return; }
     profileComparisonCanvas.parentElement.classList.remove("hidden");
@@ -2331,18 +1874,13 @@ function updateProfileComparison(start, end) {
     profileComparisonChart.data.datasets[1].data = exp;
     profileComparisonChart.update('none');
 }
-
 function buildAnalyticsChart(start, end, inPeriod) {
-    const startD = new Date(start + "T00:00:00");
-    const endD = new Date(end + "T00:00:00");
+    const startD = new Date(start + "T00:00:00"); const endD = new Date(end + "T00:00:00");
     const days = Math.max(1, Math.round((endD - startD) / 86400000) + 1);
     const useDaily = days <= 62;
     const buckets = {};
     if (useDaily) { for (let i = 0; i < days; i++) buckets[toDateStr(addDays(startD, i))] = { income: 0, expense: 0 }; }
-    else {
-        const d = new Date(startD); d.setDate(1);
-        while (d <= endD) { const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`; buckets[key] = { income: 0, expense: 0 }; d.setMonth(d.getMonth() + 1); }
-    }
+    else { const d = new Date(startD); d.setDate(1); while (d <= endD) { const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`; buckets[key] = { income: 0, expense: 0 }; d.setMonth(d.getMonth() + 1); } }
     inPeriod.forEach(t => {
         const key = useDaily ? t.date : String(t.date).substring(0, 7);
         if (!buckets[key]) return;
@@ -2369,17 +1907,13 @@ function buildAnalyticsChart(start, end, inPeriod) {
     analyticsChartInstance.data.datasets[1].data = keys.map(k => buckets[k].expense);
     analyticsChartInstance.update('none');
 }
-
 function renderSmartAnalysis(start, end, periodIncome, periodExpense, sortedCats) {
     const items = [];
     const net = periodIncome - periodExpense;
-    const startD = new Date(start + "T00:00:00");
-    const endD = new Date(end + "T00:00:00");
+    const startD = new Date(start + "T00:00:00"); const endD = new Date(end + "T00:00:00");
     const days = Math.max(1, Math.round((endD - startD) / 86400000) + 1);
-
-    if (periodIncome === 0 && periodExpense === 0) {
-        items.push({ icon: "📭", type: "info", text: "Belum ada transaksi pada periode ini. Mulai catat pemasukan dan pengeluaran untuk mendapatkan analisis otomatis." });
-    } else {
+    if (periodIncome === 0 && periodExpense === 0) items.push({ icon: "📭", type: "info", text: "Belum ada transaksi pada periode ini. Mulai catat pemasukan dan pengeluaran untuk mendapatkan analisis otomatis." });
+    else {
         if (periodIncome > 0 && net < 0) items.push({ icon: "🚨", type: "danger", text: `Pengeluaran melebihi pemasukan sebesar <b>Rp ${formatCurrency(Math.abs(net))}</b>. Segera tinjau pengeluaran yang tidak penting.` });
         else if (periodIncome > 0) {
             const rate = Math.round((net / periodIncome) * 100);
@@ -2387,16 +1921,13 @@ function renderSmartAnalysis(start, end, periodIncome, periodExpense, sortedCats
             else if (rate >= 10) items.push({ icon: "👍", type: "good", text: `Savings rate <b>${rate}%</b> cukup baik. Target ideal 20-30% agar target tabungan keluarga lebih cepat tercapai.` });
             else items.push({ icon: "⚠️", type: "warn", text: `Savings rate hanya <b>${rate}%</b>. Coba kurangi pengeluaran non-prioritas untuk memperbesar tabungan.` });
         } else items.push({ icon: "⚠️", type: "warn", text: "Tidak ada pemasukan tercatat pada periode ini, namun ada pengeluaran. Pastikan pemasukan ikut dicatat agar analisis akurat." });
-
         if (sortedCats.length > 0 && periodExpense > 0) {
             const catName = sortedCats[0][0], catVal = sortedCats[0][1];
             const share = Math.round((catVal / periodExpense) * 100);
             if (share >= 40) items.push({ icon: "📊", type: "warn", text: `<b>${escapeHtml(catName)}</b> sangat dominan: ${share}% dari total pengeluaran (Rp ${formatCurrency(catVal)}). Tetapkan anggaran untuk kategori ini di menu Anggaran → + Atur.` });
             else items.push({ icon: "📊", type: "info", text: `Kategori terbesar: <b>${escapeHtml(catName)}</b> (${share}% / Rp ${formatCurrency(catVal)}). Distribusi pengeluaran masih cukup merata.` });
         }
-
-        const prevStart = toDateStr(addDays(startD, -days));
-        const prevEnd = toDateStr(addDays(startD, -1));
+        const prevStart = toDateStr(addDays(startD, -days)); const prevEnd = toDateStr(addDays(startD, -1));
         let prevExpense = 0;
         allTransactions.forEach(t => { if (t.type === "expense" && t.date >= prevStart && t.date <= prevEnd) prevExpense += getTransactionAmount(t); });
         if (prevExpense > 0) {
@@ -2405,10 +1936,7 @@ function renderSmartAnalysis(start, end, periodIncome, periodExpense, sortedCats
             else if (change < -10) items.push({ icon: "📉", type: "good", text: `Pengeluaran turun <b>${Math.abs(change)}%</b> dibanding periode sebelumnya. Pertahankan pola ini!` });
             else items.push({ icon: "➖", type: "info", text: `Pengeluaran relatif stabil (${change >= 0 ? "+" : ""}${change}%) dibanding periode sebelumnya.` });
         }
-
         if (periodExpense > 0) items.push({ icon: "🗓️", type: "info", text: `Rata-rata pengeluaran <b>Rp ${formatCurrency(periodExpense / days)}/hari</b>. Jika berlanjut, proyeksi 30 hari: <b>Rp ${formatCurrency((periodExpense / days) * 30)}</b>.` });
-
-        // BARU v8: hari terboros & transaksi terbesar
         const expTrans = allTransactions.filter(t => t.type === "expense" && t.date >= start && t.date <= end);
         if (expTrans.length > 0) {
             const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
@@ -2418,21 +1946,17 @@ function renderSmartAnalysis(start, end, periodIncome, periodExpense, sortedCats
             if (dayTotals[maxDay] > 0) items.push({ icon: "📆", type: "info", text: `Pengeluaran paling besar terjadi di hari <b>${dayNames[maxDay]}</b> (Rp ${formatCurrency(dayTotals[maxDay])}). Coba rem pengeluaran impulsif di hari tersebut.` });
             const largest = expTrans.reduce((a, b) => getTransactionAmount(a) >= getTransactionAmount(b) ? a : b);
             items.push({ icon: "🧾", type: "info", text: `Transaksi terbesar: "<b>${escapeHtml(largest.description)}</b>" Rp ${formatCurrency(getTransactionAmount(largest))} pada ${formatDate(largest.date)}.` });
+            const descMap = {};
+            expTrans.forEach(t => { descMap[t.description] = (descMap[t.description] || 0) + getTransactionAmount(t); });
+            const topDesc = Object.entries(descMap).sort((a, b) => b[1] - a[1])[0];
+            if (topDesc) items.push({ icon: "🏪", type: "info", text: `Merchant/deskripsi terboros: "<b>${escapeHtml(topDesc[0])}</b>" dengan total Rp ${formatCurrency(topDesc[1])} pada periode ini.` });
         }
-
         if (profiles.length >= 2) {
-            const spend = profiles.map(p => {
-                let s = 0;
-                allTransactions.forEach(t => { if (t.profileId === p.id && t.type === "expense" && t.date >= start && t.date <= end) s += getTransactionAmount(t); });
-                return { p, s };
-            }).sort((a, b) => b.s - a.s);
+            const spend = profiles.map(p => { let s = 0; allTransactions.forEach(t => { if (t.profileId === p.id && t.type === "expense" && t.date >= start && t.date <= end) s += getTransactionAmount(t); }); return { p, s }; }).sort((a, b) => b.s - a.s);
             if (spend[0].s > 0) items.push({ icon: "👥", type: "info", text: `<b>${escapeHtml(spend[0].p.name)}</b> mengeluarkan Rp ${formatCurrency(spend[0].s)}, sedangkan <b>${escapeHtml(spend[1].p.name)}</b> Rp ${formatCurrency(spend[1].s)} pada periode ini. Diskusikan bersama untuk menjaga keseimbangan anggaran keluarga.` });
         }
     }
-
-    // BARU v8: alert anggaran terlampaui
-    const now = new Date();
-    const cm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const now = new Date(); const cm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
     const spentCat = {};
     allTransactions.forEach(t => {
         if (t.type === "expense" && t.date?.startsWith(cm)) {
@@ -2444,14 +1968,12 @@ function renderSmartAnalysis(start, end, periodIncome, periodExpense, sortedCats
         const sp = spentCat[cat] || 0;
         if (amt > 0 && sp > amt) items.push({ icon: "🚨", type: "danger", text: `Anggaran <b>${escapeHtml(cat)}</b> terlampaui: terpakai Rp ${formatCurrency(sp)} dari Rp ${formatCurrency(amt)} (${Math.round((sp / amt) * 100)}%).` });
     });
-
     const activeDebts = debts.filter(d => d.status !== "lunas");
     if (activeDebts.length > 0) {
         const totalDebt = activeDebts.reduce((s, d) => s + (Number(d.amount) || 0), 0);
         const overdue = activeDebts.filter(d => d.dueDate && d.dueDate < toDateStr(new Date())).length;
         items.push({ icon: "💸", type: overdue > 0 ? "danger" : "warn", text: `Ada <b>${activeDebts.length}</b> utang/piutang aktif senilai Rp ${formatCurrency(totalDebt)}${overdue > 0 ? `, dan <b>${overdue} di antaranya lewat jatuh tempo</b>` : ""}. Prioritaskan pelunasan agar tidak menumpuk.` });
     }
-
     const goalArr = Object.values(goals);
     if (goalArr.length > 0) {
         const best = goalArr.map(x => ({ x, pct: (x.saved || 0) / (Number(x.amount) || 1) })).sort((a, b) => b.pct - a.pct)[0];
@@ -2459,26 +1981,18 @@ function renderSmartAnalysis(start, end, periodIncome, periodExpense, sortedCats
         if (pct >= 100) items.push({ icon: "🎁", type: "good", text: `Target "<b>${escapeHtml(best.x.name)}</b>" sudah tercapai 100%. Selamat! 🎉` });
         else items.push({ icon: "🎁", type: "info", text: `Progres target terdekat "<b>${escapeHtml(best.x.name)}</b>" sudah <b>${pct}%</b>. ${pct < 50 ? "Tingkatkan alokasi tabungan setiap ada surplus." : "Sedikit lagi, pertahankan konsistensi!"}` });
     }
-
     if (wallets.length > 0) {
         const top = wallets.map(x => ({ x, b: getWalletBalance(x.id) })).sort((a, b) => b.b - a.b)[0];
         if (top.b > 0) items.push({ icon: "💳", type: "info", text: `Saldo terbesar ada di <b>${escapeHtml(top.x.name)}</b> (Rp ${formatCurrency(top.b)}). ${top.x.type === "cash" ? "Menyimpan uang tunai terlalu besar berisiko — pertimbangkan memindahkannya ke bank atau investasi." : "Pastikan dana darurat tetap likuid dan terpisah dari dana harian."}` });
     }
-
-    smartAnalysisList.innerHTML = items.map(it => `
-        <div class="analysis-item ${it.type}">
-            <div class="analysis-icon">${it.icon}</div>
-            <div class="analysis-text">${it.text}</div>
-        </div>`).join("");
+    smartAnalysisList.innerHTML = items.map(it => `<div class="analysis-item ${it.type}"><div class="analysis-icon">${it.icon}</div><div class="analysis-text">${it.text}</div></div>`).join("");
 }
-
 function updateAnalytics() {
     const { start, end } = getAnalyticsPeriodDates();
     analyticsPeriodLabel.textContent = `Periode: ${formatDate(start)} - ${formatDate(end)}`;
     const inPeriod = allTransactions.filter(t => t.date >= start && t.date <= end && t.type !== "transfer");
     let periodIncome = 0, periodExpense = 0;
     inPeriod.forEach(t => { const amount = getTransactionAmount(t); if (t.type === "income") periodIncome += amount; else periodExpense += amount; });
-
     const categoryTotals = {};
     inPeriod.filter(t => t.type === "expense").forEach(trans => {
         if (trans.isSplit && Array.isArray(trans.items)) trans.items.forEach(item => { const cat = item.category || "Lainnya"; categoryTotals[cat] = (categoryTotals[cat] || 0) + (Number(item.amount) || 0); });
@@ -2488,36 +2002,24 @@ function updateAnalytics() {
     topCategoryEl.textContent = sortedCats[0] ? `${getCategoryEmoji(sortedCats[0][0])} ${sortedCats[0][0]}` : "-";
     const totalAmount = inPeriod.reduce((sum, t) => sum + getTransactionAmount(t), 0);
     avgTransactionEl.textContent = inPeriod.length ? `Rp ${formatCurrency(totalAmount / inPeriod.length)}` : "Rp 0";
-
     renderProfileAnalytics(start, end);
     updateProfileComparison(start, end);
     buildAnalyticsChart(start, end, inPeriod);
     renderSmartAnalysis(start, end, periodIncome, periodExpense, sortedCats);
-
     const yearStart = new Date().getFullYear();
     let yearlyIncome = 0, yearlyExpense = 0;
     allTransactions.forEach(trans => {
-        if (trans.date?.startsWith(yearStart.toString())) {
-            const amount = getTransactionAmount(trans);
-            if (trans.type === "income") yearlyIncome += amount;
-            else if (trans.type === "expense") yearlyExpense += amount;
-        }
+        if (trans.date?.startsWith(yearStart.toString())) { const amount = getTransactionAmount(trans); if (trans.type === "income") yearlyIncome += amount; else if (trans.type === "expense") yearlyExpense += amount; }
     });
-    yearlyStatsEl.innerHTML = `
-        <div>💰 Pendapatan: <strong>Rp ${formatCurrency(yearlyIncome)}</strong></div>
-        <div>💸 Pengeluaran: <strong>Rp ${formatCurrency(yearlyExpense)}</strong></div>
-        <div>💎 Net: <strong>Rp ${formatCurrency(yearlyIncome - yearlyExpense)}</strong></div>`;
+    yearlyStatsEl.innerHTML = `<div>💰 Pendapatan: <strong>Rp ${formatCurrency(yearlyIncome)}</strong></div><div>💸 Pengeluaran: <strong>Rp ${formatCurrency(yearlyExpense)}</strong></div><div>💎 Net: <strong>Rp ${formatCurrency(yearlyIncome - yearlyExpense)}</strong></div>`;
 }
 
-// =========================================================
-// BUDGET & GOALS (+ alert anggaran v8)
-// =========================================================
+// BUDGET & GOALS
 function renderBudgets() {
     budgetList.innerHTML = "";
     const entries = Object.entries(budgets);
     if (entries.length === 0) { budgetList.innerHTML = '<div class="empty-state"><div class="empty-icon">🎯</div>Belum ada anggaran.</div>'; return; }
-    const now = new Date();
-    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const now = new Date(); const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
     const monthlyExpense = {};
     allTransactions.forEach(trans => {
         if (trans.type === "expense" && trans.date?.startsWith(currentMonth)) {
@@ -2525,34 +2027,17 @@ function renderBudgets() {
             else monthlyExpense[trans.category] = (monthlyExpense[trans.category] || 0) + (Number(trans.amount) || 0);
         }
     });
-    const overList = [];
     entries.forEach(([cat, amount]) => {
         const spent = monthlyExpense[cat] || 0;
         const percent = Math.min((spent / amount) * 100, 100);
         const remaining = amount - spent;
-        if (amount > 0 && spent > amount) overList.push(cat);
         let progressClass = percent < 50 ? "progress-safe" : percent < 80 ? "progress-warning" : "progress-danger";
         const div = document.createElement("div");
         div.className = "budget-item";
-        div.innerHTML = `
-            <div class="budget-header">
-                <span class="budget-name">${getCategoryEmoji(cat)} ${escapeHtml(cat)}</span>
-                <span class="budget-number">Rp ${formatCurrency(spent)} / Rp ${formatCurrency(amount)}</span>
-            </div>
-            <div class="progress"><div class="progress-fill ${progressClass}" style="width:${percent}%;"></div></div>
-            <div class="budget-footer">
-                <span>${percent.toFixed(0)}% terpakai</span>
-                <span>${remaining >= 0 ? "Sisa Rp " + formatCurrency(remaining) : "Lebih Rp " + formatCurrency(Math.abs(remaining))}</span>
-            </div>`;
+        div.innerHTML = `<div class="budget-header"><span class="budget-name">${getCategoryEmoji(cat)} ${escapeHtml(cat)}</span><span class="budget-number">Rp ${formatCurrency(spent)} / Rp ${formatCurrency(amount)}</span></div><div class="progress"><div class="progress-fill ${progressClass}" style="width:${percent}%;"></div></div><div class="budget-footer"><span>${percent.toFixed(0)}% terpakai</span><span>${remaining >= 0 ? "Sisa Rp " + formatCurrency(remaining) : "Lebih Rp " + formatCurrency(Math.abs(remaining))}</span></div>`;
         budgetList.appendChild(div);
     });
-    // BARU v8: toast alert anggaran (sekali per sesi)
-    if (!budgetAlertShown && overList.length > 0) {
-        budgetAlertShown = true;
-        showToast(`⚠️ Anggaran terlampaui: ${overList.join(", ")}`, "error");
-    }
 }
-
 function renderGoals() {
     goalsList.innerHTML = "";
     const goalEntries = Object.values(goals);
@@ -2564,30 +2049,15 @@ function renderGoals() {
         const percent = Math.min((saved / target) * 100, 100);
         const div = document.createElement("div");
         div.className = "goal-item";
-        div.innerHTML = `
-            <div class="goal-header">
-                <div>
-                    <div class="goal-title">${escapeHtml(goal.name)}</div>
-                    <div class="goal-deadline">Target: ${formatDate(goal.deadline)} (${daysLeft > 0 ? daysLeft + ' hari' : 'Lewat'})</div>
-                </div>
-                <div class="goal-actions">
-                    <button class="add-goal-saldo-btn" data-id="${goal.id}">+</button>
-                    <button class="delete-goal-btn" data-id="${goal.id}">×</button>
-                </div>
-            </div>
-            <div class="goal-progress-text">Rp ${formatCurrency(saved)} / Rp ${formatCurrency(target)}</div>
-            <div class="progress"><div class="progress-fill progress-safe" style="width:${percent}%;"></div></div>`;
+        div.innerHTML = `<div class="goal-header"><div><div class="goal-title">${escapeHtml(goal.name)}</div><div class="goal-deadline">Target: ${formatDate(goal.deadline)} (${daysLeft > 0 ? daysLeft + ' hari' : 'Lewat'})</div></div><div class="goal-actions"><button class="add-goal-saldo-btn" data-id="${goal.id}">+</button><button class="delete-goal-btn" data-id="${goal.id}">×</button></div></div><div class="goal-progress-text">Rp ${formatCurrency(saved)} / Rp ${formatCurrency(target)}</div><div class="progress"><div class="progress-fill progress-safe" style="width:${percent}%;"></div></div>`;
         goalsList.appendChild(div);
     });
 }
 
-// =========================================================
 // TRANSACTION FORM
-// =========================================================
 expenseTypeBtn.addEventListener("click", () => setTransactionType("expense"));
 incomeTypeBtn.addEventListener("click", () => setTransactionType("income"));
 transferTypeBtn.addEventListener("click", () => setTransactionType("transfer"));
-
 function enterEditMode(trans) {
     isEditMode = true;
     editIdInput.value = trans.id;
@@ -2600,13 +2070,13 @@ function enterEditMode(trans) {
     cancelEditBtn.classList.remove("hidden");
     selectedProfileId = trans.profileId || selectedProfileId || profiles[0]?.id || null;
     renderProfileSelector();
-    splitItemsContainer.innerHTML = "";
-    splitItemCount = 0;
+    splitItemsContainer.innerHTML = ""; splitItemCount = 0;
     if (trans.isSplit && Array.isArray(trans.items)) trans.items.forEach(item => addSplitItem(item.category, item.amount));
     else addSplitItem(trans.category, trans.amount);
     if (trans.walletId) fromWalletSelect.value = trans.walletId;
     if (trans.fromWallet) fromWalletSelect.value = trans.fromWallet;
     if (trans.toWallet) toWalletSelect.value = trans.toWallet;
+    if (trans.type === "transfer") transferAmountInput.value = trans.amount;
     currentAttachmentBase64 = trans.attachmentBase64 || null;
     if (trans.attachmentBase64) {
         attachmentPreview.innerHTML = `<img src="${trans.attachmentBase64}" alt="Preview"><button type="button" class="attachment-remove" id="remove-attachment">×</button>`;
@@ -2615,7 +2085,6 @@ function enterEditMode(trans) {
         document.getElementById("remove-attachment").addEventListener("click", () => { currentAttachmentBase64 = null; attachmentPreview.classList.add("hidden"); attachmentPreview.innerHTML = ""; attachmentLabel.textContent = "Pilih Foto"; });
     } else { attachmentPreview.classList.add("hidden"); attachmentPreview.innerHTML = ""; attachmentLabel.textContent = "Pilih Foto"; }
 }
-
 function exitEditMode() {
     isEditMode = false;
     editIdInput.value = "";
@@ -2626,17 +2095,14 @@ function exitEditMode() {
     submitBtn.textContent = "➕ Tambahkan Transaksi";
     cancelEditBtn.classList.add("hidden");
     clearSplitItems();
-    categorySuggestion.classList.add("hidden");
-    pendingSuggestion = null;
+    transferAmountInput.value = "";
     currentAttachmentBase64 = null;
     attachmentInput.value = "";
     attachmentPreview.classList.add("hidden");
     attachmentPreview.innerHTML = "";
     attachmentLabel.textContent = "Pilih Foto";
 }
-
 cancelEditBtn.addEventListener("click", exitEditMode);
-
 form.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!currentUser) return;
@@ -2646,8 +2112,9 @@ form.addEventListener("submit", async (e) => {
     const type = typeInput.value;
     let items = null, isSplit = false, category = null, amount = 0;
     if (type === "transfer") {
-        amount = Number(prompt("Masukkan jumlah transfer (Rp):"));
-        if (!Number.isFinite(amount) || amount <= 0) { showToast("Jumlah transfer tidak valid", "error"); return; }
+        // FIX v9.1: ambil jumlah dari kolom, bukan prompt
+        amount = Number(transferAmountInput.value);
+        if (!Number.isFinite(amount) || amount <= 0) { showToast("Masukkan jumlah transfer yang valid", "error"); return; }
     } else {
         items = getSplitItems();
         if (items.length === 0) { showToast("Minimal 1 kategori dengan jumlah > 0", "error"); return; }
@@ -2684,9 +2151,7 @@ form.addEventListener("submit", async (e) => {
     }
 });
 
-// =========================================================
-// DELETE TRANSACTION (UNDO)
-// =========================================================
+// DELETE
 confirmDelete.addEventListener("click", async () => {
     if (!deleteTargetId || !currentUser) return;
     const trans = allTransactions.find(t => t.id === deleteTargetId);
@@ -2694,8 +2159,7 @@ confirmDelete.addEventListener("click", async () => {
     document.getElementById("delete-modal").classList.remove("active");
     try {
         await updateDoc(doc(db, "users", currentUser.uid, "transactions", deleteTargetId), { deletedAt: serverTimestamp() });
-        pendingDeleteId = deleteTargetId;
-        deleteTargetId = null;
+        pendingDeleteId = deleteTargetId; deleteTargetId = null;
         showToastWithUndo("Transaksi dihapus",
             async () => { try { await updateDoc(doc(db, "users", currentUser.uid, "transactions", pendingDeleteId), { deletedAt: null }); showToast("Transaksi dipulihkan", "success"); } catch (error) { showToast("Gagal memulihkan", "error"); } pendingDeleteId = null; },
             async () => { try { await deleteDoc(doc(db, "users", currentUser.uid, "transactions", pendingDeleteId)); showToast("Transaksi dihapus permanen", "info"); } catch (error) { showToast("Gagal menghapus permanen", "error"); } pendingDeleteId = null; },
@@ -2703,16 +2167,10 @@ confirmDelete.addEventListener("click", async () => {
     } catch (error) { console.error("Delete error:", error); showToast("Gagal menghapus transaksi", "error"); }
 });
 
-// =========================================================
-// MODAL HANDLERS
-// =========================================================
-document.querySelectorAll(".close-modal").forEach(btn => {
-    btn.addEventListener("click", () => { document.getElementById(btn.dataset.target).classList.remove("active"); });
-});
+// MODALS
+document.querySelectorAll(".close-modal").forEach(btn => { btn.addEventListener("click", () => { document.getElementById(btn.dataset.target).classList.remove("active"); }); });
 
-// =========================================================
-// CATEGORY MANAGEMENT
-// =========================================================
+// CATEGORY
 addCategoryBtn.addEventListener("click", () => { document.getElementById("category-modal").classList.add("active"); newCategoryName.focus(); });
 saveCategoryBtn.addEventListener("click", async () => {
     if (!currentUser) return;
@@ -2730,9 +2188,7 @@ saveCategoryBtn.addEventListener("click", async () => {
     finally { saveCategoryBtn.disabled = false; }
 });
 
-// =========================================================
-// BUDGET MANAGEMENT
-// =========================================================
+// BUDGET
 setBudgetBtn.addEventListener("click", () => { populateCategoryDropdowns(); document.getElementById("budget-modal").classList.add("active"); });
 saveBudgetBtn.addEventListener("click", async () => {
     if (!currentUser) return;
@@ -2749,9 +2205,7 @@ saveBudgetBtn.addEventListener("click", async () => {
     finally { saveBudgetBtn.disabled = false; }
 });
 
-// =========================================================
-// GOALS MANAGEMENT
-// =========================================================
+// GOALS
 addGoalBtn.addEventListener("click", () => { document.getElementById("goal-modal").classList.add("active"); goalNameInput.focus(); });
 saveGoalBtn.addEventListener("click", async () => {
     if (!currentUser) return;
@@ -2788,9 +2242,7 @@ goalsList.addEventListener("click", async (e) => {
     }
 });
 
-// =========================================================
-// WALLET MANAGEMENT
-// =========================================================
+// WALLET
 addWalletBtn.addEventListener("click", () => {
     walletNameInput.value = "";
     populateWalletOwnerSelect();
@@ -2827,17 +2279,9 @@ saveWalletBtn.addEventListener("click", async () => {
     finally { saveWalletBtn.disabled = false; }
 });
 
-// =========================================================
-// DEBT MANAGEMENT
-// =========================================================
+// DEBT
 addDebtBtn.addEventListener("click", () => {
-    editDebtIdInput.value = "";
-    debtTypeSelect.value = "utang";
-    debtPersonInput.value = "";
-    debtAmountInput.value = "";
-    debtDateInput.valueAsDate = new Date();
-    debtDueDateInput.value = "";
-    debtNoteInput.value = "";
+    editDebtIdInput.value = ""; debtTypeSelect.value = "utang"; debtPersonInput.value = ""; debtAmountInput.value = ""; debtDateInput.valueAsDate = new Date(); debtDueDateInput.value = ""; debtNoteInput.value = "";
     debtModalTitle.textContent = "💸 Tambah Utang/Piutang";
     document.getElementById("debt-modal").classList.add("active");
 });
@@ -2860,14 +2304,9 @@ saveDebtBtn.addEventListener("click", async () => {
     finally { saveDebtBtn.disabled = false; }
 });
 
-// =========================================================
 // PROFILE MANAGEMENT
-// =========================================================
 addProfileBtn.addEventListener("click", () => {
-    editProfileIdInput.value = "";
-    profileNameInput.value = "";
-    profileEmojiSelect.value = "🧑";
-    profileColorInput.value = "#7667d9";
+    editProfileIdInput.value = ""; profileNameInput.value = ""; profileEmojiSelect.value = "🧑"; profileColorInput.value = "#7667d9";
     profileModalTitle.textContent = "👤 Tambah Anggota";
     document.getElementById("profile-modal").classList.add("active");
 });
@@ -2891,9 +2330,7 @@ saveProfileBtn.addEventListener("click", async () => {
     finally { saveProfileBtn.disabled = false; }
 });
 
-// =========================================================
-// RECURRING TRANSACTIONS (MANUAL)
-// =========================================================
+// RECURRING MANUAL
 processRecurringBtn.addEventListener("click", async () => {
     if (!currentUser) return;
     const now = new Date();
@@ -2926,16 +2363,12 @@ processRecurringBtn.addEventListener("click", async () => {
     } else showToast("Semua transaksi berulang sudah ada bulan ini.", "info");
 });
 
-// =========================================================
 // FILTERS
-// =========================================================
 [searchInput, filterCategory, filterType, filterProfile, filterWallet, sortBy, filterDateStart, filterDateEnd].forEach(el => {
     el.addEventListener(el.id === "search-input" ? "input" : "change", applyFiltersAndSort);
 });
 
-// =========================================================
 // SETTINGS
-// =========================================================
 function updateDarkIcon() {
     const isDark = document.body.classList.contains("dark");
     darkToggle.textContent = isDark ? "☀️" : "🌙";
@@ -2952,22 +2385,16 @@ function toggleDarkMode() {
     }
 }
 [darkToggle, darkToggleSettings].forEach(btn => btn.addEventListener("click", toggleDarkMode));
-// BARU v8: dark mode otomatis mengikuti sistem jika belum diatur manual
 if (localStorage.getItem("auditdompet-dark") === "enabled") document.body.classList.add("dark");
 else if (!localStorage.getItem("auditdompet-dark") && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) document.body.classList.add("dark");
 updateDarkIcon();
-
 toggleBalance.addEventListener("click", () => {
     balanceHidden = !balanceHidden;
     toggleBalance.textContent = balanceHidden ? "🙈" : "👁️";
-    renderTransactions();
-    renderWallets();
-    renderProfileSummary();
+    renderTransactions(); renderWallets(); renderProfileSummary(); renderNetWorth();
 });
 
-// =========================================================
 // EXPORT CSV
-// =========================================================
 function exportCsv() {
     if (filteredTransactions.length === 0) { showToast("Tidak ada data untuk diekspor", "error"); return; }
     const headers = ["Tipe", "Anggota", "Deskripsi", "Jumlah", "Kategori", "Tanggal", "Dompet", "Split", "Ada Foto"];
@@ -2996,17 +2423,12 @@ function exportCsv() {
     const link = document.createElement("a");
     link.href = url;
     link.download = `auditdompet_${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
+    document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
     showToast("CSV diekspor", "success");
 }
 exportCsvBtn.addEventListener("click", exportCsv);
 
-// =========================================================
 // EXPORT PDF
-// =========================================================
 exportPdfBtn.addEventListener("click", async () => {
     if (allTransactions.length === 0) { showToast("Tidak ada data untuk diekspor", "error"); return; }
     try {
@@ -3016,17 +2438,14 @@ exportPdfBtn.addEventListener("click", async () => {
         const pageWidth = pdf.internal.pageSize.getWidth();
         const pageHeight = pdf.internal.pageSize.getHeight();
         let yPos = 15;
-        pdf.setFillColor(118, 103, 217);
-        pdf.rect(0, 0, pageWidth, 30, 'F');
-        pdf.setTextColor(255, 255, 255);
-        pdf.setFontSize(20); pdf.setFont('helvetica', 'bold');
+        pdf.setFillColor(118, 103, 217); pdf.rect(0, 0, pageWidth, 30, 'F');
+        pdf.setTextColor(255, 255, 255); pdf.setFontSize(20); pdf.setFont('helvetica', 'bold');
         pdf.text('AuditDompet - Family', 15, 15);
         pdf.setFontSize(10); pdf.setFont('helvetica', 'normal');
         pdf.text('Laporan Keuangan Keluarga', 15, 22);
         pdf.setFontSize(9);
         pdf.text(`Dicetak: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`, pageWidth - 15, 22, { align: 'right' });
-        yPos = 40;
-        pdf.setTextColor(0, 0, 0);
+        yPos = 40; pdf.setTextColor(0, 0, 0);
         const period = getPeriodDates();
         let periodIncome = 0, periodExpense = 0, totalIncome = 0, totalExpense = 0;
         allTransactions.forEach(trans => {
@@ -3035,8 +2454,7 @@ exportPdfBtn.addEventListener("click", async () => {
             else if (trans.type === "expense") { totalExpense += amount; if (trans.date >= period.start && trans.date <= period.end) periodExpense += amount; }
         });
         const balance = totalIncome - totalExpense;
-        pdf.setFillColor(245, 245, 250);
-        pdf.rect(15, yPos, pageWidth - 30, 40, 'F');
+        pdf.setFillColor(245, 245, 250); pdf.rect(15, yPos, pageWidth - 30, 40, 'F');
         pdf.setFontSize(10); pdf.setFont('helvetica', 'bold');
         pdf.text('RINGKASAN', 20, yPos + 8);
         pdf.setFont('helvetica', 'normal'); pdf.setFontSize(9);
@@ -3051,16 +2469,14 @@ exportPdfBtn.addEventListener("click", async () => {
         pdf.setFontSize(12); pdf.setFont('helvetica', 'bold');
         pdf.text('Transaksi Terbaru (20 terakhir)', 15, yPos);
         yPos += 8;
-        pdf.setFillColor(118, 103, 217);
-        pdf.rect(15, yPos, pageWidth - 30, 8, 'F');
+        pdf.setFillColor(118, 103, 217); pdf.rect(15, yPos, pageWidth - 30, 8, 'F');
         pdf.setTextColor(255, 255, 255); pdf.setFontSize(8);
         pdf.text('Tanggal', 18, yPos + 5.5);
         pdf.text('Anggota', 40, yPos + 5.5);
         pdf.text('Deskripsi', 60, yPos + 5.5);
         pdf.text('Kategori', 105, yPos + 5.5);
         pdf.text('Jumlah', pageWidth - 18, yPos + 5.5, { align: 'right' });
-        yPos += 8;
-        pdf.setTextColor(0, 0, 0); pdf.setFont('helvetica', 'normal');
+        yPos += 8; pdf.setTextColor(0, 0, 0); pdf.setFont('helvetica', 'normal');
         allTransactions.slice(0, 20).forEach((trans, idx) => {
             if (yPos > pageHeight - 20) { pdf.addPage(); yPos = 15; }
             if (idx % 2 === 0) { pdf.setFillColor(250, 250, 255); pdf.rect(15, yPos, pageWidth - 30, 6, 'F'); }
@@ -3082,26 +2498,20 @@ exportPdfBtn.addEventListener("click", async () => {
         });
         pdf.setFontSize(8); pdf.setTextColor(150, 150, 150);
         pdf.text('Dibuat oleh AuditDompet - Smart Family Finance Dashboard', pageWidth / 2, pageHeight - 10, { align: 'center' });
-        pdf.save(`auditdompet-keluarga-${new Date().toISOString().slice(0, 10)}.pdf`);
+        pdf.save(`auditdompet-laporan-${new Date().toISOString().slice(0, 10)}.pdf`);
         showToast("PDF berhasil dibuat!", "success");
     } catch (error) { console.error("PDF export error:", error); showToast("Gagal membuat PDF", "error"); }
 });
 
-// =========================================================
 // BACKUP & RESTORE
-// =========================================================
 backupBtn.addEventListener("click", () => {
     if (!currentUser) return;
     const backup = { user: currentUser.email, timestamp: new Date().toISOString(), transactions: allTransactions, categories, budgets, goals: Object.values(goals), wallets, debts, profiles };
     const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.href = url;
-    link.download = `auditdompet-backup-${new Date().toISOString().slice(0, 10)}.json`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
+    link.href = url; link.download = `auditdompet-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
     showToast("Backup selesai", "success");
 });
 restoreBtn.addEventListener("click", () => restoreFileInput.click());
@@ -3124,22 +2534,16 @@ restoreFileInput.addEventListener("change", async (e) => {
     restoreFileInput.value = "";
 });
 
-// =========================================================
 // NAVIGATION
-// =========================================================
 document.querySelectorAll(".nav-item").forEach(item => { item.addEventListener("click", () => switchTab(item.dataset.tab)); });
 
-// =========================================================
-// INITIALIZATION
-// =========================================================
+// INIT
 dateInput.valueAsDate = new Date();
 populateCategoryDropdowns();
 setTransactionType("expense");
 clearSplitItems();
-
 window.addEventListener("error", (e) => console.error("App error:", e.error));
 window.addEventListener("unhandledrejection", (e) => console.error("Promise error:", e.reason));
 </script>
-
 </body>
 </html>
