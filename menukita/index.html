@@ -1,0 +1,1468 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#e9905b">
+<title>MenuKita v2 — Rencana Menu & Belanja Keluarga</title>
+
+<style>
+/* =========================================================
+   MENUKITA v2.0 - Pasangan & Keluarga (90 Resep)
+   Fitur: Menu mingguan, belanja real-time, stok dapur,
+   foto struk, masak dari stok, ingat harga, riwayat,
+   integrasi AuditDompet
+========================================================= */
+:root {
+    --primary: #e9905b; --primary-dark: #d97a41; --primary-soft: #fff0e7;
+    --income: #42b883; --income-soft: #e6f7ef;
+    --expense: #ed7184; --expense-soft: #fdecef;
+    --blue: #5d9cec; --blue-soft: #eaf3ff;
+    --yellow: #e6ad4f; --yellow-soft: #fff5df;
+    --cyan: #4bbcc7; --cyan-soft: #e6f7f8;
+    --pink: #d77ac5; --pink-soft: #faebf7;
+    --purple: #9b7de8; --purple-soft: #f0ebff;
+    --bg: #fbf9f7; --surface: #ffffff; --surface-2: #fbfaf8;
+    --text: #2b2622; --text-soft: #6d675f; --text-light: #98928a;
+    --border: #ece7e0;
+    --success: #42b883; --warning: #e6ad4f; --danger: #ed7184;
+    --shadow: 0 8px 30px rgba(90, 60, 30, 0.08);
+    --shadow-hover: 0 14px 38px rgba(90, 60, 30, 0.12);
+    --radius: 18px;
+}
+body.dark {
+    --bg: #1a1714; --surface: #252119; --surface-2: #201c16;
+    --text: #f7f3ee; --text-soft: #bdb6ad; --text-light: #8d877e;
+    --border: #3a352c; --primary-soft: #45301f;
+    --income-soft: #203b31; --expense-soft: #412a31; --blue-soft: #25354a;
+    --yellow-soft: #433925; --pink-soft: #422e40; --cyan-soft: #233d40;
+    --purple-soft: #352c50; --shadow: 0 8px 30px rgba(0,0,0,0.35);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { scroll-behavior: smooth; }
+body {
+    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: radial-gradient(circle at 0% 0%, rgba(233,144,91,0.10), transparent 30%),
+                radial-gradient(circle at 100% 0%, rgba(66,184,131,0.07), transparent 25%), var(--bg);
+    color: var(--text); min-height: 100vh; line-height: 1.5;
+    transition: background .3s ease, color .3s ease; padding-bottom: 85px;
+}
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; }
+.hidden { display: none !important; }
+.container { width: min(1000px, calc(100% - 32px)); margin: 0 auto; padding: 24px 0 20px; }
+
+/* Login */
+.login-container { max-width: 440px; margin: 10vh auto; animation: fadeIn .4s ease; }
+.login-card { background: var(--surface); border: 1px solid var(--border); border-radius: 26px; box-shadow: var(--shadow); padding: 34px; }
+.login-logo { text-align: center; margin-bottom: 26px; }
+.logo-circle { width: 68px; height: 68px; margin: 0 auto 14px; border-radius: 22px; display: flex; align-items: center; justify-content: center; font-size: 31px; background: linear-gradient(135deg, #e9905b, #d77ac5); box-shadow: 0 12px 28px rgba(233,144,91,.28); }
+.login-logo h1 { font-size: 27px; letter-spacing: -0.5px; }
+.login-logo p { color: var(--text-soft); font-size: 14px; margin-top: 4px; }
+
+/* Forms */
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; color: var(--text-soft); font-size: 13px; font-weight: 650; margin-bottom: 7px; }
+.form-group input, .form-group select, .form-group textarea, .filter-control {
+    width: 100%; min-height: 45px; border: 1px solid var(--border); border-radius: 12px;
+    background: var(--surface); color: var(--text); padding: 11px 13px; outline: none;
+    transition: border .2s, box-shadow .2s;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(233,144,91,.12); }
+
+/* Buttons */
+.btn { min-height: 43px; border: 0; border-radius: 12px; padding: 10px 16px; font-weight: 650; transition: transform .15s, box-shadow .2s, background .2s; }
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+.btn-primary { color: white; background: linear-gradient(135deg, #e9905b, #d97a41); box-shadow: 0 7px 18px rgba(233,144,91,.25); }
+.btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+.btn-danger { background: var(--expense); color: white; }
+.btn-success { background: var(--success); color: white; }
+.btn-sm { min-height: 36px; padding: 7px 11px; font-size: 12px; }
+.btn-full { width: 100%; }
+
+/* Alerts & Toast */
+.alert { padding: 12px 14px; border-radius: 12px; margin-bottom: 16px; font-size: 13px; }
+.alert-error { background: var(--expense-soft); color: #a94e61; border: 1px solid rgba(237,113,132,.22); }
+.alert-success { background: var(--income-soft); color: #287c5a; border: 1px solid rgba(66,184,131,.22); }
+.alert-info { background: var(--blue-soft); color: #4d73a8; border: 1px solid rgba(93,156,236,.22); }
+.toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; box-shadow: var(--shadow-hover); font-size: 13px; font-weight: 600; z-index: 10000; opacity: 0; transition: all .3s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; align-items: center; gap: 12px; max-width: 90%; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* Header */
+header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 20px; }
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand-icon { width: 48px; height: 48px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 23px; background: linear-gradient(135deg, #e9905b, #d77ac5); box-shadow: 0 8px 20px rgba(233,144,91,.22); }
+.brand h1 { font-size: 21px; letter-spacing: -0.3px; }
+.brand p { font-size: 12px; color: var(--text-soft); }
+.header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.user-pill { display: flex; align-items: center; gap: 7px; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 7px 12px; font-size: 12px; color: var(--text-soft); }
+
+/* Cards */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; margin-bottom: 20px; }
+.card-title { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.card-title h2 { font-size: 16px; }
+.card-title p { font-size: 12px; color: var(--text-soft); }
+
+/* Week nav */
+.week-nav { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 16px; }
+.week-nav-btn { border: 1px solid var(--border); background: var(--surface); width: 40px; height: 40px; border-radius: 12px; font-size: 16px; color: var(--text-soft); }
+.week-nav-btn:hover { border-color: var(--primary); color: var(--primary); }
+.week-label { font-weight: 750; font-size: 14px; text-align: center; }
+
+/* Day cards & slots */
+.day-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+.day-title { font-weight: 720; font-size: 13px; margin-bottom: 10px; display: flex; justify-content: space-between; }
+.day-title span { color: var(--text-light); font-weight: 500; }
+.slot-row { display: grid; grid-template-columns: 62px 1fr auto; gap: 8px; align-items: center; margin-bottom: 8px; }
+.slot-row:last-child { margin-bottom: 0; }
+.slot-time { font-size: 11px; color: var(--text-light); font-weight: 650; }
+.slot-btn { border: 1px dashed var(--border); background: var(--surface); border-radius: 10px; min-height: 40px; padding: 8px 12px; font-size: 12.5px; font-weight: 600; color: var(--text-soft); text-align: left; transition: .2s; }
+.slot-btn:hover { border-color: var(--primary); color: var(--primary); }
+.slot-btn.filled { border-style: solid; border-color: var(--border); background: var(--primary-soft); color: var(--text); }
+.slot-clear { border: 0; background: transparent; color: var(--text-light); width: 30px; height: 30px; border-radius: 8px; }
+.slot-clear:hover { background: var(--expense-soft); color: var(--expense); }
+
+/* Shopping list */
+.shop-item { display: flex; align-items: center; gap: 10px; padding: 11px 4px; border-bottom: 1px solid var(--border); border-radius: 8px; }
+.shop-item:last-child { border-bottom: 0; }
+.shop-check { width: 26px; height: 26px; border-radius: 8px; border: 2px solid var(--border); background: var(--surface); flex: 0 0 26px; display: flex; align-items: center; justify-content: center; font-size: 14px; color: transparent; transition: .2s; }
+.shop-check.on { background: var(--success); border-color: var(--success); color: white; }
+.shop-info { flex: 1; min-width: 0; }
+.shop-name { font-weight: 680; font-size: 13px; }
+.shop-name.done { text-decoration: line-through; color: var(--text-light); }
+.shop-qty { font-size: 11px; color: var(--text-light); }
+.shop-by { font-size: 10px; color: var(--success); }
+.shop-price { width: 96px; min-height: 36px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); padding: 6px 8px; font-size: 12px; outline: none; }
+.shop-del { border: 0; background: transparent; color: var(--text-light); width: 28px; height: 28px; border-radius: 8px; }
+.shop-del:hover { background: var(--expense-soft); color: var(--expense); }
+.shop-progress { height: 8px; background: var(--border); border-radius: 99px; overflow: hidden; margin: 10px 0 6px; }
+.shop-progress-fill { height: 100%; background: var(--success); border-radius: inherit; transition: width .5s; }
+.shop-total-row { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; margin-top: 8px; }
+
+/* History */
+.history-item { display: flex; align-items: center; gap: 10px; padding: 12px 4px; border-bottom: 1px solid var(--border); }
+.history-item:last-child { border-bottom: 0; }
+.history-icon { width: 38px; height: 38px; border-radius: 12px; background: var(--income-soft); display: flex; align-items: center; justify-content: center; font-size: 17px; flex: 0 0 38px; }
+.history-info { flex: 1; min-width: 0; }
+.history-title { font-weight: 680; font-size: 12.5px; }
+.history-meta { font-size: 11px; color: var(--text-light); }
+.history-amount { font-weight: 750; font-size: 13px; color: var(--income); white-space: nowrap; }
+.history-photo { border: 0; background: var(--blue-soft); color: var(--blue); border-radius: 8px; padding: 5px 9px; font-size: 12px; font-weight: 700; }
+
+/* Stock */
+.stock-item { display: flex; align-items: center; gap: 10px; padding: 12px 4px; border-bottom: 1px solid var(--border); }
+.stock-item:last-child { border-bottom: 0; }
+.stock-name { flex: 1; font-weight: 680; font-size: 13px; }
+.stock-levels { display: flex; gap: 4px; }
+.stock-level-btn { border: 1px solid var(--border); background: var(--surface); color: var(--text-light); border-radius: 999px; padding: 4px 10px; font-size: 10px; font-weight: 700; }
+.stock-level-btn.active.aman { background: var(--income-soft); color: var(--income); border-color: var(--income); }
+.stock-level-btn.active.menipis { background: var(--yellow-soft); color: var(--warning); border-color: var(--warning); }
+.stock-level-btn.active.habis { background: var(--expense-soft); color: var(--expense); border-color: var(--expense); }
+.stock-add-shop { border: 0; background: var(--blue-soft); color: var(--blue); border-radius: 8px; padding: 5px 9px; font-size: 11px; font-weight: 700; }
+.stock-del { border: 0; background: transparent; color: var(--text-light); width: 28px; height: 28px; border-radius: 8px; }
+.stock-del:hover { background: var(--expense-soft); color: var(--expense); }
+
+/* Recipe picker & recommend */
+.recipe-search { margin-bottom: 12px; }
+.recipe-list { max-height: 46vh; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+.recipe-list::-webkit-scrollbar { width: 5px; }
+.recipe-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+.recipe-option { border: 1px solid var(--border); background: var(--surface); border-radius: 12px; padding: 11px 13px; text-align: left; display: flex; align-items: center; gap: 10px; transition: .2s; }
+.recipe-option:hover { border-color: var(--primary); background: var(--primary-soft); }
+.recipe-emoji { font-size: 20px; }
+.recipe-name { font-weight: 680; font-size: 13px; }
+.recipe-ing { font-size: 10.5px; color: var(--text-light); }
+.match-badge { margin-left: auto; background: var(--income-soft); color: var(--income); border-radius: 999px; padding: 3px 9px; font-size: 10px; font-weight: 800; white-space: nowrap; }
+
+/* Custom recipe list */
+.myrecipe-item { display: flex; align-items: center; gap: 10px; padding: 10px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 8px; }
+.myrecipe-item .recipe-name { flex: 1; }
+
+/* Receipt preview */
+.receipt-preview { position: relative; display: inline-block; margin-top: 8px; }
+.receipt-preview img { max-width: 160px; max-height: 160px; border-radius: 12px; border: 2px solid var(--border); object-fit: cover; }
+.receipt-remove { position: absolute; top: -8px; right: -8px; background: var(--expense); color: white; border: 0; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+
+/* Empty state */
+.empty-state { padding: 30px 15px; text-align: center; color: var(--text-light); font-size: 13px; }
+.empty-icon { font-size: 32px; margin-bottom: 7px; }
+
+/* Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(20,20,35,.45); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 9999; opacity: 0; pointer-events: none; transition: opacity .2s ease; }
+.modal-overlay.active { opacity: 1; pointer-events: auto; }
+.modal { width: min(480px, 100%); background: var(--surface); border: 1px solid var(--border); border-radius: 22px; padding: 23px; box-shadow: 0 25px 70px rgba(0,0,0,.20); transform: translateY(10px) scale(.98); transition: transform .25s cubic-bezier(0.175, 0.885, 0.32, 1.275); max-height: 90vh; overflow-y: auto; }
+.modal-overlay.active .modal { transform: translateY(0) scale(1); }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+.modal-header h3 { font-size: 17px; }
+.close-btn { border: 0; background: var(--surface-2); width: 34px; height: 34px; border-radius: 10px; color: var(--text-soft); font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+/* Bottom Nav */
+.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: stretch; height: 70px; z-index: 100; box-shadow: 0 -4px 20px rgba(90,60,30,0.08); padding-bottom: env(safe-area-inset-bottom); }
+.nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: none; background: transparent; color: var(--text-light); cursor: pointer; font-size: 11px; font-weight: 600; transition: all .2s ease; position: relative; }
+.nav-item:hover { color: var(--text); }
+.nav-item.active { color: var(--primary); }
+.nav-item.active::after { content: ''; position: absolute; top: 0; left: 22%; right: 22%; height: 3px; background: var(--primary); border-radius: 0 0 4px 4px; }
+.nav-icon { font-size: 22px; }
+.nav-badge { position: absolute; top: 8px; right: calc(50% - 20px); min-width: 16px; height: 16px; border-radius: 999px; background: var(--danger); color: white; font-size: 9px; font-weight: 800; display: flex; align-items: center; justify-content: center; padding: 0 4px; }
+
+/* Tabs */
+.tab-section { display: none; opacity: 0; transform: translateY(10px); }
+.tab-section.active { display: block; animation: tabFadeIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+@keyframes tabFadeIn { to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+@media (max-width: 650px) {
+    .container { width: min(100% - 20px, 1000px); padding-top: 14px; }
+    header { align-items: flex-start; }
+    .user-pill { display: none; }
+    .brand h1 { font-size: 18px; }
+    .card { padding: 16px; border-radius: 16px; }
+    .slot-row { grid-template-columns: 52px 1fr auto; }
+    .shop-price { width: 82px; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <!-- LOGIN -->
+    <div id="auth-panel" class="login-container hidden">
+        <div class="login-card">
+            <div class="login-logo">
+                <div class="logo-circle">🍽️</div>
+                <h1>MenuKita <span style="font-size:12px; vertical-align:top;">v2</span></h1>
+                <p>Rencana menu & belanja keluarga, sinkron berdua.</p>
+            </div>
+            <div id="auth-alert"></div>
+            <form id="auth-form">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="Gunakan akun AuditDompet Anda" autocomplete="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Minimal 6 karakter" minlength="6" autocomplete="current-password" required>
+                </div>
+                <button type="submit" id="login-btn" class="btn btn-primary btn-full">Masuk</button>
+            </form>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:9px;">
+                <button id="register-btn" class="btn btn-secondary">Daftar</button>
+                <button id="reset-password-btn" class="btn btn-secondary">Reset Password</button>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; margin:20px 0; color:var(--text-light); font-size:13px;">
+                <div style="flex:1;height:1px;background:var(--border)"></div>atau<div style="flex:1;height:1px;background:var(--border)"></div>
+            </div>
+            <button id="google-login-btn" class="btn btn-secondary btn-full">🔵 Masuk dengan Google</button>
+            <p style="text-align:center; font-size:11px; color:var(--text-light); margin-top:14px;">💡 Gunakan akun yang sama dengan AuditDompet agar belanja bisa dicatat ke sana.</p>
+        </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="dashboard" class="hidden">
+        <header>
+            <div class="brand">
+                <div class="brand-icon">🍽️</div>
+                <div><h1>MenuKita</h1><p>v2 • Menu, belanja & stok keluarga</p></div>
+            </div>
+            <div class="header-actions">
+                <div class="user-pill">👤 <span id="user-email">User</span></div>
+                <button id="dark-toggle" class="btn btn-secondary btn-sm" title="Mode tampilan">🌙</button>
+            </div>
+        </header>
+
+        <div id="summary-bar" class="alert alert-info"></div>
+
+        <!-- TAB MENU -->
+        <div id="tab-menu" class="tab-section active">
+            <div class="card">
+                <div class="card-title">
+                    <div><h2>🍽️ Menu Minggu Ini</h2><p>Klik slot untuk memilih masakan</p></div>
+                    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                        <button id="recommend-btn" class="btn btn-secondary btn-sm" title="Rekomendasi dari stok dapur">💡 Masak dari Stok</button>
+                        <button id="autofill-btn" class="btn btn-secondary btn-sm" title="Isi slot kosong secara acak">✨ Isi Otomatis</button>
+                        <button id="generate-btn" class="btn btn-primary btn-sm">🛒 Buat Daftar Belanja</button>
+                    </div>
+                </div>
+                <div class="week-nav">
+                    <button id="week-prev" class="week-nav-btn">←</button>
+                    <div id="week-label" class="week-label">-</div>
+                    <button id="week-next" class="week-nav-btn">→</button>
+                </div>
+                <div id="week-grid"></div>
+            </div>
+        </div>
+
+        <!-- TAB BELANJA -->
+        <div id="tab-belanja" class="tab-section">
+            <div class="card">
+                <div class="card-title">
+                    <div><h2>🛒 Daftar Belanja</h2><p id="shop-week-label">-</p></div>
+                    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                        <button id="check-all-btn" class="btn btn-secondary btn-sm" title="Centang semua">✅ Semua</button>
+                        <button id="clear-checked-btn" class="btn btn-secondary btn-sm" title="Hapus item tercentang">🧹 Bersihkan</button>
+                        <button id="record-btn" class="btn btn-success btn-sm">📒 Catat ke AuditDompet</button>
+                    </div>
+                </div>
+                <div class="shop-progress"><div id="shop-progress-fill" class="shop-progress-fill" style="width:0%"></div></div>
+                <div class="shop-total-row">
+                    <span id="shop-progress-text">0/0 dibeli</span>
+                    <span>Estimasi: Rp <span id="shop-total">0</span></span>
+                </div>
+                <div style="display:flex; gap:8px; margin:14px 0;">
+                    <input type="text" id="add-shop-name" class="filter-control" placeholder="Tambah item manual (mis. Garam)" style="flex:1;">
+                    <input type="text" id="add-shop-qty" class="filter-control" placeholder="Jumlah" style="width:90px;">
+                    <button id="add-shop-btn" class="btn btn-primary btn-sm" style="min-height:45px;">+</button>
+                </div>
+                <div id="shopping-list"></div>
+            </div>
+            <div class="card">
+                <div class="card-title">
+                    <div><h2>🗂️ Riwayat Belanja</h2><p>Pencatatan yang sudah masuk AuditDompet</p></div>
+                </div>
+                <div id="record-history"></div>
+            </div>
+        </div>
+
+        <!-- TAB STOK -->
+        <div id="tab-stok" class="tab-section">
+            <div class="card">
+                <div class="card-title">
+                    <div><h2>🏪 Stok Dapur</h2><p>Bahan "Aman" dipakai untuk rekomendasi 💡</p></div>
+                </div>
+                <div style="display:flex; gap:8px; margin-bottom:14px;">
+                    <input type="text" id="add-stock-name" class="filter-control" placeholder="Tambah stok (mis. Beras, Gas 3kg, Galon)" style="flex:1;">
+                    <button id="add-stock-btn" class="btn btn-primary btn-sm" style="min-height:45px;">+ Tambah</button>
+                </div>
+                <div id="stock-list"></div>
+            </div>
+        </div>
+
+        <!-- TAB SETTING -->
+        <div id="tab-setting" class="tab-section">
+            <div class="card">
+                <div class="card-title">
+                    <div><h2>🏪 Resep Saya</h2><p>Tambahkan resep keluarga sendiri</p></div>
+                </div>
+                <div class="form-group"><label>Nama Masakan</label><input type="text" id="rec-name" placeholder="Contoh: Sop Buntut Mama" maxlength="50"></div>
+                <div class="form-group"><label>Emoji</label><input type="text" id="rec-emoji" placeholder="🍲" maxlength="4"></div>
+                <div class="form-group">
+                    <label>Bahan (satu per baris: nama, jumlah, satuan)</label>
+                    <textarea id="rec-ings" placeholder="Buntut sapi, 500, gram&#10;Wortel, 2, buah&#10;Kentang, 2, buah&#10;Bawang putih, 3, siung"></textarea>
+                </div>
+                <button id="save-recipe-btn" class="btn btn-primary btn-full">💾 Simpan Resep</button>
+                <div id="my-recipes" style="margin-top:16px;"></div>
+            </div>
+            <div class="card">
+                <div class="card-title"><div><h2>⚙️ Pengaturan</h2><p>Kelola aplikasi</p></div></div>
+                <div style="display:flex; flex-direction:column; gap:12px;">
+                    <div style="padding:15px; background:var(--primary-soft); border-radius:12px; display:flex; justify-content:space-between; align-items:center;">
+                        <div><div style="font-weight:650; font-size:13px;">Mode Gelap</div><div style="font-size:12px; color:var(--text-soft); margin-top:3px;">Ganti tema tampilan</div></div>
+                        <button id="dark-toggle-settings" class="btn btn-secondary btn-sm">🌙</button>
+                    </div>
+                    <div style="padding:15px; background:var(--blue-soft); border-radius:12px;">
+                        <div style="font-weight:650; font-size:13px;">🔗 Terhubung dengan AuditDompet</div>
+                        <div style="font-size:12px; color:var(--text-soft); margin-top:3px;">Tombol "📒 Catat" membuat transaksi pengeluaran (kategori Makanan) di AuditDompet, lengkap dengan dompet dan foto struk. Jika AuditDompet Anda punya profil Suami/Istri (v6+), profil juga ikut terisi.</div>
+                    </div>
+                    <button id="logout-btn" class="btn btn-danger btn-full">🚪 Keluar</button>
+                </div>
+            </div>
+        </div>
+        <div style="text-align:center; color:var(--text-light); font-size:11px; margin-top:15px;">MenuKita • v2.0 • Pasangan & Keluarga</div>
+    </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav id="bottom-nav" class="bottom-nav hidden">
+    <button class="nav-item active" data-tab="menu"><div class="nav-icon">🍽️</div><div>Menu</div></button>
+    <button class="nav-item" data-tab="belanja"><div class="nav-icon">🛒</div><div>Belanja</div><div id="shop-badge" class="nav-badge hidden">0</div></button>
+    <button class="nav-item" data-tab="stok"><div class="nav-icon">🏪</div><div>Stok</div><div id="stock-badge" class="nav-badge hidden">0</div></button>
+    <button class="nav-item" data-tab="setting"><div class="nav-icon">⚙️</div><div>Setting</div></button>
+</nav>
+
+<!-- MODAL: RECIPE PICKER -->
+<div id="recipe-modal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header"><h3>🍳 Pilih Masakan</h3><button class="close-modal close-btn" data-target="recipe-modal">×</button></div>
+        <input type="text" id="recipe-search" class="filter-control recipe-search" placeholder="🔎 Cari masakan...">
+        <div id="recipe-list" class="recipe-list"></div>
+        <div style="display:flex; gap:8px; margin-top:14px;">
+            <input type="text" id="custom-dish" class="filter-control" placeholder="Atau tulis nama masakan sendiri" style="flex:1;">
+            <button id="use-custom-btn" class="btn btn-secondary btn-sm" style="min-height:45px;">Pakai</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: RECOMMEND FROM STOCK -->
+<div id="recommend-modal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header"><h3>💡 Masak dari Stok</h3><button class="close-modal close-btn" data-target="recommend-modal">×</button></div>
+        <p style="font-size:12px; color:var(--text-soft); margin-bottom:12px;">Resep berikut bahannya sudah tersedia di stok dapur Anda (level Aman). Klik untuk mengisi slot kosong pertama.</p>
+        <div id="recommend-list" class="recipe-list"></div>
+    </div>
+</div>
+
+<!-- MODAL: RECORD TO AUDITDOMPET -->
+<div id="record-modal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header"><h3>📒 Catat ke AuditDompet</h3><button class="close-modal close-btn" data-target="record-modal">×</button></div>
+        <div id="record-alert"></div>
+        <div class="form-group"><label>Deskripsi</label><input type="text" id="record-desc" value="🛒 Belanja mingguan (MenuKita)" maxlength="120"></div>
+        <div class="form-group"><label>Total Belanja (Rp)</label><input type="number" id="record-amount" min="0" step="any" inputmode="decimal" placeholder="0"></div>
+        <div class="form-group"><label>Dari Dompet</label><select id="record-wallet"></select></div>
+        <div class="form-group hidden" id="record-profile-group"><label>Anggota (jika AuditDompet v6+)</label><select id="record-profile"></select></div>
+        <div class="form-group">
+            <label>📸 Foto Struk (opsional)</label>
+            <input type="file" id="record-photo" accept="image/*" style="min-height:auto; padding:8px;">
+            <div id="record-photo-preview" class="receipt-preview hidden"></div>
+        </div>
+        <label style="display:flex; gap:8px; align-items:center; font-size:12.5px; color:var(--text-soft); margin-bottom:16px;">
+            <input type="checkbox" id="record-clear" checked style="width:18px; height:18px;"> Hapus item tercentang setelah dicatat
+        </label>
+        <button id="record-save" class="btn btn-primary btn-full">💾 Simpan Transaksi</button>
+    </div>
+</div>
+
+<!-- MODAL: PHOTO VIEW -->
+<div id="photo-view-modal" class="modal-overlay">
+    <div class="modal" style="max-width:600px;">
+        <div class="modal-header"><h3>📷 Foto</h3><button class="close-modal close-btn" data-target="photo-view-modal">×</button></div>
+        <img id="photo-view-img" src="" style="width:100%; border-radius:12px;">
+    </div>
+</div>
+
+<script type="module">
+// =========================================================
+// FIREBASE (PROJECT SAMA DENGAN AUDITDOMPET)
+// =========================================================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+import {
+    getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+    sendPasswordResetEmail, signOut, onAuthStateChanged,
+    GoogleAuthProvider, signInWithPopup
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+import {
+    getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, setDoc,
+    onSnapshot, serverTimestamp, writeBatch
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyCKGivCVl5J_y-VNJs4-_VG4prbSfNAthg",
+    authDomain: "auditdompet.firebaseapp.com",
+    projectId: "auditdompet",
+    messagingSenderId: "132113903968",
+    appId: "1:132113903968:web:22acd141e1b6e5571c2e05"
+};
+
+let app, db, auth;
+try {
+    app = initializeApp(firebaseConfig);
+    db = getFirestore(app);
+    auth = getAuth(app);
+} catch (error) {
+    console.error("Firebase initialization error:", error);
+}
+
+// =========================================================
+// DOM ELEMENTS
+// =========================================================
+const authPanel = document.getElementById("auth-panel");
+const dashboard = document.getElementById("dashboard");
+const bottomNav = document.getElementById("bottom-nav");
+const authForm = document.getElementById("auth-form");
+const emailInput = document.getElementById("email");
+const passwordInput = document.getElementById("password");
+const loginBtn = document.getElementById("login-btn");
+const registerBtn = document.getElementById("register-btn");
+const resetPasswordBtn = document.getElementById("reset-password-btn");
+const googleLoginBtn = document.getElementById("google-login-btn");
+const authAlert = document.getElementById("auth-alert");
+const logoutBtn = document.getElementById("logout-btn");
+const userEmailSpan = document.getElementById("user-email");
+const darkToggle = document.getElementById("dark-toggle");
+const darkToggleSettings = document.getElementById("dark-toggle-settings");
+const summaryBar = document.getElementById("summary-bar");
+const weekGrid = document.getElementById("week-grid");
+const weekLabel = document.getElementById("week-label");
+const weekPrevBtn = document.getElementById("week-prev");
+const weekNextBtn = document.getElementById("week-next");
+const autofillBtn = document.getElementById("autofill-btn");
+const generateBtn = document.getElementById("generate-btn");
+const recommendBtn = document.getElementById("recommend-btn");
+const recommendListEl = document.getElementById("recommend-list");
+const shopWeekLabel = document.getElementById("shop-week-label");
+const shopProgressFill = document.getElementById("shop-progress-fill");
+const shopProgressText = document.getElementById("shop-progress-text");
+const shopTotalEl = document.getElementById("shop-total");
+const addShopName = document.getElementById("add-shop-name");
+const addShopQty = document.getElementById("add-shop-qty");
+const addShopBtn = document.getElementById("add-shop-btn");
+const shoppingListEl = document.getElementById("shopping-list");
+const checkAllBtn = document.getElementById("check-all-btn");
+const clearCheckedBtn = document.getElementById("clear-checked-btn");
+const recordBtn = document.getElementById("record-btn");
+const recordHistoryEl = document.getElementById("record-history");
+const addStockName = document.getElementById("add-stock-name");
+const addStockBtn = document.getElementById("add-stock-btn");
+const stockListEl = document.getElementById("stock-list");
+const shopBadge = document.getElementById("shop-badge");
+const stockBadge = document.getElementById("stock-badge");
+const recName = document.getElementById("rec-name");
+const recEmoji = document.getElementById("rec-emoji");
+const recIngs = document.getElementById("rec-ings");
+const saveRecipeBtn = document.getElementById("save-recipe-btn");
+const myRecipesEl = document.getElementById("my-recipes");
+const recipeSearch = document.getElementById("recipe-search");
+const recipeListEl = document.getElementById("recipe-list");
+const customDishInput = document.getElementById("custom-dish");
+const useCustomBtn = document.getElementById("use-custom-btn");
+const recordAlert = document.getElementById("record-alert");
+const recordDesc = document.getElementById("record-desc");
+const recordAmount = document.getElementById("record-amount");
+const recordWallet = document.getElementById("record-wallet");
+const recordProfileGroup = document.getElementById("record-profile-group");
+const recordProfile = document.getElementById("record-profile");
+const recordPhoto = document.getElementById("record-photo");
+const recordPhotoPreview = document.getElementById("record-photo-preview");
+const recordClear = document.getElementById("record-clear");
+const recordSave = document.getElementById("record-save");
+
+// =========================================================
+// STATE
+// =========================================================
+let currentUser = null;
+let weeks = {};
+let shopping = [];
+let stocks = [];
+let customRecipes = [];
+let wallets = [];
+let profiles = [];
+let records = [];
+let priceMemory = {};
+let weekOffset = 0;
+let pendingSlotKey = null;
+let stockAlertShown = false;
+let recordPhotoBase64 = null;
+
+const DAYS = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
+const SLOTS = [
+    { key: "pagi", label: "🌅 Pagi" },
+    { key: "siang", label: "☀️ Siang" },
+    { key: "malam", label: "🌙 Malam" }
+];
+
+// =========================================================
+// RESEP BAWAAN (90 masakan rumahan Indonesia)
+// =========================================================
+const R = (id, name, emoji, rows) => ({ id, name, emoji, ingredients: rows.map(r => ({ n: r[0], q: r[1], u: r[2] })) });
+const BUILTIN_RECIPES = [
+    R("nasi-goreng", "Nasi Goreng", "🍛", [["Nasi", 600, "gram"], ["Telur", 2, "butir"], ["Bawang merah", 4, "siung"], ["Bawang putih", 2, "siung"], ["Kecap manis", 2, "sdm"], ["Cabai", 3, "buah"], ["Minyak goreng", 2, "sdm"]]),
+    R("ayam-goreng", "Ayam Goreng + Lalap", "🍗", [["Ayam", 500, "gram"], ["Bawang putih", 4, "siung"], ["Kunyit", 1, "ruas"], ["Ketumbar", 1, "sdt"], ["Beras", 500, "gram"], ["Mentimun", 1, "buah"]]),
+    R("sayur-sop", "Sayur Sop", "🥣", [["Wortel", 2, "buah"], ["Kentang", 2, "buah"], ["Kol", 100, "gram"], ["Seledri", 1, "batang"], ["Bawang putih", 2, "siung"], ["Beras", 500, "gram"]]),
+    R("tempe-goreng", "Tempe Goreng + Sambal", "🟫", [["Tempe", 1, "papan"], ["Bawang putih", 3, "siung"], ["Ketumbar", 1, "sdt"], ["Cabai", 5, "buah"], ["Beras", 500, "gram"]]),
+    R("telur-balado", "Telur Balado", "🍳", [["Telur", 4, "butir"], ["Cabai", 8, "buah"], ["Bawang merah", 5, "siung"], ["Tomat", 1, "buah"], ["Beras", 500, "gram"]]),
+    R("soto-ayam", "Soto Ayam", "🍲", [["Ayam", 400, "gram"], ["Soun", 100, "gram"], ["Kol", 100, "gram"], ["Jeruk nipis", 1, "buah"], ["Kunyit", 1, "ruas"], ["Bawang putih", 3, "siung"], ["Beras", 500, "gram"]]),
+    R("mie-goreng", "Mie Goreng", "🍜", [["Mie", 200, "gram"], ["Telur", 1, "butir"], ["Kol", 50, "gram"], ["Wortel", 1, "buah"], ["Kecap manis", 2, "sdm"], ["Bawang putih", 2, "siung"]]),
+    R("capcay", "Capcay", "🥦", [["Kol", 100, "gram"], ["Wortel", 1, "buah"], ["Brokoli", 100, "gram"], ["Ayam", 150, "gram"], ["Bawang putih", 3, "siung"], ["Beras", 500, "gram"]]),
+    R("tumis-kangkung", "Tumis Kangkung", "🥬", [["Kangkung", 2, "ikat"], ["Bawang putih", 2, "siung"], ["Cabai", 3, "buah"], ["Saus tiram", 1, "sdm"], ["Beras", 500, "gram"]]),
+    R("ikan-goreng", "Ikan Goreng + Sambal", "🐟", [["Ikan", 500, "gram"], ["Kunyit", 1, "ruas"], ["Jeruk nipis", 1, "buah"], ["Cabai", 5, "buah"], ["Beras", 500, "gram"]]),
+    R("teri-balado", "Sambal Teri", "🐠", [["Teri", 100, "gram"], ["Cabai", 8, "buah"], ["Bawang merah", 4, "siung"], ["Tomat", 1, "buah"], ["Beras", 500, "gram"]]),
+    R("sayur-asem", "Sayur Asem", "🌽", [["Labu siam", 1, "buah"], ["Kacang panjang", 100, "gram"], ["Jagung", 1, "buah"], ["Asam jawa", 1, "sdm"], ["Beras", 500, "gram"]]),
+    R("opor-ayam", "Opor Ayam", "🍛", [["Ayam", 500, "gram"], ["Santan", 400, "ml"], ["Serai", 1, "batang"], ["Daun salam", 2, "lembar"], ["Bawang putih", 3, "siung"], ["Beras", 500, "gram"]]),
+    R("rendang", "Rendang", "🥩", [["Daging sapi", 500, "gram"], ["Santan", 400, "ml"], ["Cabai", 10, "buah"], ["Serai", 1, "batang"], ["Beras", 500, "gram"]]),
+    R("tumis-buncis", "Tumis Buncis", "🫛", [["Buncis", 200, "gram"], ["Bawang putih", 2, "siung"], ["Cabai", 2, "buah"], ["Beras", 500, "gram"]]),
+    R("perkedel", "Perkedel Kentang", "🥔", [["Kentang", 400, "gram"], ["Telur", 2, "butir"], ["Seledri", 1, "batang"], ["Beras", 500, "gram"]]),
+    R("nasi-uduk", "Nasi Uduk + Ayam", "🍚", [["Beras", 600, "gram"], ["Santan", 200, "ml"], ["Daun salam", 2, "lembar"], ["Ayam", 400, "gram"], ["Mentimun", 1, "buah"]]),
+    R("ayam-kecap", "Ayam Kecap", "🍖", [["Ayam", 500, "gram"], ["Kecap manis", 3, "sdm"], ["Bawang bombay", 1, "buah"], ["Bawang putih", 2, "siung"], ["Beras", 500, "gram"]]),
+    R("sup-ayam", "Sup Ayam", "🍵", [["Ayam", 300, "gram"], ["Wortel", 2, "buah"], ["Kentang", 2, "buah"], ["Seledri", 1, "batang"], ["Beras", 500, "gram"]]),
+    R("tahu-goreng", "Tahu Goreng + Kecap", "⬜", [["Tahu", 10, "buah"], ["Bawang putih", 2, "siung"], ["Kecap manis", 2, "sdm"], ["Cabai", 3, "buah"], ["Beras", 500, "gram"]]),
+    R("oseng-tempe", "Oseng Tempe Kacang", "🥘", [["Tempe", 1, "papan"], ["Kacang panjang", 100, "gram"], ["Kecap manis", 2, "sdm"], ["Bawang putih", 2, "siung"], ["Beras", 500, "gram"]]),
+    R("bubur-ayam", "Bubur Ayam", "🥣", [["Beras", 200, "gram"], ["Ayam", 200, "gram"], ["Seledri", 1, "batang"], ["Kacang kedelai", 50, "gram"], ["Kecap manis", 1, "sdm"]]),
+    R("gado-gado", "Gado-Gado", "🥗", [["Kentang", 2, "buah"], ["Tauge", 100, "gram"], ["Kacang panjang", 100, "gram"], ["Tahu", 5, "buah"], ["Bumbu pecel", 100, "gram"], ["Telur", 2, "butir"]]),
+    R("pepes-ikan", "Pepes Ikan", "🍃", [["Ikan", 400, "gram"], ["Daun pisang", 2, "lembar"], ["Kemangi", 1, "ikat"], ["Cabai", 5, "buah"], ["Beras", 500, "gram"]]),
+    R("nasi-kuning", "Nasi Kuning", "🍚", [["Beras", 600, "gram"], ["Santan", 400, "ml"], ["Kunyit", 1, "ruas"], ["Daun salam", 2, "lembar"], ["Serai", 1, "batang"]]),
+    R("ayam-bakar", "Ayam Bakar", "🍢", [["Ayam", 500, "gram"], ["Kecap manis", 3, "sdm"], ["Bawang merah", 4, "siung"], ["Bawang putih", 3, "siung"], ["Ketumbar", 1, "sdt"], ["Beras", 500, "gram"]]),
+    R("sate-ayam", "Sate Ayam + Lontong", "🍢", [["Ayam", 400, "gram"], ["Kacang tanah", 100, "gram"], ["Kecap manis", 2, "sdm"], ["Bawang merah", 3, "siung"], ["Cabai", 3, "buah"], ["Lontong", 4, "buah"]]),
+    R("sayur-lodeh", "Sayur Lodeh", "🥥", [["Labu siam", 1, "buah"], ["Kacang panjang", 100, "gram"], ["Tempe", 1, "papan"], ["Santan", 400, "ml"], ["Daun salam", 2, "lembar"], ["Beras", 500, "gram"]]),
+    R("tumis-tauge", "Tumis Taoge", "🌱", [["Tauge", 200, "gram"], ["Bawang putih", 2, "siung"], ["Daun bawang", 1, "batang"], ["Cabai", 2, "buah"], ["Beras", 500, "gram"]]),
+    R("orak-arik-telur", "Orak-Arik Telur Sayur", "🍳", [["Telur", 3, "butir"], ["Kol", 100, "gram"], ["Wortel", 1, "buah"], ["Bawang putih", 2, "siung"], ["Beras", 500, "gram"]]),
+    R("ayam-geprek", "Ayam Geprek", "🌶️", [["Ayam", 400, "gram"], ["Cabai", 10, "buah"], ["Bawang putih", 4, "siung"], ["Tepung terigu", 100, "gram"], ["Beras", 500, "gram"]]),
+    R("mie-rebus", "Mie Rebus", "🍜", [["Mie", 200, "gram"], ["Telur", 1, "butir"], ["Sawi", 100, "gram"], ["Daun bawang", 1, "batang"], ["Bawang putih", 2, "siung"]]),
+    R("ikan-bakar", "Ikan Bakar", "🐟", [["Ikan", 500, "gram"], ["Kecap manis", 2, "sdm"], ["Kunyit", 1, "ruas"], ["Bawang putih", 3, "siung"], ["Jeruk nipis", 1, "buah"], ["Beras", 500, "gram"]]),
+    R("udang-saus-tiram", "Udang Saus Tiram", "🦐", [["Udang", 300, "gram"], ["Saus tiram", 2, "sdm"], ["Bawang putih", 3, "siung"], ["Daun bawang", 1, "batang"], ["Beras", 500, "gram"]]),
+    R("cumi-goreng-tepung", "Cumi Goreng Tepung", "🦑", [["Cumi", 300, "gram"], ["Tepung terigu", 100, "gram"], ["Telur", 1, "butir"], ["Bawang putih", 2, "siung"], ["Beras", 500, "gram"]]),
+    R("sayur-bayam", "Sayur Bening Bayam", "🥬", [["Bayam", 2, "ikat"], ["Jagung", 1, "buah"], ["Bawang merah", 3, "siung"], ["Temu kunci", 1, "ruas"], ["Beras", 500, "gram"]]),
+    R("kwetiau-goreng", "Kwetiau Goreng", "🍝", [["Kwetiau", 200, "gram"], ["Telur", 1, "butir"], ["Kol", 100, "gram"], ["Kecap manis", 2, "sdm"], ["Bawang putih", 2, "siung"]]),
+    R("bihun-goreng", "Bihun Goreng", "🍝", [["Bihun", 200, "gram"], ["Kol", 100, "gram"], ["Wortel", 1, "buah"], ["Kecap manis", 2, "sdm"], ["Bawang putih", 2, "siung"]]),
+    R("nasi-liwet", "Nasi Liwet", "🍚", [["Beras", 600, "gram"], ["Teri", 50, "gram"], ["Bawang merah", 5, "siung"], ["Daun salam", 2, "lembar"], ["Serai", 1, "batang"]]),
+    R("ayam-rica", "Ayam Rica-Rica", "🌶️", [["Ayam", 500, "gram"], ["Cabai", 12, "buah"], ["Serai", 1, "batang"], ["Daun jeruk", 3, "lembar"], ["Jahe", 1, "ruas"], ["Beras", 500, "gram"]]),
+    R("telur-dadar-padang", "Telur Dadar Padang", "🍳", [["Telur", 4, "butir"], ["Kelapa parut", 50, "gram"], ["Tepung beras", 1, "sdm"], ["Daun bawang", 2, "batang"], ["Cabai", 3, "buah"], ["Beras", 500, "gram"]]),
+    R("sambal-goreng-kentang", "Sambal Goreng Kentang", "🥔", [["Kentang", 400, "gram"], ["Tempe", 1, "papan"], ["Cabai", 8, "buah"], ["Kecap manis", 1, "sdm"], ["Daun salam", 2, "lembar"], ["Beras", 500, "gram"]]),
+    R("kering-tempe", "Kering Tempe", "🟫", [["Tempe", 1, "papan"], ["Kecap manis", 2, "sdm"], ["Gula merah", 50, "gram"], ["Cabai", 5, "buah"], ["Bawang putih", 3, "siung"], ["Beras", 500, "gram"]]),
+    R("ayam-suwir", "Ayam Suwir Pedas", "🍗", [["Ayam", 400, "gram"], ["Cabai", 10, "buah"], ["Serai", 1, "batang"], ["Daun jeruk", 3, "lembar"], ["Bawang merah", 4, "siung"], ["Beras", 500, "gram"]]),
+    R("soto-betawi", "Soto Betawi", "🍲", [["Daging sapi", 300, "gram"], ["Kentang", 2, "buah"], ["Santan", 400, "ml"], ["Daun salam", 2, "lembar"], ["Bawang putih", 3, "siung"], ["Beras", 500, "gram"]]),
+    R("bakso-kuah", "Bakso Kuah", "🍡", [["Bakso", 250, "gram"], ["Sawi", 100, "gram"], ["Seledri", 1, "batang"], ["Bawang putih", 3, "siung"], ["Mie", 100, "gram"]]),
+    R("mie-ayam", "Mie Ayam", "🍜", [["Mie", 200, "gram"], ["Ayam", 200, "gram"], ["Kecap manis", 2, "sdm"], ["Daun bawang", 1, "batang"], ["Sawi", 100, "gram"]]),
+    R("tahu-isi", "Tahu Isi (Gehu)", "⬜", [["Tahu", 10, "buah"], ["Tauge", 100, "gram"], ["Wortel", 1, "buah"], ["Tepung terigu", 100, "gram"], ["Daun bawang", 1, "batang"]]),
+    R("pisang-goreng", "Pisang Goreng", "🍌", [["Pisang", 6, "buah"], ["Tepung terigu", 100, "gram"], ["Gula pasir", 1, "sdm"], ["Garam", 1, "sdt"]]),
+    R("salad-buah", "Salad Buah", "🍎", [["Apel", 2, "buah"], ["Melon", 200, "gram"], ["Mayones", 100, "gram"], ["Keju", 50, "gram"], ["Yogurt", 100, "ml"]]),
+    R("urap-sayur", "Urap Sayur", "🥥", [["Tauge", 100, "gram"], ["Kacang panjang", 100, "gram"], ["Kelapa parut", 100, "gram"], ["Cabai", 5, "buah"], ["Bawang putih", 2, "siung"], ["Beras", 500, "gram"]]),
+    R("pecel", "Pecel Sayur", "🥗", [["Kacang panjang", 100, "gram"], ["Tauge", 100, "gram"], ["Kol", 100, "gram"], ["Bumbu pecel", 100, "gram"], ["Beras", 500, "gram"]]),
+    R("ketoprak", "Ketoprak", "🥜", [["Lontong", 2, "buah"], ["Bihun", 100, "gram"], ["Tauge", 100, "gram"], ["Tahu", 5, "buah"], ["Kacang tanah", 100, "gram"], ["Kecap manis", 2, "sdm"]]),
+    R("siomay", "Siomay", "🥟", [["Tenggiri", 250, "gram"], ["Tepung sagu", 150, "gram"], ["Kentang", 2, "buah"], ["Kol", 100, "gram"], ["Kacang tanah", 100, "gram"]]),
+    R("opor-telur", "Opor Telur", "🥚", [["Telur", 5, "butir"], ["Santan", 400, "ml"], ["Kunyit", 1, "ruas"], ["Daun salam", 2, "lembar"], ["Serai", 1, "batang"], ["Beras", 500, "gram"]]),
+    R("semur-telur", "Semur Telur", "🥚", [["Telur", 5, "butir"], ["Kecap manis", 4, "sdm"], ["Bawang merah", 4, "siung"], ["Pala", 1, "sdt"], ["Tomat", 1, "buah"], ["Beras", 500, "gram"]]),
+    R("semur-ayam", "Semur Ayam", "🍗", [["Ayam", 500, "gram"], ["Kecap manis", 4, "sdm"], ["Bawang bombay", 1, "buah"], ["Pala", 1, "sdt"], ["Kayu manis", 1, "ruas"], ["Beras", 500, "gram"]]),
+    R("ikan-asin-goreng", "Ikan Asin + Lalap", "🐟", [["Ikan asin", 100, "gram"], ["Cabai", 5, "buah"], ["Tomat", 1, "buah"], ["Bawang merah", 3, "siung"], ["Beras", 500, "gram"]]),
+    R("nasi-goreng-jawa", "Nasi Goreng Jawa", "🍛", [["Nasi", 600, "gram"], ["Ayam", 150, "gram"], ["Cabai", 5, "buah"], ["Kecap manis", 2, "sdm"], ["Bawang merah", 4, "siung"], ["Telur", 1, "butir"]]),
+    R("mie-godog", "Mie Godog Jawa", "🍜", [["Mie", 200, "gram"], ["Ayam", 150, "gram"], ["Telur", 1, "butir"], ["Kol", 100, "gram"], ["Kemiri", 2, "butir"], ["Bawang putih", 3, "siung"]]),
+    R("tongseng-ayam", "Tongseng Ayam", "🍲", [["Ayam", 400, "gram"], ["Kol", 150, "gram"], ["Kecap manis", 3, "sdm"], ["Santan", 200, "ml"], ["Cabai", 5, "buah"], ["Beras", 500, "gram"]]),
+    R("gulai-ayam", "Gulai Ayam", "🍛", [["Ayam", 500, "gram"], ["Santan", 400, "ml"], ["Bumbu gulai", 2, "sdm"], ["Daun jeruk", 3, "lembar"], ["Serai", 1, "batang"], ["Beras", 500, "gram"]]),
+    R("dendeng-balado", "Dendeng Balado", "🥩", [["Daging sapi", 400, "gram"], ["Cabai", 10, "buah"], ["Tomat", 2, "buah"], ["Bawang merah", 5, "siung"], ["Jeruk nipis", 1, "buah"], ["Beras", 500, "gram"]]),
+    R("beef-teriyaki", "Beef Teriyaki", "🥩", [["Daging sapi", 300, "gram"], ["Saus teriyaki", 3, "sdm"], ["Bawang bombay", 1, "buah"], ["Paprika", 1, "buah"], ["Beras", 500, "gram"]]),
+    R("chicken-katsu", "Chicken Katsu", "🍗", [["Ayam", 400, "gram"], ["Tepung roti", 100, "gram"], ["Telur", 2, "butir"], ["Tepung terigu", 50, "gram"], ["Kol", 100, "gram"], ["Beras", 500, "gram"]]),
+    R("ayam-mentega", "Ayam Mentega", "🧈", [["Ayam", 400, "gram"], ["Margarin", 3, "sdm"], ["Saus tiram", 2, "sdm"], ["Kecap inggris", 1, "sdm"], ["Bawang bombay", 1, "buah"], ["Beras", 500, "gram"]]),
+    R("cah-brokoli", "Cah Brokoli", "🥦", [["Brokoli", 200, "gram"], ["Bawang putih", 3, "siung"], ["Wortel", 1, "buah"], ["Saus tiram", 1, "sdm"], ["Beras", 500, "gram"]]),
+    R("fuyunghai", "Fuyunghai", "🍳", [["Telur", 4, "butir"], ["Wortel", 1, "buah"], ["Kol", 100, "gram"], ["Tepung terigu", 3, "sdm"], ["Saus tomat", 3, "sdm"], ["Beras", 500, "gram"]]),
+    R("lumpia-goreng", "Lumpia Goreng", "🌯", [["Kulit lumpia", 10, "lembar"], ["Tauge", 150, "gram"], ["Wortel", 1, "buah"], ["Telur", 1, "butir"], ["Daun bawang", 1, "batang"]]),
+    R("sup-jagung", "Sup Jagung", "🌽", [["Jagung", 2, "buah"], ["Ayam", 150, "gram"], ["Putih telur", 1, "butir"], ["Wortel", 1, "buah"], ["Seledri", 1, "batang"], ["Beras", 500, "gram"]]),
+    R("tumis-terong", "Tumis Terong", "🍆", [["Terong", 2, "buah"], ["Bawang putih", 3, "siung"], ["Cabai", 3, "buah"], ["Kecap manis", 1, "sdm"], ["Beras", 500, "gram"]]),
+    R("balado-terong", "Balado Terong", "🍆", [["Terong", 2, "buah"], ["Cabai", 8, "buah"], ["Bawang merah", 5, "siung"], ["Tomat", 1, "buah"], ["Beras", 500, "gram"]]),
+    R("tumis-labu-siam", "Tumis Labu Siam", "🥒", [["Labu siam", 2, "buah"], ["Bawang putih", 2, "siung"], ["Cabai", 2, "buah"], ["Daun salam", 1, "lembar"], ["Beras", 500, "gram"]]),
+    R("oseng-jamur", "Oseng Jamur Tiram", "🍄", [["Jamur tiram", 250, "gram"], ["Bawang putih", 2, "siung"], ["Cabai", 3, "buah"], ["Saus tiram", 1, "sdm"], ["Daun bawang", 1, "batang"], ["Beras", 500, "gram"]]),
+    R("jamur-crispy", "Jamur Crispy", "🍄", [["Jamur tiram", 250, "gram"], ["Tepung terigu", 100, "gram"], ["Tepung beras", 2, "sdm"], ["Bawang putih", 2, "siung"]]),
+    R("telur-ceplok-balado", "Telur Ceplok Balado", "🍳", [["Telur", 4, "butir"], ["Cabai", 8, "buah"], ["Tomat", 1, "buah"], ["Bawang merah", 4, "siung"], ["Beras", 500, "gram"]]),
+    R("nasi-bakar", "Nasi Bakar", "🍃", [["Beras", 600, "gram"], ["Ayam", 200, "gram"], ["Daun pisang", 3, "lembar"], ["Kemangi", 1, "ikat"], ["Cabai", 5, "buah"], ["Santan", 200, "ml"]]),
+    R("perkedel-jagung", "Bakwan Jagung", "🌽", [["Jagung", 3, "buah"], ["Tepung terigu", 100, "gram"], ["Telur", 1, "butir"], ["Seledri", 1, "batang"], ["Bawang putih", 2, "siung"]]),
+    R("bakwan-sayur", "Bakwan Sayur", "🥕", [["Wortel", 2, "buah"], ["Kol", 100, "gram"], ["Tepung terigu", 150, "gram"], ["Tauge", 100, "gram"], ["Daun bawang", 1, "batang"]]),
+    R("tempe-mendoan", "Tempe Mendoan", "🟫", [["Tempe", 1, "papan"], ["Tepung terigu", 100, "gram"], ["Daun bawang", 2, "batang"], ["Ketumbar", 1, "sdt"], ["Cabai", 5, "buah"]]),
+    R("seblak", "Seblak", "🌶️", [["Kerupuk mentah", 100, "gram"], ["Telur", 1, "butir"], ["Sosis", 2, "buah"], ["Kencur", 2, "ruas"], ["Cabai", 5, "buah"], ["Sawi", 50, "gram"]]),
+    R("ayam-kalasan", "Ayam Kalasan", "🍗", [["Ayam", 500, "gram"], ["Gula merah", 50, "gram"], ["Air kelapa", 500, "ml"], ["Daun salam", 2, "lembar"], ["Bawang putih", 4, "siung"], ["Beras", 500, "gram"]]),
+    R("ayam-lengkuas", "Ayam Goreng Lengkuas", "🍗", [["Ayam", 500, "gram"], ["Lengkuas", 2, "ruas"], ["Santan", 200, "ml"], ["Ketumbar", 1, "sdt"], ["Bawang putih", 4, "siung"], ["Beras", 500, "gram"]]),
+    R("soto-lamongan", "Soto Lamongan", "🍲", [["Ayam", 400, "gram"], ["Bihun", 100, "gram"], ["Kol", 100, "gram"], ["Kunyit", 1, "ruas"], ["Bawang putih", 4, "siung"], ["Beras", 500, "gram"]]),
+    R("rawon", "Rawon", "🍲", [["Daging sapi", 400, "gram"], ["Kluwek", 4, "buah"], ["Tauge", 100, "gram"], ["Telur asin", 2, "butir"], ["Serai", 1, "batang"], ["Beras", 500, "gram"]]),
+    R("mie-tektek", "Mie Tek-Tek", "🍜", [["Mie", 200, "gram"], ["Telur", 2, "butir"], ["Kol", 100, "gram"], ["Tomat", 1, "buah"], ["Cabai", 3, "buah"], ["Bawang merah", 4, "siung"]]),
+    R("nasi-goreng-seafood", "Nasi Goreng Seafood", "🦐", [["Nasi", 600, "gram"], ["Udang", 150, "gram"], ["Cumi", 100, "gram"], ["Telur", 1, "butir"], ["Bawang putih", 3, "siung"], ["Kecap manis", 1, "sdm"]]),
+    R("tahu-cabai-garam", "Tahu Cabai Garam", "⬜", [["Tahu", 8, "buah"], ["Bawang putih", 4, "siung"], ["Cabai", 5, "buah"], ["Tepung maizena", 2, "sdm"], ["Daun bawang", 1, "batang"], ["Beras", 500, "gram"]]),
+    R("sayur-tahu-kuah", "Sayur Tahu Kuah", "⬜", [["Tahu", 8, "buah"], ["Daun bawang", 1, "batang"], ["Cabai", 3, "buah"], ["Bawang putih", 2, "siung"], ["Seledri", 1, "batang"], ["Beras", 500, "gram"]]),
+    R("sop-buntut", "Sop Buntut", "🥩", [["Buntut sapi", 500, "gram"], ["Wortel", 2, "buah"], ["Kentang", 2, "buah"], ["Pala", 1, "sdt"], ["Cengkih", 2, "butir"], ["Beras", 500, "gram"]])
+];
+
+// =========================================================
+// HELPERS
+// =========================================================
+function escapeHtml(value) {
+    return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
+function formatCurrency(amount) {
+    return new Intl.NumberFormat("id-ID", { maximumFractionDigits: 0 }).format(Number(amount) || 0);
+}
+function formatDate(dateString) {
+    if (!dateString) return "-";
+    return new Date(`${dateString}T00:00:00`).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
+}
+function toDateStr(d) {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+function mondayOf(d) {
+    const x = new Date(d);
+    const day = (x.getDay() + 6) % 7;
+    x.setDate(x.getDate() - day);
+    return x;
+}
+function currentWeekKey() {
+    const monday = mondayOf(new Date());
+    monday.setDate(monday.getDate() + (weekOffset * 7));
+    return toDateStr(monday);
+}
+function weekRangeLabel(weekKey) {
+    const start = new Date(`${weekKey}T00:00:00`);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 6);
+    return `${start.toLocaleDateString("id-ID", { day: "numeric", month: "short" })} – ${end.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}`;
+}
+function getAllRecipes() {
+    return [...BUILTIN_RECIPES, ...customRecipes];
+}
+function getRecipe(id) {
+    return getAllRecipes().find(r => r.id === id);
+}
+function showToast(message, type = "info") {
+    const toast = document.createElement("div");
+    toast.className = "toast";
+    toast.style.background = type === "success" ? "var(--income-soft)" : type === "error" ? "var(--expense-soft)" : "var(--surface)";
+    toast.style.color = type === "success" ? "var(--income)" : type === "error" ? "var(--expense)" : "var(--text)";
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add("show"));
+    setTimeout(() => { toast.classList.remove("show"); setTimeout(() => toast.remove(), 300); }, 3000);
+}
+function showAuthAlert(message, type = "error") {
+    const className = type === "success" ? "alert-success" : "alert-error";
+    authAlert.innerHTML = `<div class="alert ${className}">${escapeHtml(message)}</div>`;
+    setTimeout(() => { authAlert.innerHTML = ""; }, 5000);
+}
+function firebaseAuthError(error) {
+    const messages = {
+        "auth/invalid-credential": "Email atau password salah.",
+        "auth/user-not-found": "Akun tidak ditemukan.",
+        "auth/wrong-password": "Password salah.",
+        "auth/email-already-in-use": "Email sudah terdaftar.",
+        "auth/weak-password": "Password minimal 6 karakter.",
+        "auth/invalid-email": "Format email tidak valid.",
+        "auth/too-many-requests": "Terlalu banyak percobaan. Coba lagi nanti.",
+        "auth/popup-closed-by-user": "Login dibatalkan."
+    };
+    return messages[error?.code] || `Gagal: ${error?.message || "Terjadi kesalahan"}`;
+}
+function formatQty(q, u) {
+    const num = Number(q);
+    const qStr = Number.isFinite(num) && num > 0 ? String(Math.round(num * 100) / 100) : "";
+    return qStr ? `${qStr} ${u || ""}`.trim() : (u || "");
+}
+async function compressImage(file, maxWidth = 800, quality = 0.7) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                let width = img.width, height = img.height;
+                if (width > maxWidth) { height = (height * maxWidth) / width; width = maxWidth; }
+                const canvas = document.createElement('canvas');
+                canvas.width = width; canvas.height = height;
+                canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+                resolve(canvas.toDataURL('image/jpeg', quality));
+            };
+            img.onerror = reject;
+            img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+// =========================================================
+// AUTH
+// =========================================================
+authForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    loginBtn.disabled = true;
+    try { await signInWithEmailAndPassword(auth, emailInput.value.trim(), passwordInput.value); authForm.reset(); }
+    catch (error) { showAuthAlert(firebaseAuthError(error)); }
+    finally { loginBtn.disabled = false; }
+});
+registerBtn.addEventListener("click", async () => {
+    if (passwordInput.value.length < 6) { showAuthAlert("Password minimal 6 karakter."); return; }
+    registerBtn.disabled = true;
+    try { await createUserWithEmailAndPassword(auth, emailInput.value.trim(), passwordInput.value); showAuthAlert("Akun berhasil dibuat.", "success"); authForm.reset(); }
+    catch (error) { showAuthAlert(firebaseAuthError(error)); }
+    finally { registerBtn.disabled = false; }
+});
+resetPasswordBtn.addEventListener("click", async () => {
+    if (!emailInput.value.trim()) { showAuthAlert("Masukkan email terlebih dahulu."); return; }
+    try { await sendPasswordResetEmail(auth, emailInput.value.trim()); showAuthAlert("Email reset password sudah dikirim.", "success"); }
+    catch (error) { showAuthAlert(firebaseAuthError(error)); }
+});
+googleLoginBtn.addEventListener("click", async () => {
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: "select_account" });
+    try { await signInWithPopup(auth, provider); }
+    catch (error) { showAuthAlert(firebaseAuthError(error)); }
+});
+logoutBtn.addEventListener("click", () => signOut(auth));
+
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        currentUser = user;
+        userEmailSpan.textContent = user.email?.split("@")[0] || "User";
+        authPanel.classList.add("hidden");
+        dashboard.classList.remove("hidden");
+        bottomNav.classList.remove("hidden");
+        initUserData(user.uid);
+    } else {
+        currentUser = null;
+        weeks = {}; shopping = []; stocks = []; customRecipes = []; wallets = []; profiles = []; records = []; priceMemory = {};
+        authPanel.classList.remove("hidden");
+        dashboard.classList.add("hidden");
+        bottomNav.classList.add("hidden");
+    }
+});
+
+// =========================================================
+// DATA LISTENERS (REAL-TIME)
+// =========================================================
+function initUserData(uid) {
+    onSnapshot(collection(db, "users", uid, "mk_weeks"), (snap) => {
+        weeks = {};
+        snap.forEach(d => { weeks[d.id] = d.data().slots || {}; });
+        renderMenu();
+        renderSummary();
+    });
+    onSnapshot(collection(db, "users", uid, "mk_shopping"), (snap) => {
+        shopping = [];
+        snap.forEach(d => shopping.push({ id: d.id, ...d.data() }));
+        buildPriceMemory();
+        renderShopping();
+        renderSummary();
+    });
+    onSnapshot(collection(db, "users", uid, "mk_stock"), (snap) => {
+        stocks = [];
+        snap.forEach(d => stocks.push({ id: d.id, ...d.data() }));
+        renderStock();
+        if (!stockAlertShown) {
+            const low = stocks.filter(s => s.level === "habis" || s.level === "menipis").length;
+            if (low > 0) { stockAlertShown = true; showToast(`⚠️ ${low} stok dapur menipis/habis`, "error"); }
+        }
+    });
+    onSnapshot(collection(db, "users", uid, "mk_recipes"), (snap) => {
+        customRecipes = [];
+        snap.forEach(d => customRecipes.push({ id: d.id, ...d.data() }));
+        renderMyRecipes();
+    });
+    onSnapshot(collection(db, "users", uid, "mk_records"), (snap) => {
+        records = [];
+        snap.forEach(d => records.push({ id: d.id, ...d.data() }));
+        renderHistory();
+    });
+    onSnapshot(collection(db, "users", uid, "wallets"), (snap) => {
+        wallets = [];
+        snap.forEach(d => wallets.push({ id: d.id, ...d.data() }));
+        populateRecordSelects();
+    });
+    onSnapshot(collection(db, "users", uid, "profiles"), (snap) => {
+        profiles = [];
+        snap.forEach(d => profiles.push({ id: d.id, ...d.data() }));
+        populateRecordSelects();
+    });
+}
+
+function buildPriceMemory() {
+    priceMemory = {};
+    shopping.forEach(s => {
+        const p = Number(s.price) || 0;
+        if (p > 0) {
+            const key = (s.name || "").toLowerCase();
+            const ts = s.createdAt?.seconds || 0;
+            if (!priceMemory[key] || ts >= priceMemory[key].ts) priceMemory[key] = { price: p, ts };
+        }
+    });
+}
+function rememberedPrice(name) {
+    return priceMemory[(name || "").toLowerCase()]?.price || 0;
+}
+
+// =========================================================
+// NAVIGATION & DARK MODE
+// =========================================================
+document.querySelectorAll(".nav-item").forEach(item => {
+    item.addEventListener("click", () => {
+        const tab = item.dataset.tab;
+        document.querySelectorAll(".tab-section").forEach(s => s.classList.remove("active"));
+        document.getElementById(`tab-${tab}`)?.classList.add("active");
+        document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+        item.classList.add("active");
+    });
+});
+function updateDarkIcon() {
+    const isDark = document.body.classList.contains("dark");
+    darkToggle.textContent = isDark ? "☀️" : "🌙";
+    darkToggleSettings.textContent = isDark ? "☀️" : "🌙";
+}
+function toggleDarkMode() {
+    document.body.classList.toggle("dark");
+    localStorage.setItem("menukita-dark", document.body.classList.contains("dark") ? "enabled" : "disabled");
+    updateDarkIcon();
+}
+[darkToggle, darkToggleSettings].forEach(btn => btn.addEventListener("click", toggleDarkMode));
+if (localStorage.getItem("menukita-dark") === "enabled") document.body.classList.add("dark");
+else if (!localStorage.getItem("menukita-dark") && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) document.body.classList.add("dark");
+updateDarkIcon();
+
+document.querySelectorAll(".close-modal").forEach(btn => {
+    btn.addEventListener("click", () => { document.getElementById(btn.dataset.target).classList.remove("active"); });
+});
+
+// =========================================================
+// SUMMARY BAR
+// =========================================================
+function renderSummary() {
+    const weekKey = currentWeekKey();
+    const slots = weeks[weekKey] || {};
+    const filled = Object.values(slots).filter(Boolean).length;
+    const items = shopping.filter(s => s.weekKey === weekKey);
+    const checked = items.filter(s => s.checked).length;
+    const h = new Date().getHours();
+    const greet = h < 10 ? "Selamat pagi" : h < 15 ? "Selamat siang" : h < 18 ? "Selamat sore" : "Selamat malam";
+    summaryBar.innerHTML = `👋 <b>${greet}!</b> Minggu ini: <b>${filled}/21</b> menu • <b>${checked}/${items.length}</b> belanja dibeli • 💡 coba "Masak dari Stok".`;
+}
+
+// =========================================================
+// MENU MINGGUAN
+// =========================================================
+function renderMenu() {
+    const weekKey = currentWeekKey();
+    weekLabel.textContent = weekRangeLabel(weekKey);
+    const slots = weeks[weekKey] || {};
+    const monday = new Date(`${weekKey}T00:00:00`);
+    weekGrid.innerHTML = "";
+    DAYS.forEach((dayName, di) => {
+        const dayDate = new Date(monday);
+        dayDate.setDate(monday.getDate() + di);
+        const card = document.createElement("div");
+        card.className = "day-card";
+        let rowsHtml = "";
+        SLOTS.forEach(slot => {
+            const key = `${di}-${slot.key}`;
+            const val = slots[key];
+            let label = "+ Pilih masakan";
+            let filledClass = "";
+            if (val) {
+                filledClass = "filled";
+                if (val.startsWith("custom::")) label = `🍽️ ${escapeHtml(val.replace("custom::", ""))}`;
+                else {
+                    const rec = getRecipe(val);
+                    label = rec ? `${rec.emoji} ${escapeHtml(rec.name)}` : `🍽️ ${escapeHtml(val)}`;
+                }
+            }
+            rowsHtml += `
+                <div class="slot-row">
+                    <div class="slot-time">${slot.label}</div>
+                    <button class="slot-btn ${filledClass}" data-slot="${key}">${label}</button>
+                    <button class="slot-clear" data-clear="${key}" title="Kosongkan" ${val ? "" : "style='visibility:hidden'"}>×</button>
+                </div>`;
+        });
+        card.innerHTML = `<div class="day-title">${dayName} <span>${dayDate.toLocaleDateString("id-ID", { day: "numeric", month: "short" })}</span></div>${rowsHtml}`;
+        weekGrid.appendChild(card);
+    });
+    weekGrid.querySelectorAll(".slot-btn").forEach(btn => btn.addEventListener("click", () => openRecipePicker(btn.dataset.slot)));
+    weekGrid.querySelectorAll(".slot-clear").forEach(btn => btn.addEventListener("click", () => saveSlot(btn.dataset.clear, null)));
+}
+
+weekPrevBtn.addEventListener("click", () => { weekOffset--; renderMenu(); renderShopping(); renderSummary(); });
+weekNextBtn.addEventListener("click", () => { weekOffset++; renderMenu(); renderShopping(); renderSummary(); });
+
+async function saveSlot(key, value) {
+    if (!currentUser) return;
+    const weekKey = currentWeekKey();
+    const slots = { ...(weeks[weekKey] || {}) };
+    if (value === null) delete slots[key];
+    else slots[key] = value;
+    try {
+        await setDoc(doc(db, "users", currentUser.uid, "mk_weeks", weekKey), { slots, updatedAt: serverTimestamp() });
+    } catch (error) {
+        console.error("Save slot error:", error);
+        showToast("Gagal menyimpan menu", "error");
+    }
+}
+
+function firstEmptySlotKey() {
+    const slots = weeks[currentWeekKey()] || {};
+    for (let di = 0; di < 7; di++) {
+        for (const slot of SLOTS) {
+            const key = `${di}-${slot.key}`;
+            if (!slots[key]) return key;
+        }
+    }
+    return null;
+}
+
+// =========================================================
+// RECIPE PICKER
+// =========================================================
+function openRecipePicker(slotKey) {
+    pendingSlotKey = slotKey;
+    recipeSearch.value = "";
+    customDishInput.value = "";
+    renderRecipeList("");
+    document.getElementById("recipe-modal").classList.add("active");
+}
+function renderRecipeList(term) {
+    const t = term.toLowerCase();
+    const list = getAllRecipes().filter(r => r.name.toLowerCase().includes(t));
+    recipeListEl.innerHTML = "";
+    if (list.length === 0) { recipeListEl.innerHTML = '<div class="empty-state">Tidak ditemukan. Tulis nama custom di bawah.</div>'; return; }
+    list.forEach(rec => {
+        const btn = document.createElement("button");
+        btn.className = "recipe-option";
+        const ingPreview = rec.ingredients.slice(0, 4).map(i => i.n).join(", ");
+        btn.innerHTML = `<span class="recipe-emoji">${rec.emoji}</span><span><div class="recipe-name">${escapeHtml(rec.name)}</div><div class="recipe-ing">${escapeHtml(ingPreview)}…</div></span>`;
+        btn.addEventListener("click", async () => {
+            document.getElementById("recipe-modal").classList.remove("active");
+            await saveSlot(pendingSlotKey, rec.id);
+            showToast(`${rec.emoji} ${rec.name} dipilih`, "success");
+        });
+        recipeListEl.appendChild(btn);
+    });
+}
+recipeSearch.addEventListener("input", () => renderRecipeList(recipeSearch.value));
+useCustomBtn.addEventListener("click", async () => {
+    const name = customDishInput.value.trim();
+    if (!name) { showToast("Tulis nama masakan dulu", "error"); return; }
+    document.getElementById("recipe-modal").classList.remove("active");
+    await saveSlot(pendingSlotKey, `custom::${name}`);
+    showToast(`🍽️ ${name} dipilih`, "success");
+});
+
+// =========================================================
+// REKOMENDASI DARI STOK
+// =========================================================
+recommendBtn.addEventListener("click", () => {
+    const aman = stocks.filter(s => s.level === "aman").map(s => s.name.toLowerCase());
+    if (aman.length === 0) { showToast("Tambahkan stok (level Aman) dulu di tab Stok", "error"); return; }
+    const scored = getAllRecipes().map(rec => {
+        const match = rec.ingredients.filter(i =>
+            aman.some(n => n.includes(i.n.toLowerCase()) || i.n.toLowerCase().includes(n))
+        ).length;
+        return { rec, match };
+    }).filter(x => x.match > 0).sort((a, b) => b.match - a.match).slice(0, 6);
+    recommendListEl.innerHTML = "";
+    if (scored.length === 0) { recommendListEl.innerHTML = '<div class="empty-state">Belum ada resep yang cocok dengan stok.</div>'; }
+    scored.forEach(({ rec, match }) => {
+        const btn = document.createElement("button");
+        btn.className = "recipe-option";
+        btn.innerHTML = `<span class="recipe-emoji">${rec.emoji}</span><span><div class="recipe-name">${escapeHtml(rec.name)}</div><div class="recipe-ing">${match} dari ${rec.ingredients.length} bahan ada di stok</div></span><span class="match-badge">${Math.round((match / rec.ingredients.length) * 100)}%</span>`;
+        btn.addEventListener("click", async () => {
+            const key = firstEmptySlotKey();
+            if (!key) { showToast("Semua slot sudah terisi", "info"); return; }
+            document.getElementById("recommend-modal").classList.remove("active");
+            await saveSlot(key, rec.id);
+            showToast(`💡 ${rec.emoji} ${rec.name} masuk menu dari stok!`, "success");
+        });
+        recommendListEl.appendChild(btn);
+    });
+    document.getElementById("recommend-modal").classList.add("active");
+});
+
+// =========================================================
+// AUTO FILL & GENERATE SHOPPING
+// =========================================================
+autofillBtn.addEventListener("click", async () => {
+    const weekKey = currentWeekKey();
+    const slots = { ...(weeks[weekKey] || {}) };
+    const all = getAllRecipes();
+    let filledCount = 0;
+    for (let di = 0; di < 7; di++) {
+        SLOTS.forEach(slot => {
+            const key = `${di}-${slot.key}`;
+            if (!slots[key]) { slots[key] = all[Math.floor(Math.random() * all.length)].id; filledCount++; }
+        });
+    }
+    if (filledCount === 0) { showToast("Semua slot sudah terisi", "info"); return; }
+    try {
+        await setDoc(doc(db, "users", currentUser.uid, "mk_weeks", weekKey), { slots, updatedAt: serverTimestamp() });
+        showToast(`✨ ${filledCount} slot terisi otomatis`, "success");
+    } catch (error) { showToast("Gagal mengisi otomatis", "error"); }
+});
+
+generateBtn.addEventListener("click", async () => {
+    if (!currentUser) return;
+    const weekKey = currentWeekKey();
+    const slots = weeks[weekKey] || {};
+    const agg = {};
+    let recipeCount = 0;
+    Object.values(slots).forEach(val => {
+        if (!val || val.startsWith("custom::")) return;
+        const rec = getRecipe(val);
+        if (!rec) return;
+        recipeCount++;
+        rec.ingredients.forEach(ing => {
+            const keyName = ing.n.toLowerCase();
+            if (!agg[keyName]) agg[keyName] = { name: ing.n, q: 0, u: ing.u };
+            agg[keyName].q += Number(ing.q) || 0;
+        });
+    });
+    if (recipeCount === 0) { showToast("Pilih menu dulu (atau ✨ Isi Otomatis / 💡 Masak dari Stok)", "error"); return; }
+    const existing = shopping.filter(s => s.weekKey === weekKey);
+    const batch = writeBatch(db);
+    let added = 0, estimated = 0;
+    Object.values(agg).forEach(item => {
+        const exists = existing.some(e => (e.name || "").toLowerCase() === item.name.toLowerCase());
+        if (!exists) {
+            const memPrice = rememberedPrice(item.name);
+            if (memPrice > 0) estimated++;
+            const ref = doc(collection(db, "users", currentUser.uid, "mk_shopping"));
+            batch.set(ref, { name: item.name, qty: formatQty(item.q, item.u), checked: false, price: memPrice, source: "menu", weekKey, createdAt: serverTimestamp() });
+            added++;
+        }
+    });
+    if (added === 0) { showToast("Semua bahan sudah ada di daftar belanja", "info"); return; }
+    try {
+        await batch.commit();
+        showToast(`🛒 ${added} bahan ditambahkan${estimated > 0 ? ` (${estimated} harga terisi otomatis)` : ""}!`, "success");
+        document.querySelector('[data-tab="belanja"]').click();
+    } catch (error) {
+        console.error("Generate error:", error);
+        showToast("Gagal membuat daftar belanja", "error");
+    }
+});
+
+// =========================================================
+// SHOPPING LIST
+// =========================================================
+function renderShopping() {
+    const weekKey = currentWeekKey();
+    shopWeekLabel.textContent = `Minggu ${weekRangeLabel(weekKey)}`;
+    const items = shopping.filter(s => s.weekKey === weekKey);
+    const unchecked = items.filter(s => !s.checked).sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+    const checked = items.filter(s => s.checked);
+    const total = items.reduce((s, i) => s + (Number(i.price) || 0), 0);
+    const pct = items.length ? Math.round((checked.length / items.length) * 100) : 0;
+    shopProgressFill.style.width = pct + "%";
+    shopProgressText.textContent = `${checked.length}/${items.length} dibeli`;
+    shopTotalEl.textContent = formatCurrency(total);
+    shopBadge.textContent = unchecked.length;
+    shopBadge.classList.toggle("hidden", unchecked.length === 0);
+
+    shoppingListEl.innerHTML = "";
+    if (items.length === 0) {
+        shoppingListEl.innerHTML = '<div class="empty-state"><div class="empty-icon">🛒</div>Belum ada item. Isi menu lalu klik "🛒 Buat Daftar Belanja".</div>';
+        return;
+    }
+    [...unchecked, ...checked].forEach(item => {
+        const row = document.createElement("div");
+        row.className = "shop-item";
+        row.innerHTML = `
+            <button class="shop-check ${item.checked ? "on" : ""}" data-check="${item.id}">✓</button>
+            <div class="shop-info">
+                <div class="shop-name ${item.checked ? "done" : ""}">${escapeHtml(item.name)}</div>
+                <div class="shop-qty">${escapeHtml(item.qty || "")} ${item.source === "menu" ? "• dari menu" : item.source === "stock" ? "• dari stok" : "• manual"}</div>
+                ${item.checked && item.checkedBy ? `<div class="shop-by">✓ oleh ${escapeHtml(item.checkedBy)}</div>` : ""}
+            </div>
+            <input type="number" class="shop-price" data-price="${item.id}" placeholder="Rp" value="${item.price ? item.price : ""}" inputmode="decimal">
+            <button class="shop-del" data-del="${item.id}">🗑️</button>`;
+        shoppingListEl.appendChild(row);
+    });
+    shoppingListEl.querySelectorAll("[data-check]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+            const item = shopping.find(s => s.id === btn.dataset.check);
+            if (!item) return;
+            try {
+                await updateDoc(doc(db, "users", currentUser.uid, "mk_shopping", item.id), {
+                    checked: !item.checked,
+                    checkedBy: !item.checked ? (currentUser.email?.split("@")[0] || "user") : null
+                });
+            } catch (error) { showToast("Gagal memperbarui", "error"); }
+        });
+    });
+    shoppingListEl.querySelectorAll("[data-price]").forEach(input => {
+        input.addEventListener("change", async () => {
+            try {
+                await updateDoc(doc(db, "users", currentUser.uid, "mk_shopping", input.dataset.price), { price: Number(input.value) || 0 });
+            } catch (error) { showToast("Gagal menyimpan harga", "error"); }
+        });
+    });
+    shoppingListEl.querySelectorAll("[data-del]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+            try { await deleteDoc(doc(db, "users", currentUser.uid, "mk_shopping", btn.dataset.del)); }
+            catch (error) { showToast("Gagal menghapus", "error"); }
+        });
+    });
+}
+
+addShopBtn.addEventListener("click", async () => {
+    const name = addShopName.value.trim();
+    if (!name) { showToast("Nama item wajib diisi", "error"); return; }
+    const memPrice = rememberedPrice(name);
+    try {
+        await addDoc(collection(db, "users", currentUser.uid, "mk_shopping"), {
+            name, qty: addShopQty.value.trim(), checked: false, price: memPrice, source: "manual", weekKey: currentWeekKey(), createdAt: serverTimestamp()
+        });
+        addShopName.value = "";
+        addShopQty.value = "";
+        showToast(memPrice > 0 ? `Item ditambahkan (harga ≈ Rp ${formatCurrency(memPrice)})` : "Item ditambahkan", "success");
+    } catch (error) { showToast("Gagal menambah item", "error"); }
+});
+
+checkAllBtn.addEventListener("click", async () => {
+    const weekKey = currentWeekKey();
+    const unchecked = shopping.filter(s => s.weekKey === weekKey && !s.checked);
+    if (unchecked.length === 0) { showToast("Tidak ada item yang belum dicentang", "info"); return; }
+    const batch = writeBatch(db);
+    unchecked.forEach(i => batch.update(doc(db, "users", currentUser.uid, "mk_shopping", i.id), { checked: true, checkedBy: currentUser.email?.split("@")[0] || "user" }));
+    try { await batch.commit(); showToast(`✅ ${unchecked.length} item dicentang`, "success"); }
+    catch (error) { showToast("Gagal mencentang", "error"); }
+});
+
+clearCheckedBtn.addEventListener("click", async () => {
+    const weekKey = currentWeekKey();
+    const checked = shopping.filter(s => s.weekKey === weekKey && s.checked);
+    if (checked.length === 0) { showToast("Tidak ada item tercentang", "info"); return; }
+    if (!confirm(`Hapus ${checked.length} item yang sudah dibeli?`)) return;
+    const batch = writeBatch(db);
+    checked.forEach(i => batch.delete(doc(db, "users", currentUser.uid, "mk_shopping", i.id)));
+    try { await batch.commit(); showToast("Item tercentang dibersihkan", "success"); }
+    catch (error) { showToast("Gagal membersihkan", "error"); }
+});
+
+// =========================================================
+// RIWAYAT BELANJA
+// =========================================================
+function renderHistory() {
+    recordHistoryEl.innerHTML = "";
+    if (records.length === 0) {
+        recordHistoryEl.innerHTML = '<div class="empty-state"><div class="empty-icon">🗂️</div>Belum ada riwayat. Gunakan "📒 Catat ke AuditDompet" setelah belanja.</div>';
+        return;
+    }
+    const sorted = [...records].sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+    sorted.slice(0, 10).forEach(rec => {
+        const row = document.createElement("div");
+        row.className = "history-item";
+        row.innerHTML = `
+            <div class="history-icon">🧾</div>
+            <div class="history-info">
+                <div class="history-title">${escapeHtml(rec.desc || "Belanja")}</div>
+                <div class="history-meta">${formatDate(rec.date)} • ${rec.itemCount || 0} item • ${escapeHtml(rec.walletName || "-")}</div>
+            </div>
+            ${rec.photoBase64 ? `<button class="history-photo" data-photo="${rec.id}">📷</button>` : ""}
+            <div class="history-amount">Rp ${formatCurrency(rec.amount)}</div>`;
+        recordHistoryEl.appendChild(row);
+    });
+    recordHistoryEl.querySelectorAll("[data-photo]").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const rec = records.find(r => r.id === btn.dataset.photo);
+            if (rec?.photoBase64) {
+                document.getElementById("photo-view-img").src = rec.photoBase64;
+                document.getElementById("photo-view-modal").classList.add("active");
+            }
+        });
+    });
+}
+
+// =========================================================
+// STOCK
+// =========================================================
+function renderStock() {
+    const low = stocks.filter(s => s.level === "habis" || s.level === "menipis").length;
+    stockBadge.textContent = low;
+    stockBadge.classList.toggle("hidden", low === 0);
+    stockListEl.innerHTML = "";
+    if (stocks.length === 0) {
+        stockListEl.innerHTML = '<div class="empty-state"><div class="empty-icon">🏪</div>Belum ada stok. Tambahkan beras, minyak, gas, galon, dll.</div>';
+        return;
+    }
+    stocks.forEach(item => {
+        const row = document.createElement("div");
+        row.className = "stock-item";
+        row.innerHTML = `
+            <div class="stock-name">${escapeHtml(item.name)}</div>
+            <div class="stock-levels">
+                <button class="stock-level-btn aman ${item.level === "aman" ? "active" : ""}" data-level="aman" data-id="${item.id}">Aman</button>
+                <button class="stock-level-btn menipis ${item.level === "menipis" ? "active" : ""}" data-level="menipis" data-id="${item.id}">Menipis</button>
+                <button class="stock-level-btn habis ${item.level === "habis" ? "active" : ""}" data-level="habis" data-id="${item.id}">Habis</button>
+            </div>
+            <button class="stock-add-shop" data-shop="${item.id}" title="Masukkan ke daftar belanja">+🛒</button>
+            <button class="stock-del" data-sdel="${item.id}">🗑️</button>`;
+        stockListEl.appendChild(row);
+    });
+    stockListEl.querySelectorAll("[data-level]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+            try { await updateDoc(doc(db, "users", currentUser.uid, "mk_stock", btn.dataset.id), { level: btn.dataset.level }); }
+            catch (error) { showToast("Gagal memperbarui stok", "error"); }
+        });
+    });
+    stockListEl.querySelectorAll("[data-shop]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+            const item = stocks.find(s => s.id === btn.dataset.shop);
+            if (!item) return;
+            const weekKey = currentWeekKey();
+            const exists = shopping.some(e => e.weekKey === weekKey && (e.name || "").toLowerCase() === item.name.toLowerCase());
+            if (exists) { showToast("Sudah ada di daftar belanja", "info"); return; }
+            try {
+                await addDoc(collection(db, "users", currentUser.uid, "mk_shopping"), {
+                    name: item.name, qty: "1", checked: false, price: rememberedPrice(item.name), source: "stock", weekKey, createdAt: serverTimestamp()
+                });
+                showToast(`${item.name} masuk daftar belanja`, "success");
+            } catch (error) { showToast("Gagal menambah", "error"); }
+        });
+    });
+    stockListEl.querySelectorAll("[data-sdel]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+            try { await deleteDoc(doc(db, "users", currentUser.uid, "mk_stock", btn.dataset.sdel)); }
+            catch (error) { showToast("Gagal menghapus", "error"); }
+        });
+    });
+}
+
+addStockBtn.addEventListener("click", async () => {
+    const name = addStockName.value.trim();
+    if (!name) { showToast("Nama stok wajib diisi", "error"); return; }
+    try {
+        await addDoc(collection(db, "users", currentUser.uid, "mk_stock"), { name, level: "aman", createdAt: serverTimestamp() });
+        addStockName.value = "";
+        showToast("Stok ditambahkan", "success");
+    } catch (error) { showToast("Gagal menambah stok", "error"); }
+});
+
+// =========================================================
+// CUSTOM RECIPES (SETTING)
+// =========================================================
+saveRecipeBtn.addEventListener("click", async () => {
+    const name = recName.value.trim();
+    const emoji = recEmoji.value.trim() || "🍽️";
+    const lines = recIngs.value.split("\n").map(l => l.trim()).filter(Boolean);
+    if (!name) { showToast("Nama masakan wajib diisi", "error"); return; }
+    if (lines.length === 0) { showToast("Isi minimal 1 bahan", "error"); return; }
+    const ingredients = lines.map(line => {
+        const parts = line.split(/[,|]/).map(p => p.trim());
+        return { n: parts[0] || line, q: Number(parts[1]) || 0, u: parts[2] || "" };
+    });
+    saveRecipeBtn.disabled = true;
+    try {
+        await addDoc(collection(db, "users", currentUser.uid, "mk_recipes"), { name, emoji, ingredients, createdAt: serverTimestamp() });
+        recName.value = ""; recEmoji.value = ""; recIngs.value = "";
+        showToast("Resep disimpan", "success");
+    } catch (error) { showToast("Gagal menyimpan resep", "error"); }
+    finally { saveRecipeBtn.disabled = false; }
+});
+
+function renderMyRecipes() {
+    myRecipesEl.innerHTML = "";
+    if (customRecipes.length === 0) return;
+    customRecipes.forEach(rec => {
+        const row = document.createElement("div");
+        row.className = "myrecipe-item";
+        row.innerHTML = `
+            <span class="recipe-emoji">${rec.emoji}</span>
+            <div class="recipe-name">${escapeHtml(rec.name)}<div class="recipe-ing">${rec.ingredients.length} bahan</div></div>
+            <button class="stock-del" data-rdel="${rec.id}">🗑️</button>`;
+        myRecipesEl.appendChild(row);
+    });
+    myRecipesEl.querySelectorAll("[data-rdel]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+            if (!confirm("Hapus resep ini?")) return;
+            try { await deleteDoc(doc(db, "users", currentUser.uid, "mk_recipes", btn.dataset.rdel)); }
+            catch (error) { showToast("Gagal menghapus", "error"); }
+        });
+    });
+}
+
+// =========================================================
+// INTEGRASI AUDITDOMPET
+// =========================================================
+function populateRecordSelects() {
+    recordWallet.innerHTML = "";
+    wallets.forEach(w => {
+        const o = document.createElement("option");
+        o.value = w.id;
+        o.textContent = `${w.icon || "💳"} ${w.name}`;
+        recordWallet.appendChild(o);
+    });
+    if (profiles.length > 0) {
+        recordProfileGroup.classList.remove("hidden");
+        recordProfile.innerHTML = "";
+        profiles.forEach(p => {
+            const o = document.createElement("option");
+            o.value = p.id;
+            o.textContent = `${p.emoji} ${p.name}`;
+            recordProfile.appendChild(o);
+        });
+    } else {
+        recordProfileGroup.classList.add("hidden");
+    }
+}
+
+recordPhoto.addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { showToast("Ukuran foto maksimal 5MB", "error"); recordPhoto.value = ""; return; }
+    if (!file.type.startsWith("image/")) { showToast("File harus berupa gambar", "error"); recordPhoto.value = ""; return; }
+    try {
+        showToast("Mengompres struk...", "info");
+        const b64 = await compressImage(file, 800, 0.7);
+        if (b64.length * 0.75 > 1024 * 1024) { showToast("Foto terlalu besar setelah kompresi", "error"); recordPhoto.value = ""; return; }
+        recordPhotoBase64 = b64;
+        recordPhotoPreview.innerHTML = `<img src="${b64}" alt="Struk"><button type="button" class="receipt-remove" id="receipt-remove">×</button>`;
+        recordPhotoPreview.classList.remove("hidden");
+        document.getElementById("receipt-remove").addEventListener("click", () => {
+            recordPhotoBase64 = null;
+            recordPhoto.value = "";
+            recordPhotoPreview.classList.add("hidden");
+            recordPhotoPreview.innerHTML = "";
+        });
+        showToast("📸 Struk siap dilampirkan", "success");
+    } catch (error) { showToast("Gagal memproses foto", "error"); recordPhoto.value = ""; }
+});
+
+recordBtn.addEventListener("click", () => {
+    const weekKey = currentWeekKey();
+    const items = shopping.filter(s => s.weekKey === weekKey);
+    if (items.length === 0) { showToast("Daftar belanja masih kosong", "error"); return; }
+    if (wallets.length === 0) {
+        recordAlert.innerHTML = '<div class="alert alert-error">Buka AuditDompet dulu: buat minimal 1 dompet agar belanja bisa dicatat.</div>';
+    } else {
+        recordAlert.innerHTML = "";
+    }
+    const total = items.reduce((s, i) => s + (Number(i.price) || 0), 0);
+    recordAmount.value = total || "";
+    document.getElementById("record-modal").classList.add("active");
+});
+
+recordSave.addEventListener("click", async () => {
+    if (!currentUser) return;
+    const amount = Number(recordAmount.value);
+    if (!Number.isFinite(amount) || amount <= 0) { showToast("Masukkan total belanja", "error"); return; }
+    if (!recordWallet.value) { showToast("Pilih dompet", "error"); return; }
+    recordSave.disabled = true;
+    try {
+        const weekKey = currentWeekKey();
+        const items = shopping.filter(s => s.weekKey === weekKey);
+        const checkedItems = items.filter(i => i.checked);
+        const desc = recordDesc.value.trim() || "🛒 Belanja mingguan (MenuKita)";
+        const wallet = wallets.find(w => w.id === recordWallet.value);
+
+        const transactionData = {
+            type: "expense",
+            description: desc,
+            date: toDateStr(new Date()),
+            amount,
+            category: "Makanan",
+            isSplit: false,
+            items: null,
+            recurring: "once",
+            walletId: recordWallet.value,
+            source: "MenuKita",
+            createdAt: serverTimestamp()
+        };
+        if (!recordProfileGroup.classList.contains("hidden") && recordProfile.value) {
+            transactionData.profileId = recordProfile.value;
+        }
+        if (recordPhotoBase64) transactionData.attachmentBase64 = recordPhotoBase64;
+        await addDoc(collection(db, "users", currentUser.uid, "transactions"), transactionData);
+
+        await addDoc(collection(db, "users", currentUser.uid, "mk_records"), {
+            date: toDateStr(new Date()),
+            desc,
+            amount,
+            walletId: recordWallet.value,
+            walletName: wallet ? wallet.name : "-",
+            itemCount: checkedItems.length || items.length,
+            photoBase64: recordPhotoBase64,
+            createdAt: serverTimestamp()
+        });
+
+        if (recordClear.checked && checkedItems.length > 0) {
+            const batch = writeBatch(db);
+            checkedItems.forEach(i => batch.delete(doc(db, "users", currentUser.uid, "mk_shopping", i.id)));
+            await batch.commit();
+        }
+
+        recordPhotoBase64 = null;
+        recordPhoto.value = "";
+        recordPhotoPreview.classList.add("hidden");
+        recordPhotoPreview.innerHTML = "";
+
+        document.getElementById("record-modal").classList.remove("active");
+        showToast("📒 Tercatat di AuditDompet + riwayat tersimpan!", "success");
+    } catch (error) {
+        console.error("Record error:", error);
+        showToast("Gagal mencatat transaksi", "error");
+    } finally {
+        recordSave.disabled = false;
+    }
+});
+</script>
+
+</body>
+</html>
