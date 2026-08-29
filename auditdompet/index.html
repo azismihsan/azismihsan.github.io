@@ -2394,20 +2394,24 @@ toggleBalance.addEventListener("click", () => {
     renderTransactions(); renderWallets(); renderProfileSummary(); renderNetWorth();
 });
 
+// =========================================================
 // EXPORT CSV
+// =========================================================
 function exportCsv() {
-    if (filteredTransactions.length === 0) { showToast("Tidak ada data untuk diekspor", "error"); return; }
-    const headers = ["Tipe", "Anggota", "Deskripsi", "Jumlah", "Kategori", "Tanggal", "Dompet", "Split", "Ada Foto"];
+    if (filteredTransactions.length === 0) {
+        showToast("Tidak ada data untuk diekspor", "error"); return;
+    }
+    const headers = ["Tipe", "Deskripsi", "Jumlah", "Kategori", "Tanggal", "Dompet", "Split", "Ada Foto"];
     const rows = filteredTransactions.map(t => {
         const cats = getTransactionCategories(t).join(" | ");
-        const p = getProfile(t.profileId);
-        const profileName = p ? `${p.emoji} ${p.name}` : "";
         let walletInfo = "";
-        if (t.type === "transfer") walletInfo = `${getWalletName(t.fromWallet)} → ${getWalletName(t.toWallet)}`;
-        else if (t.walletId) walletInfo = getWalletName(t.walletId);
+        if (t.type === "transfer") {
+            walletInfo = `${getWalletName(t.fromWallet)} → ${getWalletName(t.toWallet)}`;
+        } else if (t.walletId) {
+            walletInfo = getWalletName(t.walletId);
+        }
         return [
             t.type === "income" ? "Pemasukan" : t.type === "transfer" ? "Transfer" : "Pengeluaran",
-            `"${profileName}"`,
             `"${String(t.description || "").replace(/"/g, '""')}"`,
             getTransactionAmount(t),
             `"${cats}"`,
@@ -2423,7 +2427,10 @@ function exportCsv() {
     const link = document.createElement("a");
     link.href = url;
     link.download = `auditdompet_${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
     showToast("CSV diekspor", "success");
 }
 exportCsvBtn.addEventListener("click", exportCsv);
