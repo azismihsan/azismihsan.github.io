@@ -4,76 +4,145 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SIMONEV - Monitoring Kinerja</title>
-    <!-- Bootstrap CSS -->
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background-color: #f8f9fa; }
-        .card { box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: none; }
-        .hidden { display: none; }
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .hidden { display: none !important; }
+        .navbar { border-radius: 0 0 12px 12px; }
+        .status-badge { font-size: 0.85em; padding: 5px 10px; border-radius: 20px; }
     </style>
 </head>
 <body>
 
-<nav class="navbar navbar-dark bg-primary mb-4">
+<!-- NAVBAR -->
+<nav class="navbar navbar-dark bg-primary mb-3">
     <div class="container">
-        <span class="navbar-brand mb-0 h1">📊 SIMONEV Pemerintahan</span>
-        <select id="roleSelector" class="form-select w-auto" onchange="changeRole()">
-            <option value="staff">👤 Staff (Budi)</option>
-            <option value="evaluator">👨‍💼 Evaluator (Siti)</option>
-            <option value="admin">👑 Admin Monev (Joko)</option>
-        </select>
+        <span class="navbar-brand mb-0 h1"><i class="fas fa-chart-line me-2"></i>SIMONEV Pemerintahan</span>
+        <div class="d-flex align-items-center">
+            <span class="text-white me-2 d-none d-md-block">Login Sebagai:</span>
+            <select id="roleSelector" class="form-select form-select-sm" style="width: 180px;" onchange="changeRole()">
+                <option value="staff">👤 Staff (Budi)</option>
+                <option value="evaluator">👨‍💼 Evaluator (Siti)</option>
+                <option value="admin">👑 Admin Monev (Joko)</option>
+            </select>
+        </div>
     </div>
 </nav>
 
+<!-- DEADLINE BANNER -->
+<div class="container mb-3">
+    <div id="deadlineBanner" class="alert alert-warning d-flex align-items-center" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <div id="deadlineText">Memuat informasi deadline...</div>
+    </div>
+</div>
+
 <div class="container">
-    <!-- PANEL STAFF -->
+    
+    <!-- ================= PANEL STAFF ================= -->
     <div id="panel-staff" class="role-panel">
-        <div class="card p-4 mb-4">
-            <h4>📝 Input Laporan Kinerja Bulanan</h4>
-            <form id="formKinerja">
-                <div class="mb-3">
-                    <label class="form-label">Bulan</label>
-                    <input type="month" class="form-control" id="inputBulan" required>
+        <div class="row">
+            <div class="col-md-5 mb-4">
+                <div class="card p-4 h-100">
+                    <h5 class="card-title mb-3"><i class="fas fa-edit me-2 text-primary"></i>Input Laporan Kinerja</h5>
+                    <form id="formKinerja">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Periode Bulan</label>
+                            <input type="month" class="form-control" id="inputBulan" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Target / Rencana Kerja (SKP)</label>
+                            <textarea class="form-control" id="inputTarget" rows="3" placeholder="Contoh: Menyusun 5 Laporan Bulanan" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Realisasi / Capaian</label>
+                            <textarea class="form-control" id="inputRealisasi" rows="3" placeholder="Contoh: 5 Laporan telah diselesaikan" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Link Bukti Dukung (Google Drive/Foto)</label>
+                            <input type="url" class="form-control" id="inputBukti" placeholder="https://drive.google.com/...">
+                            <div class="form-text">Opsional, tapi sangat disarankan untuk audit.</div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100"><i class="fas fa-paper-plane me-2"></i>Submit Laporan</button>
+                    </form>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label">Target / Rencana Kerja (SKP)</label>
-                    <textarea class="form-control" id="inputTarget" rows="2" placeholder="Contoh: Menyusun 5 Laporan Bulanan" required></textarea>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Realisasi / Bukti Kerja</label>
-                    <textarea class="form-control" id="inputRealisasi" rows="2" placeholder="Contoh: 5 Laporan telah diselesaikan dan diarsipkan" required></textarea>
-                </div>
-                <button type="submit" class="btn btn-success">Submit Laporan</button>
-            </form>
-        </div>
-        <div class="card p-4">
-            <h4>📜 Riwayat Laporan Saya</h4>
-            <ul id="listStaff" class="list-group list-group-flush"></ul>
+            </div>
+            <div class="col-md-7">
+                <div class="card p-4">
+                    <h5 class="card-title mb-3"><i class="fas fa-history me-2 text-primary"></i>Riwayat Laporan Saya</h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Bulan</th>
+                                    <th>Target</th>
+                                    <th>Status</th>
+                                    <th>Nilai</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableStaff"></tbody>
+                        </table>
+                    </div>
+                </div</div>
         </div>
     </div>
 
-    <!-- PANEL EVALUATOR -->
+    <!-- ================= PANEL EVALUATOR ================= -->
     <div id="panel-evaluator" class="role-panel hidden">
         <div class="card p-4">
-            <h4>📋 Daftar Laporan Menunggu Evaluasi</h4>
-            <ul id="listEvaluator" class="list-group list-group-flush mt-3"></ul>
+            <h5 class="card-title mb-3"><i class="fas fa-clipboard-check me-2 text-success"></i>Daftar Laporan Menunggu Evaluasi</h5>
+            <div id="listEvaluator" class="list-group list-group-flush">
+                <!-- Data akan dimuat di sini -->
+            </div>
         </div>
     </div>
 
-    <!-- PANEL ADMIN -->
+    <!-- ================= PANEL ADMIN ================= -->
     <div id="panel-admin" class="role-panel hidden">
-        <div class="card p-4">
-            <h4>📊 Dashboard Rekapitulasi Seluruh Staff</h4>
-            <div class="table-responsive mt-3">
-                <table class="table table-striped table-hover">
+        <div class="card p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="card-title mb-0"><i class="fas fa-chart-bar me-2 text-danger"></i>Dashboard Rekapitulasi</h5>
+                <button onclick="exportToExcel()" class="btn btn-success btn-sm">
+                    <i class="fas fa-file-excel me-2"></i>Export ke Excel
+                </button>
+            </div>
+            <div class="row mb-3 text-center">
+                <div class="col-md-4">
+                    <div class="p-3 bg-light rounded">
+                        <h3 id="statTotal">0</h3>
+                        <small class="text-muted">Total Laporan</small>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-3 bg-light rounded">
+                        <h3 id="statDinilai" class="text-success">0</h3>
+                        <small class="text-muted">Sudah Dinilai</small>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-3 bg-light rounded">
+                        <h3 id="statRata" class="text-primary">0</h3>
+                        <small class="text-muted">Rata-rata Nilai</small>
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover" id="tabelAdminExport">
                     <thead class="table-dark">
                         <tr>
-                            <th>Nama</th>
+                            <th>Nama Staff</th>
                             <th>Bulan</th>
                             <th>Target</th>
                             <th>Realisasi</th>
+                            <th>Bukti</th>
                             <th>Status</th>
                             <th>Nilai</th>
+                            <th>Catatan Evaluator</th>
                         </tr>
                     </thead>
                     <tbody id="tableAdmin"></tbody>
@@ -81,91 +150,131 @@
             </div>
         </div>
     </div>
+
 </div>
 
-<!-- Firebase SDK (Versi Compat agar mudah di file HTML tunggal) -->
+<!-- FIREBASE SDK (Compat Version untuk Single File) -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<!-- SheetJS untuk Export Excel -->
+<script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
 
 <script>
-    // --- 1. KONFIGURASI FIREBASE (GANTI DENGAN PUNYA ANDA!) ---
+    // --- 1. KONFIGURASI FIREBASE (Sesuai Request Anda) ---
     const firebaseConfig = {
-    apiKey: "AIzaSyDzL4eTr35gl2YsWwhjJ4hGFE0R-5dB3SY",
-    authDomain: "appmonev.firebaseapp.com",
-    projectId: "appmonev",
-    storageBucket: "appmonev.firebasestorage.app",
-    messagingSenderId: "658237847586",
-    appId: "1:658237847586:web:0a423f872a1cf2981e327b"
+        apiKey: "AIzaSyDzL4eTr35gl2YsWwhjJ4hGFE0R-5dB3SY",
+        authDomain: "appmonev.firebaseapp.com",
+        projectId: "appmonev",
+        storageBucket: "appmonev.firebasestorage.app",
+        messagingSenderId: "658237847586",
+        appId: "1:658237847586:web:0a423f872a1cf2981e327b"
     };
 
-    // Inisialisasi Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Data Dummy User (Untuk simulasi login)
+    // Data Simulasi User
     const users = {
-        staff: { nama: "Budi (Staff)", role: "staff" },
-        evaluator: { nama: "Siti (Kabag)", role: "evaluator" },
-        admin: { nama: "Joko (Admin)", role: "admin" }
+        staff: { id: "user_staff_01", nama: "Budi (Staff Admin)", role: "staff" },
+        evaluator: { id: "user_eval_01", nama: "Siti (Kabag Monev)", role: "evaluator" },
+        admin: { id: "user_admin_01", nama: "Joko (Admin Monev)", role: "admin" }
     };
     let currentUser = users.staff;
 
-    // --- 2. FUNGSI UI & LOGIKA ---
+    // --- 2. FUNGSI DEADLINE BANNER ---
+    function updateDeadline() {
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth();
+        const deadlineDate = new Date(currentYear, currentMonth, 25);
+        
+        if (today > deadlineDate) {
+            // Jika sudah lewat tanggal 25, set deadline bulan depan
+            deadlineDate.setMonth(currentMonth + 1);
+        }
+        
+        const diffTime = Math.abs(deadlineDate - today);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+        
+        const options = { day: 'numeric', month: 'long', year: 'numeric' };
+        document.getElementById('deadlineText').innerHTML = 
+            `Batas akhir input laporan bulan ini adalah tanggal <strong>25 ${deadlineDate.toLocaleDateString('id-ID', {month: 'long'})}</strong>. Sisa <strong>${diffDays} hari</strong> lagi!`;
+    }
+
+    // --- 3. MANAJEMEN UI & ROLE ---
     function changeRole() {
         const role = document.getElementById('roleSelector').value;
         currentUser = users[role];
         
-        // Sembunyikan semua panel
         document.querySelectorAll('.role-panel').forEach(el => el.classList.add('hidden'));
-        // Tampilkan panel sesuai role
         document.getElementById(`panel-${role}`).classList.remove('hidden');
         
-        // Muat data sesuai role
         loadData();
     }
 
-    // Muat Data dari Firestore
+    // --- 4. CRUD & REALTIME DATA ---
     function loadData() {
         if (currentUser.role === 'staff') {
-            db.collection("kinerja").where("userId", "==", "staff").orderBy("timestamp", "desc")
+            db.collection("kinerja").where("userId", "==", currentUser.id).orderBy("timestamp", "desc")
             .onSnapshot(snapshot => {
-                const list = document.getElementById('listStaff');
-                list.innerHTML = "";
+                const tbody = document.getElementById('tableStaff');
+                tbody.innerHTML = "";
                 snapshot.forEach(doc => {
                     const data = doc.data();
-                    list.innerHTML += `
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong>${data.bulan}</strong><br>
-                                <small>${data.target}</small><br>
-                                <span class="badge bg-${data.status === 'Dinilai' ? 'success' : 'warning'}">${data.status}</span>
-                            </div>
-                            <span class="badge bg-primary rounded-pill">${data.nilai ? data.nilai : '-'}</span>
-                        </li>`;
+                    let statusClass = data.status === 'Dinilai' ? 'success' : (data.status === 'Perlu Revisi' ? 'danger' : 'warning');
+                    let actionBtn = '';
+                    
+                    if (data.status === 'Perlu Revisi') {
+                        actionBtn = `<button class="btn btn-sm btn-outline-danger" onclick="ajukanRevisi('${doc.id}')"><i class="fas fa-redo"></i> Ajukan Revisi</button>`;
+                    }
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${data.bulan}</td>
+                            <td><small>${data.target}</small></td>
+                            <td><span class="badge bg-${statusClass} status-badge">${data.status}</span></td>
+                            <td class="fw-bold">${data.nilai ? data.nilai : '-'}</td>
+                            <td>${actionBtn}</td>
+                        </tr>`;
                 });
             });
         } 
         else if (currentUser.role === 'evaluator') {
-            db.collection("kinerja").where("status", "==", "Menunggu Evaluasi")
+            // Ambil yang Menunggu Evaluasi ATAU Perlu Revisi
+            db.collection("kinerja").where("status", "in", ["Menunggu Evaluasi", "Perlu Revisi"])
             .onSnapshot(snapshot => {
                 const list = document.getElementById('listEvaluator');
                 list.innerHTML = "";
-                if(snapshot.empty) list.innerHTML = "<p class='text-success'>🎉 Tidak ada laporan yang perlu dinilai.</p>";
+                if(snapshot.empty) {
+                    list.innerHTML = "<div class='alert alert-success'>🎉 Tidak ada laporan yang perlu dinilai.</div>";
+                    return;
+                }
                 
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     list.innerHTML += `
-                        <li class="list-group-item">
+                        <div class="list-group-item list-group-item-action p-3 mb-2 border rounded">
                             <div class="d-flex w-100 justify-content-between">
-                                <h6 class="mb-1">Staff: ${data.userName} | Periode: ${data.bulan}</h6>
+                                <h6 class="mb-1 fw-bold text-primary">${data.userName}</h6>
+                                <small class="text-muted">${data.bulan}</small>
                             </div>
                             <p class="mb-1"><strong>Target:</strong> ${data.target}</p>
                             <p class="mb-1"><strong>Realisasi:</strong> ${data.realisasi}</p>
-                            <div class="input-group mt-2" style="max-width: 300px;">
-                                <input type="number" class="form-control" id="nilai-${doc.id}" placeholder="0-100" min="0" max="100">
-                                <button class="btn btn-primary" onclick="beriNilai('${doc.id}')">Nilai</button>
+                            ${data.buktiDukung ? `<p class="mb-1"><a href="${data.buktiDukung}" target="_blank" class="text-decoration-none"><i class="fas fa-link"></i> Lihat Bukti Dukung</a></p>` : ''}
+                            ${data.status === 'Perlu Revisi' ? '<span class="badge bg-danger mb-2">Laporan Revisi</span>' : ''}
+                            
+                            <div class="row g-2 mt-2">
+                                <div class="col-mdว่า 2">
+                                    <input type="number" class="form-control" id="nilai-${doc.id}" placeholder="0-100" min="0" max="100">
+                                </div>
+                                <div class="col-md-7">
+                                    <input type="text" class="form-control" id="catatan-${doc.id}" placeholder="Catatan evaluasi (opsional)">
+                                </div>
+                                <div class="col-md-3">
+                                    <button class="btn btn-primary w-100" onclick="beriNilai('${doc.id}')"><i class="fas fa-save"></i> Simpan</button>
+                                </div>
                             </div>
-                        </li>`;
+                        </div>`;
                 });
             });
         } 
@@ -174,60 +283,108 @@
             .onSnapshot(snapshot => {
                 const tbody = document.getElementById('tableAdmin');
                 tbody.innerHTML = "";
+                let total = 0, dinilai = 0, sumNilai = 0;
+
                 snapshot.forEach(doc => {
                     const data = doc.data();
+                    total++;
+                    if (data.status === 'Dinilai' || data.status === 'Perlu Revisi') {
+                        dinilai++;
+                        if (data.nilai) sumNilai += data.nilai;
+                    }
+
+                    let statusClass = data.status === 'Dinilai' ? 'success' : (data.status === 'Perlu Revisi' ? 'danger' : 'warning');
+                    let buktiLink = data.buktiDukung ? `<a href="${data.buktiDukung}" target="_blank"><i class="fas fa-external-link-alt"></i></a>` : '-';
+
                     tbody.innerHTML += `
                         <tr>
                             <td>${data.userName}</td>
                             <td>${data.bulan}</td>
                             <td>${data.target}</td>
                             <td>${data.realisasi}</td>
-                            <td><span class="badge bg-${data.status === 'Dinilai' ? 'success' : 'warning'}">${data.status}</span></td>
-                            <td><strong>${data.nilai ? data.nilai : '-'}</strong></td>
+                            <td class="text-center">${buktiLink}</td>
+                            <td><span class="badge bg-${statusClass}">${data.status}</span></td>
+                            <td class="fw-bold">${data.nilai ? data.nilai : '-'}</td>
+                            <td><small>${data.catatan || '-'}</small></td>
                         </tr>`;
                 });
+
+                // Update Statistik
+                document.getElementById('statTotal').innerText = total;
+                document.getElementById('statDinilai').innerText = dinilai;
+                document.getElementById('statRata').innerText = dinilai > 0 ? (sumNilai / dinilai).toFixed(1) : '0';
             });
         }
     }
 
-    // Submit Laporan (Staff)
+    // --- 5. ACTION FUNCTIONS ---
+    
+    // Staff Submit
     document.getElementById('formKinerja').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const bulan = document.getElementById('inputBulan').value;
-        const target = document.getElementById('inputTarget').value;
-        const realisasi = document.getElementById('inputRealisasi').value;
+        const btn = e.target.querySelector('button[type="submit"]');
+        btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
 
         await db.collection("kinerja").add({
-            userId: "staff", // Di aplikasi nyata, ini ID user unik
+            userId: currentUser.id,
             userName: currentUser.nama,
-            bulan: bulan,
-            target: target,
-            realisasi: realisasi,
+            bulan: document.getElementById('inputBulan').value,
+            target: document.getElementById('inputTarget').value,
+            realisasi: document.getElementById('inputRealisasi').value,
+            buktiDukung: document.getElementById('inputBukti').value,
             status: "Menunggu Evaluasi",
             nilai: null,
+            catatan: "",
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        alert("Laporan berhasil disubmit!");
+        alert("✅ Laporan berhasil disubmit!");
         e.target.reset();
+        btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Submit Laporan';
     });
 
-    // Beri Nilai (Evaluator)
+    // Evaluator Beri Nilai
     window.beriNilai = async (docId) => {
-        const nilaiInput = document.getElementById(`nilai-${docId}`).value;
-        if (!nilaiInput || nilaiInput < 0 || nilaiInput > 100) {
-            alert("Masukkan nilai antara 0 - 100");
+        const nilai = parseInt(document.getElementById(`nilai-${docId}`).value);
+        const catatan = document.getElementById(`catatan-${docId}`).value;
+
+        if (isNaN(nilai) || nilai < 0 || nilai > 100) {
+            alert("⚠️ Masukkan nilai antara 0 - 100");
             return;
         }
 
+        // Logika: Jika nilai < 70, status jadi "Perlu Revisi", jika >= 70 jadi "Dinilai"
+        const newStatus = nilai < 70 ? "Perlu Revisi" : "Dinilai";
+
         await db.collection("kinerja").doc(docId).update({
-            status: "Dinilai",
-            nilai: parseInt(nilaiInput)
+            status: newStatus,
+            nilai: nilai,
+            catatan: catatan
         });
-        alert("Penilaian berhasil disimpan!");
+        alert(`✅ Penilaian berhasil disimpan! (Status: ${newStatus})`);
     };
 
-    // Jalankan saat pertama kali load
+    // Staff Ajukan Revisi
+    window.ajukanRevisi = async (docId) => {
+        if(confirm("Apakah Anda yakin ingin mengajukan revisi laporan ini? Status akan kembali ke 'Menunggu Evaluasi'.")) {
+            await db.collection("kinerja").doc(docId).update({
+                status: "Menunggu Evaluasi",
+                nilai: null,
+                catatan: ""
+            });
+            alert("✅ Laporan berhasil diajukan ulang untuk dievaluasi.");
+        }
+    };
+
+    // Admin Export Excel
+    window.exportToExcel = () => {
+        const table = document.getElementById("tabelAdminExport");
+        const wb = XLSX.utils.table_to_book(table, { sheet: "Rekap Kinerja" });
+        XLSX.writeFile(wb, `Rekap_Kinerja_SIMONEV_${new Date().toISOString().slice(0,10)}.xlsx`);
+    };
+
+    // Init
+    updateDeadline();
     changeRole();
 </script>
 </body>
