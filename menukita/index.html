@@ -4,11 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#e9905b">
-<title>MenuKita v2.1 — Menu, Budget & Belanja Keluarga</title>
+<title>MenuKita v2.2 — Menu, Budget & Belanja Keluarga</title>
 
 <style>
 /* =========================================================
-   MENUKITA v2.1 - Budget Tracking, Meal Prep, Favorites
+   MENUKITA v2.2 - Protein Checker, Recipe Detail Modal
 ========================================================= */
 :root {
     --primary: #e9905b; --primary-dark: #d97a41; --primary-soft: #fff0e7;
@@ -74,6 +74,7 @@ button { cursor: pointer; }
 .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
 .btn-danger { background: var(--expense); color: white; }
 .btn-success { background: var(--success); color: white; }
+.btn-warning { background: var(--warning); color: white; }
 .btn-sm { min-height: 36px; padding: 7px 11px; font-size: 12px; }
 .btn-full { width: 100%; }
 
@@ -101,36 +102,6 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 .card-title h2 { font-size: 16px; }
 .card-title p { font-size: 12px; color: var(--text-soft); }
 
-/* Budget Bar */
-.budget-bar { background: var(--warning-soft); border: 1px solid rgba(230,173,79,.3); border-radius: 14px; padding: 16px; margin-bottom: 16px; }
-.budget-bar h3 { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
-.budget-bar-content { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.budget-stat { font-size: 12px; }
-.budget-stat-label { color: var(--text-soft); margin-bottom: 2px; }
-.budget-stat-value { font-size: 18px; font-weight: 750; color: var(--text); }
-.budget-stat-value.warning { color: var(--warning); }
-.budget-stat-value.danger { color: var(--danger); }
-.budget-progress { height: 8px; background: rgba(0,0,0,.1); border-radius: 99px; overflow: hidden; margin-top: 10px; }
-.budget-progress-fill { height: 100%; background: linear-gradient(90deg, var(--warning), var(--danger)); border-radius: inherit; transition: width .5s; }
-
-/* Meal Prep Status */
-.meal-prep-card { background: var(--primary-soft); border: 1px solid rgba(233,144,91,.2); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
-.meal-prep-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-.meal-prep-day { font-weight: 680; font-size: 13px; }
-.meal-prep-status { font-size: 11px; color: var(--text-soft); font-weight: 600; }
-.meal-prep-slots { display: flex; gap: 6px; }
-.meal-prep-slot { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 13px; border: 2px solid var(--border); background: var(--surface); cursor: pointer; transition: .2s; }
-.meal-prep-slot.done { background: var(--success); border-color: var(--success); color: white; font-weight: 800; }
-.meal-prep-slot:hover { transform: scale(1.1); }
-
-/* Favorites */
-.favorites-row { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 14px; padding-bottom: 8px; }
-.favorites-row::-webkit-scrollbar { height: 4px; }
-.favorites-row::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
-.fav-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 8px 12px; font-size: 12px; font-weight: 700; white-space: nowrap; flex-shrink: 0; transition: .2s; }
-.fav-btn:hover { border-color: var(--primary); color: var(--primary); }
-.fav-emoji { margin-right: 4px; }
-
 /* Week nav */
 .week-nav { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 16px; }
 .week-nav-btn { border: 1px solid var(--border); background: var(--surface); width: 40px; height: 40px; border-radius: 12px; font-size: 16px; color: var(--text-soft); }
@@ -147,15 +118,13 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 .slot-btn { border: 1px dashed var(--border); background: var(--surface); border-radius: 10px; min-height: 40px; padding: 8px 12px; font-size: 12.5px; font-weight: 600; color: var(--text-soft); text-align: left; transition: .2s; }
 .slot-btn:hover { border-color: var(--primary); color: var(--primary); }
 .slot-btn.filled { border-style: solid; border-color: var(--border); background: var(--primary-soft); color: var(--text); }
+.slot-btn.disabled-protein { border-style: solid; border-color: var(--expense); background: var(--expense-soft); color: var(--expense); cursor: not-allowed; opacity: .6; }
 .slot-prep { border: 0; background: transparent; color: var(--text-light); width: 32px; height: 32px; border-radius: 8px; font-size: 16px; display: flex; align-items: center; justify-content: center; }
 .slot-prep.done { color: var(--success); }
 .slot-clear { border: 0; background: transparent; color: var(--text-light); width: 30px; height: 30px; border-radius: 8px; }
 .slot-clear:hover { background: var(--expense-soft); color: var(--expense); }
 
 /* Shopping list */
-.shop-categories { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
-.shop-cat-btn { border: 1px solid var(--border); background: var(--surface); border-radius: 12px; padding: 7px 12px; font-size: 12px; font-weight: 700; color: var(--text-soft); transition: .2s; }
-.shop-cat-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
 .shop-item { display: flex; align-items: center; gap: 10px; padding: 11px 4px; border-bottom: 1px solid var(--border); border-radius: 8px; }
 .shop-item:last-child { border-bottom: 0; }
 .shop-check { width: 26px; height: 26px; border-radius: 8px; border: 2px solid var(--border); background: var(--surface); flex: 0 0 26px; display: flex; align-items: center; justify-content: center; font-size: 14px; color: transparent; transition: .2s; }
@@ -172,62 +141,32 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 .shop-progress-fill { height: 100%; background: var(--success); border-radius: inherit; transition: width .5s; }
 .shop-total-row { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; margin-top: 8px; }
 
-/* History */
-.history-item { display: flex; align-items: center; gap: 10px; padding: 12px 4px; border-bottom: 1px solid var(--border); }
-.history-item:last-child { border-bottom: 0; }
-.history-icon { width: 38px; height: 38px; border-radius: 12px; background: var(--income-soft); display: flex; align-items: center; justify-content: center; font-size: 17px; flex: 0 0 38px; }
-.history-info { flex: 1; min-width: 0; }
-.history-title { font-weight: 680; font-size: 12.5px; }
-.history-meta { font-size: 11px; color: var(--text-light); }
-.history-amount { font-weight: 750; font-size: 13px; color: var(--income); white-space: nowrap; }
-.history-photo { border: 0; background: var(--blue-soft); color: var(--blue); border-radius: 8px; padding: 5px 9px; font-size: 12px; font-weight: 700; }
-
-/* Stock */
-.stock-item { display: flex; align-items: center; gap: 10px; padding: 12px 4px; border-bottom: 1px solid var(--border); }
-.stock-item:last-child { border-bottom: 0; }
-.stock-name { flex: 1; font-weight: 680; font-size: 13px; }
-.stock-levels { display: flex; gap: 4px; }
-.stock-level-btn { border: 1px solid var(--border); background: var(--surface); color: var(--text-light); border-radius: 999px; padding: 4px 10px; font-size: 10px; font-weight: 700; }
-.stock-level-btn.active.aman { background: var(--income-soft); color: var(--income); border-color: var(--income); }
-.stock-level-btn.active.menipis { background: var(--warning-soft); color: var(--warning); border-color: var(--warning); }
-.stock-level-btn.active.habis { background: var(--expense-soft); color: var(--expense); border-color: var(--expense); }
-.stock-add-shop { border: 0; background: var(--blue-soft); color: var(--blue); border-radius: 8px; padding: 5px 9px; font-size: 11px; font-weight: 700; }
-.stock-del { border: 0; background: transparent; color: var(--text-light); width: 28px; height: 28px; border-radius: 8px; }
-.stock-del:hover { background: var(--expense-soft); color: var(--expense); }
-
-/* Recipe picker & recommend */
-.recipe-search { margin-bottom: 12px; }
-.recipe-list { max-height: 46vh; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
-.recipe-list::-webkit-scrollbar { width: 5px; }
-.recipe-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
-.recipe-option { border: 1px solid var(--border); background: var(--surface); border-radius: 12px; padding: 11px 13px; text-align: left; display: flex; align-items: center; gap: 10px; transition: .2s; }
+/* Recipe */
+.recipe-option { border: 1px solid var(--border); background: var(--surface); border-radius: 12px; padding: 11px 13px; text-align: left; display: flex; align-items: center; gap: 10px; transition: .2s; cursor: pointer; }
 .recipe-option:hover { border-color: var(--primary); background: var(--primary-soft); }
 .recipe-emoji { font-size: 20px; }
 .recipe-name { font-weight: 680; font-size: 13px; }
 .recipe-ing { font-size: 10.5px; color: var(--text-light); }
-.match-badge { margin-left: auto; background: var(--income-soft); color: var(--income); border-radius: 999px; padding: 3px 9px; font-size: 10px; font-weight: 800; white-space: nowrap; }
 
-/* Custom recipe list */
-.myrecipe-item { display: flex; align-items: center; gap: 10px; padding: 10px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 8px; }
-.myrecipe-item .recipe-name { flex: 1; }
-
-/* Receipt preview */
-.receipt-preview { position: relative; display: inline-block; margin-top: 8px; }
-.receipt-preview img { max-width: 160px; max-height: 160px; border-radius: 12px; border: 2px solid var(--border); object-fit: cover; }
-.receipt-remove { position: absolute; top: -8px; right: -8px; background: var(--expense); color: white; border: 0; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; }
-
-/* Empty state */
-.empty-state { padding: 30px 15px; text-align: center; color: var(--text-light); font-size: 13px; }
-.empty-icon { font-size: 32px; margin-bottom: 7px; }
+/* Ingredient List Modal */
+.ingredient-grid { display: grid; grid-template-columns: 1fr 120px; gap: 12px; margin-top: 12px; }
+.ing-item { display: grid; grid-template-columns: 1fr 100px; gap: 8px; padding: 10px; background: var(--surface-2); border-radius: 10px; }
+.ing-name { font-weight: 680; font-size: 13px; }
+.ing-qty { text-align: right; font-size: 12px; color: var(--text-soft); }
+.protein-warning { background: var(--expense-soft); border: 1px solid rgba(237,113,132,.3); color: #a94e61; padding: 12px; border-radius: 12px; font-size: 12px; margin-bottom: 12px; }
 
 /* Modal */
 .modal-overlay { position: fixed; inset: 0; background: rgba(20,20,35,.45); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 9999; opacity: 0; pointer-events: none; transition: opacity .2s ease; }
 .modal-overlay.active { opacity: 1; pointer-events: auto; }
-.modal { width: min(480px, 100%); background: var(--surface); border: 1px solid var(--border); border-radius: 22px; padding: 23px; box-shadow: 0 25px 70px rgba(0,0,0,.20); transform: translateY(10px) scale(.98); transition: transform .25s cubic-bezier(0.175, 0.885, 0.32, 1.275); max-height: 90vh; overflow-y: auto; }
+.modal { width: min(500px, 100%); background: var(--surface); border: 1px solid var(--border); border-radius: 22px; padding: 23px; box-shadow: 0 25px 70px rgba(0,0,0,.20); transform: translateY(10px) scale(.98); transition: transform .25s cubic-bezier(0.175, 0.885, 0.32, 1.275); max-height: 90vh; overflow-y: auto; }
 .modal-overlay.active .modal { transform: translateY(0) scale(1); }
 .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
 .modal-header h3 { font-size: 17px; }
 .close-btn { border: 0; background: var(--surface-2); width: 34px; height: 34px; border-radius: 10px; color: var(--text-soft); font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+/* Empty state */
+.empty-state { padding: 30px 15px; text-align: center; color: var(--text-light); font-size: 13px; }
+.empty-icon { font-size: 32px; margin-bottom: 7px; }
 
 /* Bottom Nav */
 .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: stretch; height: 70px; z-index: 100; box-shadow: 0 -4px 20px rgba(90,60,30,0.08); padding-bottom: env(safe-area-inset-bottom); }
@@ -252,7 +191,6 @@ header { display: flex; justify-content: space-between; align-items: center; gap
     .card { padding: 16px; border-radius: 16px; }
     .slot-row { grid-template-columns: 52px 1fr auto auto; }
     .shop-price { width: 82px; }
-    .budget-bar-content { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -265,8 +203,8 @@ header { display: flex; justify-content: space-between; align-items: center; gap
         <div class="login-card">
             <div class="login-logo">
                 <div class="logo-circle">🍽️</div>
-                <h1>MenuKita <span style="font-size:12px; vertical-align:top;">v2.1</span></h1>
-                <p>Menu, budget & belanja keluarga. Sinkron real-time.</p>
+                <h1>MenuKita <span style="font-size:12px; vertical-align:top;">v2.2</span></h1>
+                <p>Menu, Budget & Belanja Keluarga</p>
             </div>
             <div id="auth-alert"></div>
             <form id="auth-form">
@@ -288,7 +226,6 @@ header { display: flex; justify-content: space-between; align-items: center; gap
                 <div style="flex:1;height:1px;background:var(--border)"></div>atau<div style="flex:1;height:1px;background:var(--border)"></div>
             </div>
             <button id="google-login-btn" class="btn btn-secondary btn-full">🔵 Masuk dengan Google</button>
-            <p style="text-align:center; font-size:11px; color:var(--text-light); margin-top:14px;">💡 Gunakan akun yang sama dengan AuditDompet agar belanja bisa dicatat ke sana.</p>
         </div>
     </div>
 
@@ -297,11 +234,11 @@ header { display: flex; justify-content: space-between; align-items: center; gap
         <header>
             <div class="brand">
                 <div class="brand-icon">🍽️</div>
-                <div><h1>MenuKita</h1><p>v2.1 • Menu, Budget & Belanja</p></div>
+                <div><h1>MenuKita</h1><p>v2.2 • Menu, Budget & Belanja</p></div>
             </div>
             <div class="header-actions">
                 <div class="user-pill">👤 <span id="user-email">User</span></div>
-                <button id="dark-toggle" class="btn btn-secondary btn-sm" title="Mode tampilan">🌙</button>
+                <button id="dark-toggle" class="btn btn-secondary btn-sm">🌙</button>
             </div>
         </header>
 
@@ -311,24 +248,11 @@ header { display: flex; justify-content: space-between; align-items: center; gap
         <div id="tab-menu" class="tab-section active">
             <div class="card">
                 <div class="card-title">
-                    <div><h2>🍽️ Menu Minggu Ini</h2><p>Klik slot untuk memilih masakan</p></div>
+                    <div><h2>🍽️ Menu Minggu Ini</h2><p>Klik slot untuk memilih masakan (1 protein/hari)</p></div>
                     <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                        <button id="recommend-btn" class="btn btn-secondary btn-sm" title="Rekomendasi dari stok dapur">💡 Masak dari Stok</button>
-                        <button id="autofill-btn" class="btn btn-secondary btn-sm" title="Isi slot kosong secara acak">✨ Isi Otomatis</button>
+                        <button id="autofill-btn" class="btn btn-secondary btn-sm">✨ Isi Otomatis</button>
                         <button id="generate-btn" class="btn btn-primary btn-sm">🛒 Buat Daftar Belanja</button>
                     </div>
-                </div>
-
-                <!-- FAVORITES QUICK ADD -->
-                <div style="margin-bottom: 14px;">
-                    <div style="font-size: 12px; font-weight: 650; color: var(--text-soft); margin-bottom: 8px;">⭐ Resep Sering Dipakai</div>
-                    <div id="favorites-row" class="favorites-row"></div>
-                </div>
-
-                <!-- MEAL PREP STATUS -->
-                <div style="margin-bottom: 14px;">
-                    <div style="font-size: 12px; font-weight: 650; color: var(--text-soft); margin-bottom: 8px;">👨‍🍳 Status Memasak Hari Ini</div>
-                    <div id="meal-prep-today" style="font-size: 12px; color: var(--text-soft); background: var(--primary-soft); border-radius: 12px; padding: 10px; text-align: center;"></div>
                 </div>
 
                 <div class="week-nav">
@@ -342,23 +266,15 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 
         <!-- TAB BELANJA -->
         <div id="tab-belanja" class="tab-section">
-            <!-- BUDGET TRACKING -->
-            <div id="budget-card" class="card hidden">
-                <div id="budget-content"></div>
-            </div>
-
             <div class="card">
                 <div class="card-title">
                     <div><h2>🛒 Daftar Belanja</h2><p id="shop-week-label">-</p></div>
                     <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                        <button id="export-pdf-btn" class="btn btn-secondary btn-sm" title="Download PDF">📥 Unduh PDF</button>
-                        <button id="check-all-btn" class="btn btn-secondary btn-sm" title="Centang semua">✅ Semua</button>
-                        <button id="clear-checked-btn" class="btn btn-secondary btn-sm" title="Hapus item tercentang">🧹 Bersihkan</button>
+                        <button id="check-all-btn" class="btn btn-secondary btn-sm">✅ Semua</button>
+                        <button id="clear-checked-btn" class="btn btn-secondary btn-sm">🧹 Bersihkan</button>
                         <button id="record-btn" class="btn btn-success btn-sm">📒 Catat ke AuditDompet</button>
                     </div>
                 </div>
-
-                <div id="shop-categories" class="shop-categories hidden"></div>
 
                 <div class="shop-progress"><div id="shop-progress-fill" class="shop-progress-fill" style="width:0%"></div></div>
                 <div class="shop-total-row">
@@ -372,22 +288,16 @@ header { display: flex; justify-content: space-between; align-items: center; gap
                 </div>
                 <div id="shopping-list"></div>
             </div>
-            <div class="card">
-                <div class="card-title">
-                    <div><h2>🗂️ Riwayat Belanja</h2><p>Pencatatan yang sudah masuk AuditDompet</p></div>
-                </div>
-                <div id="record-history"></div>
-            </div>
         </div>
 
         <!-- TAB STOK -->
         <div id="tab-stok" class="tab-section">
             <div class="card">
                 <div class="card-title">
-                    <div><h2>🏪 Stok Dapur</h2><p>Bahan "Aman" dipakai untuk rekomendasi 💡</p></div>
+                    <div><h2>🏪 Stok Dapur</h2><p>Tambah bahan yang selalu ada</p></div>
                 </div>
                 <div style="display:flex; gap:8px; margin-bottom:14px;">
-                    <input type="text" id="add-stock-name" class="filter-control" placeholder="Tambah stok (mis. Beras, Gas 3kg, Galon)" style="flex:1;">
+                    <input type="text" id="add-stock-name" class="filter-control" placeholder="Contoh: Beras, Minyak, Gas" style="flex:1;">
                     <button id="add-stock-btn" class="btn btn-primary btn-sm" style="min-height:45px;">+ Tambah</button>
                 </div>
                 <div id="stock-list"></div>
@@ -396,16 +306,6 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 
         <!-- TAB SETTING -->
         <div id="tab-setting" class="tab-section">
-            <div class="card">
-                <div class="card-title">
-                    <div><h2>💰 Budget Mingguan</h2><p>Set target budget belanja per minggu</p></div>
-                </div>
-                <div class="form-group">
-                    <label>Target Budget (Rp)</label>
-                    <input type="number" id="budget-limit" min="0" step="any" inputmode="decimal" placeholder="Contoh: 500000">
-                </div>
-                <button id="save-budget-btn" class="btn btn-primary btn-full">💾 Simpan Target</button>
-            </div>
             <div class="card">
                 <div class="card-title">
                     <div><h2>🏪 Resep Saya</h2><p>Tambahkan resep keluarga sendiri</p></div>
@@ -420,21 +320,11 @@ header { display: flex; justify-content: space-between; align-items: center; gap
                 <div id="my-recipes" style="margin-top:16px;"></div>
             </div>
             <div class="card">
-                <div class="card-title"><div><h2>⚙️ Pengaturan</h2><p>Kelola aplikasi</p></div></div>
-                <div style="display:flex; flex-direction:column; gap:12px;">
-                    <div style="padding:15px; background:var(--primary-soft); border-radius:12px; display:flex; justify-content:space-between; align-items:center;">
-                        <div><div style="font-weight:650; font-size:13px;">Mode Gelap</div><div style="font-size:12px; color:var(--text-soft); margin-top:3px;">Ganti tema tampilan</div></div>
-                        <button id="dark-toggle-settings" class="btn btn-secondary btn-sm">🌙</button>
-                    </div>
-                    <div style="padding:15px; background:var(--blue-soft); border-radius:12px;">
-                        <div style="font-weight:650; font-size:13px;">🔗 Terhubung dengan AuditDompet</div>
-                        <div style="font-size:12px; color:var(--text-soft); margin-top:3px;">Tombol "📒 Catat" membuat transaksi pengeluaran (kategori Makanan) di AuditDompet, lengkap dengan dompet dan foto struk. Jika AuditDompet Anda punya profil Suami/Istri (v6+), profil juga ikut terisi.</div>
-                    </div>
-                    <button id="logout-btn" class="btn btn-danger btn-full">🚪 Keluar</button>
-                </div>
+                <div class="card-title"><div><h2>⚙️ Pengaturan</h2></div></div>
+                <button id="logout-btn" class="btn btn-danger btn-full">🚪 Keluar</button>
             </div>
         </div>
-        <div style="text-align:center; color:var(--text-light); font-size:11px; margin-top:15px;">MenuKita • v2.1 • Menu, Budget & Belanja Keluarga</div>
+        <div style="text-align:center; color:var(--text-light); font-size:11px; margin-top:15px;">MenuKita • v2.2 • 1 Protein/Hari • Sayur Boleh Bebas</div>
     </div>
 </div>
 
@@ -442,29 +332,38 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 <nav id="bottom-nav" class="bottom-nav hidden">
     <button class="nav-item active" data-tab="menu"><div class="nav-icon">🍽️</div><div>Menu</div></button>
     <button class="nav-item" data-tab="belanja"><div class="nav-icon">🛒</div><div>Belanja</div><div id="shop-badge" class="nav-badge hidden">0</div></button>
-    <button class="nav-item" data-tab="stok"><div class="nav-icon">🏪</div><div>Stok</div><div id="stock-badge" class="nav-badge hidden">0</div></button>
+    <button class="nav-item" data-tab="stok"><div class="nav-icon">🏪</div><div>Stok</div></button>
     <button class="nav-item" data-tab="setting"><div class="nav-icon">⚙️</div><div>Setting</div></button>
 </nav>
+
+<!-- MODAL: RECIPE DETAIL -->
+<div id="recipe-detail-modal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <div>
+                <h3 id="recipe-detail-name">Nama Resep</h3>
+                <p id="recipe-detail-protein" style="font-size:12px; color:var(--text-soft); margin-top:4px;"></p>
+            </div>
+            <button class="close-modal close-btn" data-target="recipe-detail-modal">×</button>
+        </div>
+        <div id="recipe-detail-content"></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:16px;">
+            <button id="recipe-detail-cancel" class="btn btn-secondary">Batal</button>
+            <button id="recipe-detail-confirm" class="btn btn-primary">Pilih Resep Ini</button>
+        </div>
+    </div>
+</div>
 
 <!-- MODAL: RECIPE PICKER -->
 <div id="recipe-modal" class="modal-overlay">
     <div class="modal">
         <div class="modal-header"><h3>🍳 Pilih Masakan</h3><button class="close-modal close-btn" data-target="recipe-modal">×</button></div>
-        <input type="text" id="recipe-search" class="filter-control recipe-search" placeholder="🔎 Cari masakan...">
-        <div id="recipe-list" class="recipe-list"></div>
+        <input type="text" id="recipe-search" class="filter-control" placeholder="🔎 Cari masakan..." style="margin-bottom:12px;">
+        <div id="recipe-list" style="max-height:50vh; overflow-y:auto; display:flex; flex-direction:column; gap:8px;"></div>
         <div style="display:flex; gap:8px; margin-top:14px;">
             <input type="text" id="custom-dish" class="filter-control" placeholder="Atau tulis nama masakan sendiri" style="flex:1;">
             <button id="use-custom-btn" class="btn btn-secondary btn-sm" style="min-height:45px;">Pakai</button>
         </div>
-    </div>
-</div>
-
-<!-- MODAL: RECOMMEND FROM STOCK -->
-<div id="recommend-modal" class="modal-overlay">
-    <div class="modal">
-        <div class="modal-header"><h3>💡 Masak dari Stok</h3><button class="close-modal close-btn" data-target="recommend-modal">×</button></div>
-        <p style="font-size:12px; color:var(--text-soft); margin-bottom:12px;">Resep berikut bahannya sudah tersedia di stok dapur Anda (level Aman). Klik untuk mengisi slot kosong pertama.</p>
-        <div id="recommend-list" class="recipe-list"></div>
     </div>
 </div>
 
@@ -480,20 +379,12 @@ header { display: flex; justify-content: space-between; align-items: center; gap
         <div class="form-group">
             <label>📸 Foto Struk (opsional)</label>
             <input type="file" id="record-photo" accept="image/*" style="min-height:auto; padding:8px;">
-            <div id="record-photo-preview" class="receipt-preview hidden"></div>
+            <div id="record-photo-preview" style="margin-top:8px;"></div>
         </div>
         <label style="display:flex; gap:8px; align-items:center; font-size:12.5px; color:var(--text-soft); margin-bottom:16px;">
             <input type="checkbox" id="record-clear" checked style="width:18px; height:18px;"> Hapus item tercentang setelah dicatat
         </label>
         <button id="record-save" class="btn btn-primary btn-full">💾 Simpan Transaksi</button>
-    </div>
-</div>
-
-<!-- MODAL: PHOTO VIEW -->
-<div id="photo-view-modal" class="modal-overlay">
-    <div class="modal" style="max-width:600px;">
-        <div class="modal-header"><h3>📷 Foto</h3><button class="close-modal close-btn" data-target="photo-view-modal">×</button></div>
-        <img id="photo-view-img" src="" style="width:100%; border-radius:12px;">
     </div>
 </div>
 
@@ -530,112 +421,59 @@ try {
 }
 
 // =========================================================
-// DOM ELEMENTS
+// PROTEIN DETECTION
 // =========================================================
-const authPanel = document.getElementById("auth-panel");
-const dashboard = document.getElementById("dashboard");
-const bottomNav = document.getElementById("bottom-nav");
-const authForm = document.getElementById("auth-form");
-const emailInput = document.getElementById("email");
-const passwordInput = document.getElementById("password");
-const loginBtn = document.getElementById("login-btn");
-const registerBtn = document.getElementById("register-btn");
-const resetPasswordBtn = document.getElementById("reset-password-btn");
-const googleLoginBtn = document.getElementById("google-login-btn");
-const authAlert = document.getElementById("auth-alert");
-const logoutBtn = document.getElementById("logout-btn");
-const userEmailSpan = document.getElementById("user-email");
-const darkToggle = document.getElementById("dark-toggle");
-const darkToggleSettings = document.getElementById("dark-toggle-settings");
-const summaryBar = document.getElementById("summary-bar");
-const weekGrid = document.getElementById("week-grid");
-const weekLabel = document.getElementById("week-label");
-const weekPrevBtn = document.getElementById("week-prev");
-const weekNextBtn = document.getElementById("week-next");
-const autofillBtn = document.getElementById("autofill-btn");
-const generateBtn = document.getElementById("generate-btn");
-const recommendBtn = document.getElementById("recommend-btn");
-const recommendListEl = document.getElementById("recommend-list");
-const favoritesRowEl = document.getElementById("favorites-row");
-const mealPrepTodayEl = document.getElementById("meal-prep-today");
-const shopWeekLabel = document.getElementById("shop-week-label");
-const shopProgressFill = document.getElementById("shop-progress-fill");
-const shopProgressText = document.getElementById("shop-progress-text");
-const shopTotalEl = document.getElementById("shop-total");
-const shopCategoriesEl = document.getElementById("shop-categories");
-const addShopName = document.getElementById("add-shop-name");
-const addShopQty = document.getElementById("add-shop-qty");
-const addShopBtn = document.getElementById("add-shop-btn");
-const shoppingListEl = document.getElementById("shopping-list");
-const checkAllBtn = document.getElementById("check-all-btn");
-const clearCheckedBtn = document.getElementById("clear-checked-btn");
-const exportPdfBtn = document.getElementById("export-pdf-btn");
-const recordBtn = document.getElementById("record-btn");
-const recordHistoryEl = document.getElementById("record-history");
-const addStockName = document.getElementById("add-stock-name");
-const addStockBtn = document.getElementById("add-stock-btn");
-const stockListEl = document.getElementById("stock-list");
-const shopBadge = document.getElementById("shop-badge");
-const stockBadge = document.getElementById("stock-badge");
-const budgetLimit = document.getElementById("budget-limit");
-const saveBudgetBtn = document.getElementById("save-budget-btn");
-const budgetCard = document.getElementById("budget-card");
-const budgetContent = document.getElementById("budget-content");
-const recName = document.getElementById("rec-name");
-const recEmoji = document.getElementById("rec-emoji");
-const recIngs = document.getElementById("rec-ings");
-const saveRecipeBtn = document.getElementById("save-recipe-btn");
-const myRecipesEl = document.getElementById("my-recipes");
-const recipeSearch = document.getElementById("recipe-search");
-const recipeListEl = document.getElementById("recipe-list");
-const customDishInput = document.getElementById("custom-dish");
-const useCustomBtn = document.getElementById("use-custom-btn");
-const recordAlert = document.getElementById("record-alert");
-const recordDesc = document.getElementById("record-desc");
-const recordAmount = document.getElementById("record-amount");
-const recordWallet = document.getElementById("record-wallet");
-const recordProfileGroup = document.getElementById("record-profile-group");
-const recordProfile = document.getElementById("record-profile");
-const recordPhoto = document.getElementById("record-photo");
-const recordPhotoPreview = document.getElementById("record-photo-preview");
-const recordClear = document.getElementById("record-clear");
-const recordSave = document.getElementById("record-save");
+const PROTEINS = {
+    ayam: ["ayam", "chicken"],
+    ikan: ["ikan", "fish", "tenggiri", "bakar"],
+    udang: ["udang", "shrimp", "prawn"],
+    daging: ["daging", "beef", "sapi", "buntut"],
+    cumi: ["cumi", "squid"],
+    telur: ["telur", "egg"],
+    tempe: ["tempe", "tempeh"],
+    tahu: ["tahu", "tofu"]
+};
+
+function getProteinType(recipeNameOrId) {
+    const rec = getRecipe(recipeNameOrId);
+    if (!rec) return null;
+    const lower = (rec.name + " " + rec.ingredients.map(i => i.n).join(" ")).toLowerCase();
+    for (const [protein, keywords] of Object.entries(PROTEINS)) {
+        if (keywords.some(kw => lower.includes(kw))) return protein;
+    }
+    return null;
+}
+
+function getDayProtein(dayIndex, weekKey) {
+    const slots = weeks[weekKey] || {};
+    const proteins = new Set();
+    SLOTS.forEach(slot => {
+        const key = `${dayIndex}-${slot.key}`;
+        const val = slots[key];
+        if (val && !val.startsWith("custom::")) {
+            const protein = getProteinType(val);
+            if (protein) proteins.add(protein);
+        }
+    });
+    return proteins.size > 0 ? Array.from(proteins)[0] : null;
+}
+
+function canAddProteinToDay(dayIndex, recipeId, weekKey) {
+    const protein = getProteinType(recipeId);
+    if (!protein) return true; // Sayur/bumbu: bisa semua hari
+    const dayProtein = getDayProtein(dayIndex, weekKey);
+    return !dayProtein || dayProtein === protein; // Bisa kalo belum ada protein atau sama protein
+}
 
 // =========================================================
-// STATE
+// CONSTANTS
 // =========================================================
-let currentUser = null;
-let weeks = {};
-let shopping = [];
-let stocks = [];
-let customRecipes = [];
-let wallets = [];
-let profiles = [];
-let records = [];
-let mealPrep = {};
-let priceMemory = {};
-let userBudget = 0;
-let weekOffset = 0;
-let pendingSlotKey = null;
-let stockAlertShown = false;
-let recordPhotoBase64 = null;
-let currentShopCategory = "all";
-
 const DAYS = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
 const SLOTS = [
     { key: "pagi", label: "🌅 Pagi" },
     { key: "siang", label: "☀️ Siang" },
     { key: "malam", label: "🌙 Malam" }
 ];
-
-const CATEGORIES = {
-    "sayur": ["bayam", "kangkung", "labu", "kol", "wortel", "kentang", "buncis", "kacang", "tauge", "brokoli", "seledri"],
-    "daging": ["daging", "ayam", "ikan", "udang", "cumi", "sapi", "buntut", "dada", "paha"],
-    "bumbu": ["bawang", "kunyit", "cabai", "serai", "garam", "gula", "kecap", "santan", "minyak", "mentega", "ketumbar", "kemiri"],
-    "tepung": ["tepung", "beras", "sagu", "maizena", "roti"],
-    "telur": ["telur", "putih", "kuning"],
-    "lainnya": []
-};
 
 // =========================================================
 // RESEP BAWAAN (90 masakan)
@@ -707,32 +545,100 @@ const BUILTIN_RECIPES = [
     R("dendeng-balado", "Dendeng Balado", "🥩", [["Daging sapi", 400, "gram"], ["Cabai", 10, "buah"], ["Tomat", 2, "buah"], ["Bawang merah", 5, "siung"], ["Jeruk nipis", 1, "buah"], ["Beras", 500, "gram"]]),
     R("beef-teriyaki", "Beef Teriyaki", "🥩", [["Daging sapi", 300, "gram"], ["Saus teriyaki", 3, "sdm"], ["Bawang bombay", 1, "buah"], ["Paprika", 1, "buah"], ["Beras", 500, "gram"]]),
     R("chicken-katsu", "Chicken Katsu", "🍗", [["Ayam", 400, "gram"], ["Tepung roti", 100, "gram"], ["Telur", 2, "butir"], ["Tepung terigu", 50, "gram"], ["Kol", 100, "gram"], ["Beras", 500, "gram"]]),
-    R("ayam-mentega", "Ayam Mentega", "🧈", [["Ayam", 400, "gram"], ["Margarin", 3, "sdm"], ["Saus tiram", 2, "sdm"], ["Kecap inggris", 1, "sdm"], ["Bawang bombay", 1, "buah"], ["Beras", 500, "gram"]]),
     R("cah-brokoli", "Cah Brokoli", "🥦", [["Brokoli", 200, "gram"], ["Bawang putih", 3, "siung"], ["Wortel", 1, "buah"], ["Saus tiram", 1, "sdm"], ["Beras", 500, "gram"]]),
     R("fuyunghai", "Fuyunghai", "🍳", [["Telur", 4, "butir"], ["Wortel", 1, "buah"], ["Kol", 100, "gram"], ["Tepung terigu", 3, "sdm"], ["Saus tomat", 3, "sdm"], ["Beras", 500, "gram"]]),
-    R("lumpia-goreng", "Lumpia Goreng", "🌯", [["Kulit lumpia", 10, "lembar"], ["Tauge", 150, "gram"], ["Wortel", 1, "buah"], ["Telur", 1, "butir"], ["Daun bawang", 1, "batang"]]),
-    R("sup-jagung", "Sup Jagung", "🌽", [["Jagung", 2, "buah"], ["Ayam", 150, "gram"], ["Putih telur", 1, "butir"], ["Wortel", 1, "buah"], ["Seledri", 1, "batang"], ["Beras", 500, "gram"]]),
     R("tumis-terong", "Tumis Terong", "🍆", [["Terong", 2, "buah"], ["Bawang putih", 3, "siung"], ["Cabai", 3, "buah"], ["Kecap manis", 1, "sdm"], ["Beras", 500, "gram"]]),
     R("balado-terong", "Balado Terong", "🍆", [["Terong", 2, "buah"], ["Cabai", 8, "buah"], ["Bawang merah", 5, "siung"], ["Tomat", 1, "buah"], ["Beras", 500, "gram"]]),
     R("tumis-labu-siam", "Tumis Labu Siam", "🥒", [["Labu siam", 2, "buah"], ["Bawang putih", 2, "siung"], ["Cabai", 2, "buah"], ["Daun salam", 1, "lembar"], ["Beras", 500, "gram"]]),
     R("oseng-jamur", "Oseng Jamur Tiram", "🍄", [["Jamur tiram", 250, "gram"], ["Bawang putih", 2, "siung"], ["Cabai", 3, "buah"], ["Saus tiram", 1, "sdm"], ["Daun bawang", 1, "batang"], ["Beras", 500, "gram"]]),
-    R("jamur-crispy", "Jamur Crispy", "🍄", [["Jamur tiram", 250, "gram"], ["Tepung terigu", 100, "gram"], ["Tepung beras", 2, "sdm"], ["Bawang putih", 2, "siung"]]),
     R("telur-ceplok-balado", "Telur Ceplok Balado", "🍳", [["Telur", 4, "butir"], ["Cabai", 8, "buah"], ["Tomat", 1, "buah"], ["Bawang merah", 4, "siung"], ["Beras", 500, "gram"]]),
-    R("nasi-bakar", "Nasi Bakar", "🍃", [["Beras", 600, "gram"], ["Ayam", 200, "gram"], ["Daun pisang", 3, "lembar"], ["Kemangi", 1, "ikat"], ["Cabai", 5, "buah"], ["Santan", 200, "ml"]]),
-    R("perkedel-jagung", "Bakwan Jagung", "🌽", [["Jagung", 3, "buah"], ["Tepung terigu", 100, "gram"], ["Telur", 1, "butir"], ["Seledri", 1, "batang"], ["Bawang putih", 2, "siung"]]),
-    R("bakwan-sayur", "Bakwan Sayur", "🥕", [["Wortel", 2, "buah"], ["Kol", 100, "gram"], ["Tepung terigu", 150, "gram"], ["Tauge", 100, "gram"], ["Daun bawang", 1, "batang"]]),
-    R("tempe-mendoan", "Tempe Mendoan", "🟫", [["Tempe", 1, "papan"], ["Tepung terigu", 100, "gram"], ["Daun bawang", 2, "batang"], ["Ketumbar", 1, "sdt"], ["Cabai", 5, "buah"]]),
-    R("seblak", "Seblak", "🌶️", [["Kerupuk mentah", 100, "gram"], ["Telur", 1, "butir"], ["Sosis", 2, "buah"], ["Kencur", 2, "ruas"], ["Cabai", 5, "buah"], ["Sawi", 50, "gram"]]),
     R("ayam-kalasan", "Ayam Kalasan", "🍗", [["Ayam", 500, "gram"], ["Gula merah", 50, "gram"], ["Air kelapa", 500, "ml"], ["Daun salam", 2, "lembar"], ["Bawang putih", 4, "siung"], ["Beras", 500, "gram"]]),
-    R("ayam-lengkuas", "Ayam Goreng Lengkuas", "🍗", [["Ayam", 500, "gram"], ["Lengkuas", 2, "ruas"], ["Santan", 200, "ml"], ["Ketumbar", 1, "sdt"], ["Bawang putih", 4, "siung"], ["Beras", 500, "gram"]]),
     R("soto-lamongan", "Soto Lamongan", "🍲", [["Ayam", 400, "gram"], ["Bihun", 100, "gram"], ["Kol", 100, "gram"], ["Kunyit", 1, "ruas"], ["Bawang putih", 4, "siung"], ["Beras", 500, "gram"]]),
     R("rawon", "Rawon", "🍲", [["Daging sapi", 400, "gram"], ["Kluwek", 4, "buah"], ["Tauge", 100, "gram"], ["Telur asin", 2, "butir"], ["Serai", 1, "batang"], ["Beras", 500, "gram"]]),
-    R("mie-tektek", "Mie Tek-Tek", "🍜", [["Mie", 200, "gram"], ["Telur", 2, "butir"], ["Kol", 100, "gram"], ["Tomat", 1, "buah"], ["Cabai", 3, "buah"], ["Bawang merah", 4, "siung"]]),
     R("nasi-goreng-seafood", "Nasi Goreng Seafood", "🦐", [["Nasi", 600, "gram"], ["Udang", 150, "gram"], ["Cumi", 100, "gram"], ["Telur", 1, "butir"], ["Bawang putih", 3, "siung"], ["Kecap manis", 1, "sdm"]]),
-    R("tahu-cabai-garam", "Tahu Cabai Garam", "⬜", [["Tahu", 8, "buah"], ["Bawang putih", 4, "siung"], ["Cabai", 5, "buah"], ["Tepung maizena", 2, "sdm"], ["Daun bawang", 1, "batang"], ["Beras", 500, "gram"]]),
-    R("sayur-tahu-kuah", "Sayur Tahu Kuah", "⬜", [["Tahu", 8, "buah"], ["Daun bawang", 1, "batang"], ["Cabai", 3, "buah"], ["Bawang putih", 2, "siung"], ["Seledri", 1, "batang"], ["Beras", 500, "gram"]]),
     R("sop-buntut", "Sop Buntut", "🥩", [["Buntut sapi", 500, "gram"], ["Wortel", 2, "buah"], ["Kentang", 2, "buah"], ["Pala", 1, "sdt"], ["Cengkih", 2, "butir"], ["Beras", 500, "gram"]])
 ];
+
+// =========================================================
+// DOM ELEMENTS
+// =========================================================
+const authPanel = document.getElementById("auth-panel");
+const dashboard = document.getElementById("dashboard");
+const bottomNav = document.getElementById("bottom-nav");
+const authForm = document.getElementById("auth-form");
+const emailInput = document.getElementById("email");
+const passwordInput = document.getElementById("password");
+const loginBtn = document.getElementById("login-btn");
+const registerBtn = document.getElementById("register-btn");
+const resetPasswordBtn = document.getElementById("reset-password-btn");
+const googleLoginBtn = document.getElementById("google-login-btn");
+const authAlert = document.getElementById("auth-alert");
+const logoutBtn = document.getElementById("logout-btn");
+const userEmailSpan = document.getElementById("user-email");
+const darkToggle = document.getElementById("dark-toggle");
+const summaryBar = document.getElementById("summary-bar");
+const weekGrid = document.getElementById("week-grid");
+const weekLabel = document.getElementById("week-label");
+const weekPrevBtn = document.getElementById("week-prev");
+const weekNextBtn = document.getElementById("week-next");
+const autofillBtn = document.getElementById("autofill-btn");
+const generateBtn = document.getElementById("generate-btn");
+const shopWeekLabel = document.getElementById("shop-week-label");
+const shopProgressFill = document.getElementById("shop-progress-fill");
+const shopProgressText = document.getElementById("shop-progress-text");
+const shopTotalEl = document.getElementById("shop-total");
+const addShopName = document.getElementById("add-shop-name");
+const addShopQty = document.getElementById("add-shop-qty");
+const addShopBtn = document.getElementById("add-shop-btn");
+const shoppingListEl = document.getElementById("shopping-list");
+const checkAllBtn = document.getElementById("check-all-btn");
+const clearCheckedBtn = document.getElementById("clear-checked-btn");
+const recordBtn = document.getElementById("record-btn");
+const addStockName = document.getElementById("add-stock-name");
+const addStockBtn = document.getElementById("add-stock-btn");
+const stockListEl = document.getElementById("stock-list");
+const shopBadge = document.getElementById("shop-badge");
+const recName = document.getElementById("rec-name");
+const recEmoji = document.getElementById("rec-emoji");
+const recIngs = document.getElementById("rec-ings");
+const saveRecipeBtn = document.getElementById("save-recipe-btn");
+const myRecipesEl = document.getElementById("my-recipes");
+const recipeSearch = document.getElementById("recipe-search");
+const recipeListEl = document.getElementById("recipe-list");
+const customDishInput = document.getElementById("custom-dish");
+const useCustomBtn = document.getElementById("use-custom-btn");
+const recipeDetailName = document.getElementById("recipe-detail-name");
+const recipeDetailProtein = document.getElementById("recipe-detail-protein");
+const recipeDetailContent = document.getElementById("recipe-detail-content");
+const recipeDetailConfirm = document.getElementById("recipe-detail-confirm");
+const recipeDetailCancel = document.getElementById("recipe-detail-cancel");
+const recordAlert = document.getElementById("record-alert");
+const recordDesc = document.getElementById("record-desc");
+const recordAmount = document.getElementById("record-amount");
+const recordWallet = document.getElementById("record-wallet");
+const recordProfileGroup = document.getElementById("record-profile-group");
+const recordProfile = document.getElementById("record-profile");
+const recordPhoto = document.getElementById("record-photo");
+const recordPhotoPreview = document.getElementById("record-photo-preview");
+const recordClear = document.getElementById("record-clear");
+const recordSave = document.getElementById("record-save");
+
+// =========================================================
+// STATE
+// =========================================================
+let currentUser = null;
+let weeks = {};
+let shopping = [];
+let stocks = [];
+let customRecipes = [];
+let wallets = [];
+let profiles = [];
+let records = [];
+let priceMemory = {};
+let weekOffset = 0;
+let pendingSlotKey = null;
+let pendingRecipeId = null;
+let recordPhotoBase64 = null;
 
 // =========================================================
 // HELPERS
@@ -742,10 +648,6 @@ function escapeHtml(value) {
 }
 function formatCurrency(amount) {
     return new Intl.NumberFormat("id-ID", { maximumFractionDigits: 0 }).format(Number(amount) || 0);
-}
-function formatDate(dateString) {
-    if (!dateString) return "-";
-    return new Date(`${dateString}T00:00:00`).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
 }
 function toDateStr(d) {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -761,9 +663,6 @@ function currentWeekKey() {
     monday.setDate(monday.getDate() + (weekOffset * 7));
     return toDateStr(monday);
 }
-function todayDateStr() {
-    return toDateStr(new Date());
-}
 function weekRangeLabel(weekKey) {
     const start = new Date(`${weekKey}T00:00:00`);
     const end = new Date(start);
@@ -775,26 +674,6 @@ function getAllRecipes() {
 }
 function getRecipe(id) {
     return getAllRecipes().find(r => r.id === id);
-}
-function getMostUsedRecipes(limit = 5) {
-    const counts = {};
-    Object.values(weeks).forEach(slots => {
-        Object.values(slots).forEach(val => {
-            if (val && !val.startsWith("custom::")) counts[val] = (counts[val] || 0) + 1;
-        });
-    });
-    return Object.entries(counts)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, limit)
-        .map(([id]) => getRecipe(id))
-        .filter(Boolean);
-}
-function getItemCategory(itemName) {
-    const lower = (itemName || "").toLowerCase();
-    for (const [cat, keywords] of Object.entries(CATEGORIES)) {
-        if (keywords.some(kw => lower.includes(kw))) return cat;
-    }
-    return "lainnya";
 }
 function showToast(message, type = "info") {
     const toast = document.createElement("div");
@@ -890,7 +769,7 @@ onAuthStateChanged(auth, (user) => {
         initUserData(user.uid);
     } else {
         currentUser = null;
-        weeks = {}; shopping = []; stocks = []; customRecipes = []; wallets = []; profiles = []; records = []; priceMemory = {}; mealPrep = {}; userBudget = 0;
+        weeks = {}; shopping = []; stocks = []; customRecipes = []; wallets = []; profiles = []; records = []; priceMemory = {};
         authPanel.classList.remove("hidden");
         dashboard.classList.add("hidden");
         bottomNav.classList.add("hidden");
@@ -905,8 +784,6 @@ function initUserData(uid) {
         weeks = {};
         snap.forEach(d => { weeks[d.id] = d.data().slots || {}; });
         renderMenu();
-        renderMealPrepToday();
-        renderFavorites();
         renderSummary();
     });
     onSnapshot(collection(db, "users", uid, "mk_shopping"), (snap) => {
@@ -914,38 +791,21 @@ function initUserData(uid) {
         snap.forEach(d => shopping.push({ id: d.id, ...d.data() }));
         buildPriceMemory();
         renderShopping();
-        renderBudgetBar();
         renderSummary();
     });
     onSnapshot(collection(db, "users", uid, "mk_stock"), (snap) => {
         stocks = [];
         snap.forEach(d => stocks.push({ id: d.id, ...d.data() }));
         renderStock();
-        const low = stocks.filter(s => s.level === "habis" || s.level === "menipis").length;
-        if (low > 0 && !stockAlertShown) { stockAlertShown = true; showToast(`⚠️ ${low} stok dapur menipis/habis`, "error"); }
     });
     onSnapshot(collection(db, "users", uid, "mk_recipes"), (snap) => {
         customRecipes = [];
         snap.forEach(d => customRecipes.push({ id: d.id, ...d.data() }));
         renderMyRecipes();
-        renderFavorites();
     });
     onSnapshot(collection(db, "users", uid, "mk_records"), (snap) => {
         records = [];
         snap.forEach(d => records.push({ id: d.id, ...d.data() }));
-        renderHistory();
-    });
-    onSnapshot(collection(db, "users", uid, "mk_settings"), (snap) => {
-        snap.forEach(d => {
-            if (d.id === "budget") userBudget = d.data().limit || 0;
-        });
-        budgetLimit.value = userBudget || "";
-        renderBudgetBar();
-    });
-    onSnapshot(collection(db, "users", uid, "mk_mealprep"), (snap) => {
-        mealPrep = {};
-        snap.forEach(d => { mealPrep[d.id] = d.data().status || {}; });
-        renderMealPrepToday();
     });
     onSnapshot(collection(db, "users", uid, "wallets"), (snap) => {
         wallets = [];
@@ -986,20 +846,14 @@ document.querySelectorAll(".nav-item").forEach(item => {
         item.classList.add("active");
     });
 });
-function updateDarkIcon() {
-    const isDark = document.body.classList.contains("dark");
-    darkToggle.textContent = isDark ? "☀️" : "🌙";
-    darkToggleSettings.textContent = isDark ? "☀️" : "🌙";
-}
 function toggleDarkMode() {
     document.body.classList.toggle("dark");
     localStorage.setItem("menukita-dark", document.body.classList.contains("dark") ? "enabled" : "disabled");
-    updateDarkIcon();
+    darkToggle.textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
 }
-[darkToggle, darkToggleSettings].forEach(btn => btn.addEventListener("click", toggleDarkMode));
+darkToggle.addEventListener("click", toggleDarkMode);
 if (localStorage.getItem("menukita-dark") === "enabled") document.body.classList.add("dark");
-else if (!localStorage.getItem("menukita-dark") && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) document.body.classList.add("dark");
-updateDarkIcon();
+darkToggle.textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
 
 document.querySelectorAll(".close-modal").forEach(btn => {
     btn.addEventListener("click", () => { document.getElementById(btn.dataset.target).classList.remove("active"); });
@@ -1016,115 +870,8 @@ function renderSummary() {
     const checked = items.filter(s => s.checked).length;
     const h = new Date().getHours();
     const greet = h < 10 ? "Selamat pagi" : h < 15 ? "Selamat siang" : h < 18 ? "Selamat sore" : "Selamat malam";
-    summaryBar.innerHTML = `👋 <b>${greet}!</b> Minggu ini: <b>${filled}/21</b> menu • <b>${checked}/${items.length}</b> belanja dibeli • 💰 budget ${userBudget ? `Rp ${formatCurrency(userBudget)}` : "tidak diset"}.`;
+    summaryBar.innerHTML = `👋 <b>${greet}!</b> Minggu ini: <b>${filled}/21</b> menu • <b>${checked}/${items.length}</b> belanja dibeli • ✅ 1 protein/hari.`;
 }
-
-// =========================================================
-// FAVORITES & QUICK ADD
-// =========================================================
-function renderFavorites() {
-    const faves = getMostUsedRecipes(6);
-    favoritesRowEl.innerHTML = "";
-    faves.forEach(rec => {
-        const btn = document.createElement("button");
-        btn.className = "fav-btn";
-        btn.innerHTML = `<span class="fav-emoji">${rec.emoji}</span>${rec.name}`;
-        btn.addEventListener("click", async () => {
-            const key = firstEmptySlotKey();
-            if (!key) { showToast("Semua slot sudah terisi", "info"); return; }
-            await saveSlot(key, rec.id);
-            showToast(`⭐ ${rec.emoji} ${rec.name} ditambahkan!`, "success");
-        });
-        favoritesRowEl.appendChild(btn);
-    });
-    if (faves.length === 0) favoritesRowEl.innerHTML = '<div style="font-size:12px; color:var(--text-light); padding:10px;">Belum ada riwayat masakan</div>';
-}
-
-// =========================================================
-// MEAL PREP STATUS
-// =========================================================
-function renderMealPrepToday() {
-    const today = todayDateStr();
-    const todayPrep = mealPrep[today] || {};
-    const dayIndex = new Date().getDay();
-    const dayName = DAYS[(dayIndex + 6) % 7];
-    const weekKey = currentWeekKey();
-    const slots = weeks[weekKey] || {};
-    
-    let html = `<strong>${dayName}, ${today.split("-").reverse().join("/")}</strong><div class="meal-prep-slots">`;
-    SLOTS.forEach(slot => {
-        const key = `${(dayIndex + 6) % 7}-${slot.key}`;
-        const isDone = todayPrep[slot.key];
-        const hasMenu = !!slots[key];
-        html += `<button class="meal-prep-slot ${isDone ? "done" : ""}" data-meal-slot="${slot.key}" title="${slot.label}" ${!hasMenu ? 'disabled style="opacity:.5"' : ''}>${isDone ? "✓" : slot.label.charAt(0)}</button>`;
-    });
-    html += `</div>`;
-    mealPrepTodayEl.innerHTML = html;
-    mealPrepTodayEl.querySelectorAll("[data-meal-slot]").forEach(btn => {
-        btn.addEventListener("click", async () => {
-            if (!currentUser) return;
-            const slotKey = btn.dataset.mealSlot;
-            const newStatus = { ...todayPrep };
-            newStatus[slotKey] = !newStatus[slotKey];
-            try {
-                await setDoc(doc(db, "users", currentUser.uid, "mk_mealprep", today), newStatus);
-            } catch (error) { showToast("Gagal update meal prep", "error"); }
-        });
-    });
-}
-
-// =========================================================
-// BUDGET TRACKING
-// =========================================================
-function renderBudgetBar() {
-    const weekKey = currentWeekKey();
-    const items = shopping.filter(s => s.weekKey === weekKey);
-    const spent = items.reduce((s, i) => s + (Number(i.price) || 0), 0);
-    
-    if (userBudget <= 0) {
-        budgetCard.classList.add("hidden");
-        return;
-    }
-    
-    budgetCard.classList.remove("hidden");
-    const remaining = userBudget - spent;
-    const pct = Math.min(100, (spent / userBudget) * 100);
-    const statusClass = remaining < 0 ? "danger" : pct > 80 ? "warning" : "";
-    
-    budgetContent.innerHTML = `
-        <h3 style="font-size:13px; font-weight:700; color:var(--text); margin-bottom:10px;">💰 Budget Mingguan</h3>
-        <div class="budget-bar-content">
-            <div class="budget-stat">
-                <div class="budget-stat-label">Target</div>
-                <div class="budget-stat-value">Rp ${formatCurrency(userBudget)}</div>
-            </div>
-            <div class="budget-stat">
-                <div class="budget-stat-label">Terpakai</div>
-                <div class="budget-stat-value ${statusClass}">Rp ${formatCurrency(spent)}</div>
-            </div>
-            <div class="budget-stat">
-                <div class="budget-stat-label">Sisa</div>
-                <div class="budget-stat-value ${statusClass}">Rp ${formatCurrency(Math.max(0, remaining))}</div>
-            </div>
-        </div>
-        <div class="budget-progress">
-            <div class="budget-progress-fill" style="width:${pct}%"></div>
-        </div>
-        ${remaining < 0 ? `<div style="color:var(--danger); font-size:12px; margin-top:8px;">⚠️ Budget sudah terlampaui Rp ${formatCurrency(Math.abs(remaining))}</div>` : remaining < userBudget * 0.2 ? `<div style="color:var(--warning); font-size:12px; margin-top:8px;">⚠️ Sisa budget kurang dari 20%</div>` : ""}
-    `;
-}
-
-saveBudgetBtn.addEventListener("click", async () => {
-    if (!currentUser) return;
-    const amount = Number(budgetLimit.value) || 0;
-    if (amount <= 0) { showToast("Masukkan budget lebih dari 0", "error"); return; }
-    saveBudgetBtn.disabled = true;
-    try {
-        await setDoc(doc(db, "users", currentUser.uid, "mk_settings", "budget"), { limit: amount });
-        showToast("Budget tersimpan", "success");
-    } catch (error) { showToast("Gagal menyimpan budget", "error"); }
-    finally { saveBudgetBtn.disabled = false; }
-});
 
 // =========================================================
 // MENU MINGGUAN
@@ -1140,12 +887,14 @@ function renderMenu() {
         dayDate.setDate(monday.getDate() + di);
         const card = document.createElement("div");
         card.className = "day-card";
+        const dayProtein = getDayProtein(di, weekKey);
         let rowsHtml = "";
         SLOTS.forEach(slot => {
             const key = `${di}-${slot.key}`;
             const val = slots[key];
             let label = "+ Pilih masakan";
             let filledClass = "";
+            let isDisabled = false;
             if (val) {
                 filledClass = "filled";
                 if (val.startsWith("custom::")) label = `🍽️ ${escapeHtml(val.replace("custom::", ""))}`;
@@ -1153,36 +902,27 @@ function renderMenu() {
                     const rec = getRecipe(val);
                     label = rec ? `${rec.emoji} ${escapeHtml(rec.name)}` : `🍽️ ${escapeHtml(val)}`;
                 }
+            } else {
+                // Check if slot is available (protein constraint)
+                if (dayProtein) {
+                    // Can still add same protein or non-protein
+                    isDisabled = false;
+                }
             }
-            const today = todayDateStr();
-            const isToday = toDateStr(dayDate) === today;
-            const mealPrepStatus = isToday ? (mealPrep[today]?.[slot.key] ? "done" : "") : "";
             rowsHtml += `
                 <div class="slot-row">
                     <div class="slot-time">${slot.label}</div>
-                    <button class="slot-btn ${filledClass}" data-slot="${key}">${label}</button>
-                    ${val ? `<button class="slot-prep ${mealPrepStatus}" data-meal="${di}-${slot.key}" title="Mark as cooked">${mealPrepStatus ? "✓" : "👨‍🍳"}</button>` : `<button class="slot-prep" disabled style="opacity:.3;">👨‍🍳</button>`}
+                    <button class="slot-btn ${filledClass} ${isDisabled ? "disabled-protein" : ""}" data-slot="${key}" ${isDisabled ? "disabled" : ""}>${label}</button>
                     <button class="slot-clear" data-clear="${key}" title="Kosongkan" ${val ? "" : "style='visibility:hidden'"}>×</button>
                 </div>`;
         });
-        card.innerHTML = `<div class="day-title">${dayName} <span>${dayDate.toLocaleDateString("id-ID", { day: "numeric", month: "short" })}</span></div>${rowsHtml}`;
+        card.innerHTML = `<div class="day-title">${dayName} <span>${dayDate.toLocaleDateString("id-ID", { day: "numeric", month: "short" })}${dayProtein ? ` • ${dayProtein.toUpperCase()}` : ""}</span></div>${rowsHtml}`;
         weekGrid.appendChild(card);
     });
-    weekGrid.querySelectorAll(".slot-btn").forEach(btn => btn.addEventListener("click", () => openRecipePicker(btn.dataset.slot)));
-    weekGrid.querySelectorAll(".slot-clear").forEach(btn => btn.addEventListener("click", () => saveSlot(btn.dataset.clear, null)));
-    weekGrid.querySelectorAll("[data-meal]").forEach(btn => {
-        btn.addEventListener("click", async () => {
-            if (!currentUser) return;
-            const today = todayDateStr();
-            const parts = btn.dataset.meal.split("-");
-            const slotKey = parts[1];
-            const newStatus = { ...mealPrep[today] };
-            newStatus[slotKey] = !newStatus[slotKey];
-            try {
-                await setDoc(doc(db, "users", currentUser.uid, "mk_mealprep", today), newStatus);
-            } catch (error) { showToast("Gagal update", "error"); }
-        });
+    weekGrid.querySelectorAll(".slot-btn:not(.disabled-protein)").forEach(btn => {
+        btn.addEventListener("click", () => openRecipePicker(btn.dataset.slot));
     });
+    weekGrid.querySelectorAll(".slot-clear").forEach(btn => btn.addEventListener("click", () => saveSlot(btn.dataset.clear, null)));
 }
 
 weekPrevBtn.addEventListener("click", () => { weekOffset--; renderMenu(); renderShopping(); renderSummary(); });
@@ -1202,82 +942,101 @@ async function saveSlot(key, value) {
     }
 }
 
-function firstEmptySlotKey() {
-    const slots = weeks[currentWeekKey()] || {};
-    for (let di = 0; di < 7; di++) {
-        for (const slot of SLOTS) {
-            const key = `${di}-${slot.key}`;
-            if (!slots[key]) return key;
-        }
-    }
-    return null;
+// =========================================================
+// RECIPE DETAIL MODAL
+// =========================================================
+function showRecipeDetail(recipeId, slotKey) {
+    const rec = getRecipe(recipeId);
+    if (!rec) return;
+    
+    pendingRecipeId = recipeId;
+    pendingSlotKey = slotKey;
+    const protein = getProteinType(recipeId);
+    
+    recipeDetailName.innerHTML = `${rec.emoji} ${escapeHtml(rec.name)}`;
+    recipeDetailProtein.textContent = protein ? `🥩 Protein: ${protein.toUpperCase()}` : "🥬 Sayur/Bumbu (no protein)";
+    
+    let ingHtml = `<div style="margin-bottom:16px;">`;
+    rec.ingredients.forEach(ing => {
+        ingHtml += `
+            <div class="ing-item">
+                <div class="ing-name">${escapeHtml(ing.n)}</div>
+                <div class="ing-qty">${formatQty(ing.q, ing.u)}</div>
+            </div>
+        `;
+    });
+    ingHtml += `</div>`;
+    recipeDetailContent.innerHTML = ingHtml;
+    
+    document.getElementById("recipe-detail-modal").classList.add("active");
 }
+
+recipeDetailConfirm.addEventListener("click", async () => {
+    if (pendingRecipeId && pendingSlotKey) {
+        document.getElementById("recipe-detail-modal").classList.remove("active");
+        await saveSlot(pendingSlotKey, pendingRecipeId);
+        showToast("✅ Menu berhasil dipilih", "success");
+    }
+});
+
+recipeDetailCancel.addEventListener("click", () => {
+    document.getElementById("recipe-detail-modal").classList.remove("active");
+    pendingRecipeId = null;
+    pendingSlotKey = null;
+});
 
 // =========================================================
 // RECIPE PICKER
 // =========================================================
 function openRecipePicker(slotKey) {
+    const dayIndex = parseInt(slotKey.split("-")[0]);
+    const weekKey = currentWeekKey();
     pendingSlotKey = slotKey;
     recipeSearch.value = "";
     customDishInput.value = "";
-    renderRecipeList("");
+    renderRecipeList("", dayIndex, weekKey);
     document.getElementById("recipe-modal").classList.add("active");
 }
-function renderRecipeList(term) {
+
+function renderRecipeList(term, dayIndex, weekKey) {
     const t = term.toLowerCase();
-    const list = getAllRecipes().filter(r => r.name.toLowerCase().includes(t));
+    const list = getAllRecipes().filter(r => {
+        if (!r.name.toLowerCase().includes(t)) return false;
+        // Check protein constraint
+        return canAddProteinToDay(dayIndex, r.id, weekKey);
+    });
+    
     recipeListEl.innerHTML = "";
-    if (list.length === 0) { recipeListEl.innerHTML = '<div class="empty-state">Tidak ditemukan. Tulis nama custom di bawah.</div>'; return; }
+    if (list.length === 0) {
+        recipeListEl.innerHTML = '<div class="empty-state">Tidak ada resep tersedia (cek protein rule) atau tulis custom di bawah.</div>';
+        return;
+    }
+    
     list.forEach(rec => {
         const btn = document.createElement("button");
         btn.className = "recipe-option";
-        const ingPreview = rec.ingredients.slice(0, 4).map(i => i.n).join(", ");
+        const ingPreview = rec.ingredients.slice(0, 3).map(i => i.n).join(", ");
         btn.innerHTML = `<span class="recipe-emoji">${rec.emoji}</span><span><div class="recipe-name">${escapeHtml(rec.name)}</div><div class="recipe-ing">${escapeHtml(ingPreview)}…</div></span>`;
-        btn.addEventListener("click", async () => {
+        btn.addEventListener("click", () => {
             document.getElementById("recipe-modal").classList.remove("active");
-            await saveSlot(pendingSlotKey, rec.id);
-            showToast(`${rec.emoji} ${rec.name} dipilih`, "success");
+            showRecipeDetail(rec.id, pendingSlotKey);
         });
         recipeListEl.appendChild(btn);
     });
 }
-recipeSearch.addEventListener("input", () => renderRecipeList(recipeSearch.value));
+
+recipeSearch.addEventListener("input", () => {
+    const dayIndex = parseInt(pendingSlotKey.split("-")[0]);
+    const weekKey = currentWeekKey();
+    renderRecipeList(recipeSearch.value, dayIndex, weekKey);
+});
+
 useCustomBtn.addEventListener("click", async () => {
     const name = customDishInput.value.trim();
     if (!name) { showToast("Tulis nama masakan dulu", "error"); return; }
     document.getElementById("recipe-modal").classList.remove("active");
     await saveSlot(pendingSlotKey, `custom::${name}`);
     showToast(`🍽️ ${name} dipilih`, "success");
-});
-
-// =========================================================
-// REKOMENDASI DARI STOK
-// =========================================================
-recommendBtn.addEventListener("click", () => {
-    const aman = stocks.filter(s => s.level === "aman").map(s => s.name.toLowerCase());
-    if (aman.length === 0) { showToast("Tambahkan stok (level Aman) dulu di tab Stok", "error"); return; }
-    const scored = getAllRecipes().map(rec => {
-        const match = rec.ingredients.filter(i =>
-            aman.some(n => n.includes(i.n.toLowerCase()) || i.n.toLowerCase().includes(n))
-        ).length;
-        return { rec, match };
-    }).filter(x => x.match > 0).sort((a, b) => b.match - a.match).slice(0, 6);
-    recommendListEl.innerHTML = "";
-    if (scored.length === 0) { recommendListEl.innerHTML = '<div class="empty-state">Belum ada resep yang cocok dengan stok.</div>'; }
-    scored.forEach(({ rec, match }) => {
-        const btn = document.createElement("button");
-        btn.className = "recipe-option";
-        btn.innerHTML = `<span class="recipe-emoji">${rec.emoji}</span><span><div class="recipe-name">${escapeHtml(rec.name)}</div><div class="recipe-ing">${match} dari ${rec.ingredients.length} bahan ada di stok</div></span><span class="match-badge">${Math.round((match / rec.ingredients.length) * 100)}%</span>`;
-        btn.addEventListener("click", async () => {
-            const key = firstEmptySlotKey();
-            if (!key) { showToast("Semua slot sudah terisi", "info"); return; }
-            document.getElementById("recommend-modal").classList.remove("active");
-            await saveSlot(key, rec.id);
-            showToast(`💡 ${rec.emoji} ${rec.name} masuk menu dari stok!`, "success");
-        });
-        recommendListEl.appendChild(btn);
-    });
-    document.getElementById("recommend-modal").classList.add("active");
 });
 
 // =========================================================
@@ -1288,12 +1047,20 @@ autofillBtn.addEventListener("click", async () => {
     const slots = { ...(weeks[weekKey] || {}) };
     const all = getAllRecipes();
     let filledCount = 0;
+    
     for (let di = 0; di < 7; di++) {
+        const dayProtein = getDayProtein(di, weekKey);
+        const available = all.filter(r => canAddProteinToDay(di, r.id, weekKey));
+        
         SLOTS.forEach(slot => {
             const key = `${di}-${slot.key}`;
-            if (!slots[key]) { slots[key] = all[Math.floor(Math.random() * all.length)].id; filledCount++; }
+            if (!slots[key] && available.length > 0) {
+                slots[key] = available[Math.floor(Math.random() * available.length)].id;
+                filledCount++;
+            }
         });
     }
+    
     if (filledCount === 0) { showToast("Semua slot sudah terisi", "info"); return; }
     try {
         await setDoc(doc(db, "users", currentUser.uid, "mk_weeks", weekKey), { slots, updatedAt: serverTimestamp() });
@@ -1307,6 +1074,7 @@ generateBtn.addEventListener("click", async () => {
     const slots = weeks[weekKey] || {};
     const agg = {};
     let recipeCount = 0;
+    
     Object.values(slots).forEach(val => {
         if (!val || val.startsWith("custom::")) return;
         const rec = getRecipe(val);
@@ -1318,24 +1086,27 @@ generateBtn.addEventListener("click", async () => {
             agg[keyName].q += Number(ing.q) || 0;
         });
     });
-    if (recipeCount === 0) { showToast("Pilih menu dulu (atau ✨ Isi Otomatis / 💡 Masak dari Stok)", "error"); return; }
+    
+    if (recipeCount === 0) { showToast("Pilih menu dulu", "error"); return; }
+    
     const existing = shopping.filter(s => s.weekKey === weekKey);
     const batch = writeBatch(db);
-    let added = 0, estimated = 0;
+    let added = 0;
+    
     Object.values(agg).forEach(item => {
         const exists = existing.some(e => (e.name || "").toLowerCase() === item.name.toLowerCase());
         if (!exists) {
             const memPrice = rememberedPrice(item.name);
-            if (memPrice > 0) estimated++;
             const ref = doc(collection(db, "users", currentUser.uid, "mk_shopping"));
-            batch.set(ref, { name: item.name, qty: formatQty(item.q, item.u), checked: false, price: memPrice, source: "menu", category: getItemCategory(item.name), weekKey, createdAt: serverTimestamp() });
+            batch.set(ref, { name: item.name, qty: formatQty(item.q, item.u), checked: false, price: memPrice, source: "menu", weekKey, createdAt: serverTimestamp() });
             added++;
         }
     });
+    
     if (added === 0) { showToast("Semua bahan sudah ada di daftar belanja", "info"); return; }
     try {
         await batch.commit();
-        showToast(`🛒 ${added} bahan ditambahkan${estimated > 0 ? ` (${estimated} harga terisi otomatis)` : ""}!`, "success");
+        showToast(`🛒 ${added} bahan ditambahkan!`, "success");
         document.querySelector('[data-tab="belanja"]').click();
     } catch (error) {
         console.error("Generate error:", error);
@@ -1344,56 +1115,29 @@ generateBtn.addEventListener("click", async () => {
 });
 
 // =========================================================
-// SHOPPING LIST & CATEGORIES
+// SHOPPING LIST
 // =========================================================
 function renderShopping() {
     const weekKey = currentWeekKey();
     shopWeekLabel.textContent = `Minggu ${weekRangeLabel(weekKey)}`;
     const items = shopping.filter(s => s.weekKey === weekKey);
-    
-    // Build categories
-    const catList = new Set();
-    items.forEach(i => catList.add(getItemCategory(i.name)));
-    
-    shopCategoriesEl.innerHTML = "";
-    if (catList.size > 1) {
-        shopCategoriesEl.classList.remove("hidden");
-        const allBtn = document.createElement("button");
-        allBtn.className = `shop-cat-btn ${currentShopCategory === "all" ? "active" : ""}`;
-        allBtn.textContent = "Semua";
-        allBtn.addEventListener("click", () => { currentShopCategory = "all"; renderShopping(); });
-        shopCategoriesEl.appendChild(allBtn);
-        catList.forEach(cat => {
-            const btn = document.createElement("button");
-            btn.className = `shop-cat-btn ${currentShopCategory === cat ? "active" : ""}`;
-            const catLabel = cat === "sayur" ? "🥦 Sayur" : cat === "daging" ? "🍗 Daging" : cat === "bumbu" ? "🌶️ Bumbu" : cat === "tepung" ? "🌾 Tepung" : cat === "telur" ? "🥚 Telur" : "📦 Lainnya";
-            btn.textContent = catLabel;
-            btn.addEventListener("click", () => { currentShopCategory = cat; renderShopping(); });
-            shopCategoriesEl.appendChild(btn);
-        });
-    } else {
-        shopCategoriesEl.classList.add("hidden");
-        currentShopCategory = "all";
-    }
-    
-    const filteredItems = currentShopCategory === "all" ? items : items.filter(i => getItemCategory(i.name) === currentShopCategory);
-    const unchecked = filteredItems.filter(s => !s.checked).sort((a, b) => (a.name || "").localeCompare(b.name || ""));
-    const checked = filteredItems.filter(s => s.checked);
+    const unchecked = items.filter(s => !s.checked).sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+    const checked = items.filter(s => s.checked);
     const total = items.reduce((s, i) => s + (Number(i.price) || 0), 0);
-    const pct = items.length ? Math.round((items.filter(i => i.checked).length / items.length) * 100) : 0;
+    const pct = items.length ? Math.round((checked.length / items.length) * 100) : 0;
+    
     shopProgressFill.style.width = pct + "%";
-    shopProgressText.textContent = `${items.filter(i => i.checked).length}/${items.length} dibeli`;
+    shopProgressText.textContent = `${checked.length}/${items.length} dibeli`;
     shopTotalEl.textContent = formatCurrency(total);
-    shopBadge.textContent = items.filter(i => !i.checked).length;
-    shopBadge.classList.toggle("hidden", items.filter(i => !i.checked).length === 0);
+    shopBadge.textContent = unchecked.length;
+    shopBadge.classList.toggle("hidden", unchecked.length === 0);
 
     shoppingListEl.innerHTML = "";
-    if (filteredItems.length === 0) {
-        shoppingListEl.innerHTML = currentShopCategory === "all" 
-            ? '<div class="empty-state"><div class="empty-icon">🛒</div>Belum ada item. Isi menu lalu klik "🛒 Buat Daftar Belanja".</div>'
-            : '<div class="empty-state">Tidak ada item di kategori ini</div>';
+    if (items.length === 0) {
+        shoppingListEl.innerHTML = '<div class="empty-state"><div class="empty-icon">🛒</div>Belum ada item. Klik "🛒 Buat Daftar Belanja" di menu.</div>';
         return;
     }
+    
     [...unchecked, ...checked].forEach(item => {
         const row = document.createElement("div");
         row.className = "shop-item";
@@ -1401,13 +1145,13 @@ function renderShopping() {
             <button class="shop-check ${item.checked ? "on" : ""}" data-check="${item.id}">✓</button>
             <div class="shop-info">
                 <div class="shop-name ${item.checked ? "done" : ""}">${escapeHtml(item.name)}</div>
-                <div class="shop-qty">${escapeHtml(item.qty || "")} ${item.source === "menu" ? "• dari menu" : item.source === "stock" ? "• dari stok" : "• manual"}</div>
-                ${item.checked && item.checkedBy ? `<div class="shop-by">✓ oleh ${escapeHtml(item.checkedBy)}</div>` : ""}
+                <div class="shop-qty">${escapeHtml(item.qty || "")}</div>
             </div>
             <input type="number" class="shop-price" data-price="${item.id}" placeholder="Rp" value="${item.price ? item.price : ""}" inputmode="decimal">
             <button class="shop-del" data-del="${item.id}">🗑️</button>`;
         shoppingListEl.appendChild(row);
     });
+    
     shoppingListEl.querySelectorAll("[data-check]").forEach(btn => {
         btn.addEventListener("click", async () => {
             const item = shopping.find(s => s.id === btn.dataset.check);
@@ -1420,6 +1164,7 @@ function renderShopping() {
             } catch (error) { showToast("Gagal memperbarui", "error"); }
         });
     });
+    
     shoppingListEl.querySelectorAll("[data-price]").forEach(input => {
         input.addEventListener("change", async () => {
             try {
@@ -1427,6 +1172,7 @@ function renderShopping() {
             } catch (error) { showToast("Gagal menyimpan harga", "error"); }
         });
     });
+    
     shoppingListEl.querySelectorAll("[data-del]").forEach(btn => {
         btn.addEventListener("click", async () => {
             try { await deleteDoc(doc(db, "users", currentUser.uid, "mk_shopping", btn.dataset.del)); }
@@ -1441,11 +1187,11 @@ addShopBtn.addEventListener("click", async () => {
     const memPrice = rememberedPrice(name);
     try {
         await addDoc(collection(db, "users", currentUser.uid, "mk_shopping"), {
-            name, qty: addShopQty.value.trim(), checked: false, price: memPrice, source: "manual", category: getItemCategory(name), weekKey: currentWeekKey(), createdAt: serverTimestamp()
+            name, qty: addShopQty.value.trim(), checked: false, price: memPrice, source: "manual", weekKey: currentWeekKey(), createdAt: serverTimestamp()
         });
         addShopName.value = "";
         addShopQty.value = "";
-        showToast(memPrice > 0 ? `Item ditambahkan (harga ≈ Rp ${formatCurrency(memPrice)})` : "Item ditambahkan", "success");
+        showToast("Item ditambahkan", "success");
     } catch (error) { showToast("Gagal menambah item", "error"); }
 });
 
@@ -1471,158 +1217,12 @@ clearCheckedBtn.addEventListener("click", async () => {
 });
 
 // =========================================================
-// EXPORT TO PDF
-// =========================================================
-exportPdfBtn.addEventListener("click", () => {
-    const weekKey = currentWeekKey();
-    const weekRange = weekRangeLabel(weekKey);
-    const slots = weeks[weekKey] || {};
-    const items = shopping.filter(s => s.weekKey === weekKey);
-    
-    let pdfHtml = `
-        <html>
-        <head>
-            <title>MenuKita - ${weekRange}</title>
-            <style>
-                body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
-                h1 { color: #e9905b; text-align: center; margin-bottom: 10px; }
-                .week-label { text-align: center; color: #999; margin-bottom: 20px; font-size: 12px; }
-                .section { page-break-inside: avoid; margin-bottom: 30px; }
-                .section h2 { font-size: 16px; color: #d97a41; border-bottom: 2px solid #e9905b; padding-bottom: 8px; margin-bottom: 12px; }
-                .day { margin-bottom: 16px; border-left: 3px solid #e9905b; padding-left: 12px; }
-                .day-title { font-weight: bold; margin-bottom: 6px; }
-                .meal { font-size: 13px; margin-left: 8px; color: #555; }
-                .meal-empty { font-size: 13px; margin-left: 8px; color: #ccc; }
-                .shop-item { font-size: 13px; padding: 6px 0; border-bottom: 1px solid #eee; }
-                .shop-item.checked { text-decoration: line-through; color: #999; }
-                .shop-name { font-weight: 500; }
-                .shop-price { float: right; color: #42b883; font-weight: bold; }
-                table { width: 100%; border-collapse: collapse; }
-                td { padding: 8px; border-bottom: 1px solid #eee; }
-                td.price { text-align: right; width: 120px; }
-                .total { text-align: right; font-weight: bold; margin-top: 12px; font-size: 14px; }
-            </style>
-        </head>
-        <body>
-            <h1>🍽️ MenuKita</h1>
-            <div class="week-label">Menu Mingguan & Daftar Belanja</div>
-            <div class="week-label">${weekRange}</div>
-            
-            <div class="section">
-                <h2>📅 Menu Minggu</h2>
-    `;
-    
-    DAYS.forEach((dayName, di) => {
-        const monday = new Date(`${weekKey}T00:00:00`);
-        const dayDate = new Date(monday);
-        dayDate.setDate(monday.getDate() + di);
-        pdfHtml += `<div class="day"><div class="day-title">${dayName}, ${dayDate.toLocaleDateString("id-ID", { day: "numeric", month: "short" })}</div>`;
-        SLOTS.forEach(slot => {
-            const key = `${di}-${slot.key}`;
-            const val = slots[key];
-            if (val) {
-                let label = escapeHtml(val);
-                if (!val.startsWith("custom::")) {
-                    const rec = getRecipe(val);
-                    label = rec ? `${rec.emoji} ${escapeHtml(rec.name)}` : escapeHtml(val);
-                } else {
-                    label = `🍽️ ${escapeHtml(val.replace("custom::", ""))}`;
-                }
-                pdfHtml += `<div class="meal">${slot.label.split(" ")[0]} ${label}</div>`;
-            } else {
-                pdfHtml += `<div class="meal-empty">${slot.label.split(" ")[0]} (belum dipilih)</div>`;
-            }
-        });
-        pdfHtml += `</div>`;
-    });
-    
-    pdfHtml += `
-            </div>
-            <div class="section">
-                <h2>🛒 Daftar Belanja</h2>
-                <table>
-                    <tr style="background:#f5f5f5; font-weight:bold;">
-                        <td>Item</td>
-                        <td>Qty</td>
-                        <td class="price">Harga</td>
-                    </tr>
-    `;
-    
-    let totalPrice = 0;
-    items.forEach(item => {
-        const price = Number(item.price) || 0;
-        totalPrice += price;
-        pdfHtml += `
-            <tr>
-                <td><span class="shop-name">${escapeHtml(item.name)}</span></td>
-                <td>${escapeHtml(item.qty || "-")}</td>
-                <td class="price">${price ? `Rp ${formatCurrency(price)}` : "-"}</td>
-            </tr>
-        `;
-    });
-    
-    pdfHtml += `
-                </table>
-                <div class="total">Total Estimasi: Rp ${formatCurrency(totalPrice)}</div>
-            </div>
-        </body>
-        </html>
-    `;
-    
-    const blob = new Blob([pdfHtml], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `MenuKita-${weekKey}.pdf`;
-    link.click();
-    URL.revokeObjectURL(url);
-    showToast("PDF siap diunduh", "success");
-});
-
-// =========================================================
-// RIWAYAT BELANJA
-// =========================================================
-function renderHistory() {
-    recordHistoryEl.innerHTML = "";
-    if (records.length === 0) {
-        recordHistoryEl.innerHTML = '<div class="empty-state"><div class="empty-icon">🗂️</div>Belum ada riwayat. Gunakan "📒 Catat ke AuditDompet" setelah belanja.</div>';
-        return;
-    }
-    const sorted = [...records].sort((a, b) => (b.date || "").localeCompare(a.date || ""));
-    sorted.slice(0, 10).forEach(rec => {
-        const row = document.createElement("div");
-        row.className = "history-item";
-        row.innerHTML = `
-            <div class="history-icon">🧾</div>
-            <div class="history-info">
-                <div class="history-title">${escapeHtml(rec.desc || "Belanja")}</div>
-                <div class="history-meta">${formatDate(rec.date)} • ${rec.itemCount || 0} item • ${escapeHtml(rec.walletName || "-")}</div>
-            </div>
-            ${rec.photoBase64 ? `<button class="history-photo" data-photo="${rec.id}">📷</button>` : ""}
-            <div class="history-amount">Rp ${formatCurrency(rec.amount)}</div>`;
-        recordHistoryEl.appendChild(row);
-    });
-    recordHistoryEl.querySelectorAll("[data-photo]").forEach(btn => {
-        btn.addEventListener("click", () => {
-            const rec = records.find(r => r.id === btn.dataset.photo);
-            if (rec?.photoBase64) {
-                document.getElementById("photo-view-img").src = rec.photoBase64;
-                document.getElementById("photo-view-modal").classList.add("active");
-            }
-        });
-    });
-}
-
-// =========================================================
 // STOCK
 // =========================================================
 function renderStock() {
-    const low = stocks.filter(s => s.level === "habis" || s.level === "menipis").length;
-    stockBadge.textContent = low;
-    stockBadge.classList.toggle("hidden", low === 0);
     stockListEl.innerHTML = "";
     if (stocks.length === 0) {
-        stockListEl.innerHTML = '<div class="empty-state"><div class="empty-icon">🏪</div>Belum ada stok. Tambahkan beras, minyak, gas, galon, dll.</div>';
+        stockListEl.innerHTML = '<div class="empty-state"><div class="empty-icon">🏪</div>Belum ada stok ditambahkan.</div>';
         return;
     }
     stocks.forEach(item => {
@@ -1630,35 +1230,8 @@ function renderStock() {
         row.className = "stock-item";
         row.innerHTML = `
             <div class="stock-name">${escapeHtml(item.name)}</div>
-            <div class="stock-levels">
-                <button class="stock-level-btn aman ${item.level === "aman" ? "active" : ""}" data-level="aman" data-id="${item.id}">Aman</button>
-                <button class="stock-level-btn menipis ${item.level === "menipis" ? "active" : ""}" data-level="menipis" data-id="${item.id}">Menipis</button>
-                <button class="stock-level-btn habis ${item.level === "habis" ? "active" : ""}" data-level="habis" data-id="${item.id}">Habis</button>
-            </div>
-            <button class="stock-add-shop" data-shop="${item.id}" title="Masukkan ke daftar belanja">+🛒</button>
             <button class="stock-del" data-sdel="${item.id}">🗑️</button>`;
         stockListEl.appendChild(row);
-    });
-    stockListEl.querySelectorAll("[data-level]").forEach(btn => {
-        btn.addEventListener("click", async () => {
-            try { await updateDoc(doc(db, "users", currentUser.uid, "mk_stock", btn.dataset.id), { level: btn.dataset.level }); }
-            catch (error) { showToast("Gagal memperbarui stok", "error"); }
-        });
-    });
-    stockListEl.querySelectorAll("[data-shop]").forEach(btn => {
-        btn.addEventListener("click", async () => {
-            const item = stocks.find(s => s.id === btn.dataset.shop);
-            if (!item) return;
-            const weekKey = currentWeekKey();
-            const exists = shopping.some(e => e.weekKey === weekKey && (e.name || "").toLowerCase() === item.name.toLowerCase());
-            if (exists) { showToast("Sudah ada di daftar belanja", "info"); return; }
-            try {
-                await addDoc(collection(db, "users", currentUser.uid, "mk_shopping"), {
-                    name: item.name, qty: "1", checked: false, price: rememberedPrice(item.name), source: "stock", category: getItemCategory(item.name), weekKey, createdAt: serverTimestamp()
-                });
-                showToast(`${item.name} masuk daftar belanja`, "success");
-            } catch (error) { showToast("Gagal menambah", "error"); }
-        });
     });
     stockListEl.querySelectorAll("[data-sdel]").forEach(btn => {
         btn.addEventListener("click", async () => {
@@ -1672,7 +1245,7 @@ addStockBtn.addEventListener("click", async () => {
     const name = addStockName.value.trim();
     if (!name) { showToast("Nama stok wajib diisi", "error"); return; }
     try {
-        await addDoc(collection(db, "users", currentUser.uid, "mk_stock"), { name, level: "aman", createdAt: serverTimestamp() });
+        await addDoc(collection(db, "users", currentUser.uid, "mk_stock"), { name, createdAt: serverTimestamp() });
         addStockName.value = "";
         showToast("Stok ditambahkan", "success");
     } catch (error) { showToast("Gagal menambah stok", "error"); }
@@ -1707,8 +1280,8 @@ function renderMyRecipes() {
         const row = document.createElement("div");
         row.className = "myrecipe-item";
         row.innerHTML = `
-            <span class="recipe-emoji">${rec.emoji}</span>
-            <div class="recipe-name">${escapeHtml(rec.name)}<div class="recipe-ing">${rec.ingredients.length} bahan</div></div>
+            <span style="font-size:20px;">${rec.emoji}</span>
+            <div style="flex:1;"><div style="font-weight:680;font-size:13px;">${escapeHtml(rec.name)}</div><div style="font-size:11px;color:var(--text-light);">${rec.ingredients.length} bahan</div></div>
             <button class="stock-del" data-rdel="${rec.id}">🗑️</button>`;
         myRecipesEl.appendChild(row);
     });
@@ -1722,7 +1295,7 @@ function renderMyRecipes() {
 }
 
 // =========================================================
-// INTEGRASI AUDITDOMPET
+// AUDITDOMPET
 // =========================================================
 function populateRecordSelects() {
     recordWallet.innerHTML = "";
@@ -1754,17 +1327,9 @@ recordPhoto.addEventListener("change", async (e) => {
     try {
         showToast("Mengompres struk...", "info");
         const b64 = await compressImage(file, 800, 0.7);
-        if (b64.length * 0.75 > 1024 * 1024) { showToast("Foto terlalu besar setelah kompresi", "error"); recordPhoto.value = ""; return; }
         recordPhotoBase64 = b64;
-        recordPhotoPreview.innerHTML = `<img src="${b64}" alt="Struk"><button type="button" class="receipt-remove" id="receipt-remove">×</button>`;
-        recordPhotoPreview.classList.remove("hidden");
-        document.getElementById("receipt-remove").addEventListener("click", () => {
-            recordPhotoBase64 = null;
-            recordPhoto.value = "";
-            recordPhotoPreview.classList.add("hidden");
-            recordPhotoPreview.innerHTML = "";
-        });
-        showToast("📸 Struk siap dilampirkan", "success");
+        recordPhotoPreview.innerHTML = `<img src="${b64}" alt="Struk" style="max-width:160px;border-radius:12px;">`;
+        showToast("📸 Struk siap", "success");
     } catch (error) { showToast("Gagal memproses foto", "error"); recordPhoto.value = ""; }
 });
 
@@ -1814,17 +1379,6 @@ recordSave.addEventListener("click", async () => {
         if (recordPhotoBase64) transactionData.attachmentBase64 = recordPhotoBase64;
         await addDoc(collection(db, "users", currentUser.uid, "transactions"), transactionData);
 
-        await addDoc(collection(db, "users", currentUser.uid, "mk_records"), {
-            date: toDateStr(new Date()),
-            desc,
-            amount,
-            walletId: recordWallet.value,
-            walletName: wallet ? wallet.name : "-",
-            itemCount: checkedItems.length || items.length,
-            photoBase64: recordPhotoBase64,
-            createdAt: serverTimestamp()
-        });
-
         if (recordClear.checked && checkedItems.length > 0) {
             const batch = writeBatch(db);
             checkedItems.forEach(i => batch.delete(doc(db, "users", currentUser.uid, "mk_shopping", i.id)));
@@ -1833,11 +1387,9 @@ recordSave.addEventListener("click", async () => {
 
         recordPhotoBase64 = null;
         recordPhoto.value = "";
-        recordPhotoPreview.classList.add("hidden");
         recordPhotoPreview.innerHTML = "";
-
         document.getElementById("record-modal").classList.remove("active");
-        showToast("📒 Tercatat di AuditDompet + riwayat tersimpan!", "success");
+        showToast("📒 Tercatat di AuditDompet!", "success");
     } catch (error) {
         console.error("Record error:", error);
         showToast("Gagal mencatat transaksi", "error");
