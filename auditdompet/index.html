@@ -1468,7 +1468,7 @@ function addSplitItem(category = "", amount = "") {
     const div = document.createElement("div");
     div.className = "split-item";
     let categoryOptions = cats.map(c => `<option value="${escapeHtml(c.name)}" ${c.name === category ? 'selected' : ''}>${c.emoji} ${escapeHtml(c.name)}</option>`).join("");
-    div.innerHTML = `<select class="split-category" required>${categoryOptions}</select><input type="number" class="split-amount" placeholder="Jumlah" min="0" step="any" inputmode="decimal" value="${amount}" required><button type="button" class="split-remove-btn" title="Hapus">×</button>`;
+    div.innerHTML = `<select class="split-category">${categoryOptions}</select><input type="number" class="split-amount" placeholder="Jumlah" min="0" step="any" inputmode="decimal" value="${amount}"><button type="button" class="split-remove-btn" title="Hapus">×</button>`;
     splitItemsContainer.appendChild(div);
     div.querySelector(".split-remove-btn").addEventListener("click", () => {
         if (splitItemsContainer.children.length > 1) { div.remove(); updateSplitTotal(); } else showToast("Minimal harus ada 1 kategori", "error");
