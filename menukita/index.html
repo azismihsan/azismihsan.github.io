@@ -4,28 +4,23 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#e9905b">
-<title>MenuKita v2 — Rencana Menu & Belanja Keluarga</title>
+<title>MenuKita v2.1 — Menu, Budget & Belanja Keluarga</title>
 
 <style>
 /* =========================================================
-   MENUKITA v2.0 - Pasangan & Keluarga (90 Resep)
-   Fitur: Menu mingguan, belanja real-time, stok dapur,
-   foto struk, masak dari stok, ingat harga, riwayat,
-   integrasi AuditDompet
+   MENUKITA v2.1 - Budget Tracking, Meal Prep, Favorites
 ========================================================= */
 :root {
     --primary: #e9905b; --primary-dark: #d97a41; --primary-soft: #fff0e7;
     --income: #42b883; --income-soft: #e6f7ef;
     --expense: #ed7184; --expense-soft: #fdecef;
+    --warning: #e6ad4f; --warning-soft: #fff5df;
     --blue: #5d9cec; --blue-soft: #eaf3ff;
-    --yellow: #e6ad4f; --yellow-soft: #fff5df;
-    --cyan: #4bbcc7; --cyan-soft: #e6f7f8;
-    --pink: #d77ac5; --pink-soft: #faebf7;
     --purple: #9b7de8; --purple-soft: #f0ebff;
     --bg: #fbf9f7; --surface: #ffffff; --surface-2: #fbfaf8;
     --text: #2b2622; --text-soft: #6d675f; --text-light: #98928a;
     --border: #ece7e0;
-    --success: #42b883; --warning: #e6ad4f; --danger: #ed7184;
+    --success: #42b883; --danger: #ed7184;
     --shadow: 0 8px 30px rgba(90, 60, 30, 0.08);
     --shadow-hover: 0 14px 38px rgba(90, 60, 30, 0.12);
     --radius: 18px;
@@ -35,8 +30,8 @@ body.dark {
     --text: #f7f3ee; --text-soft: #bdb6ad; --text-light: #8d877e;
     --border: #3a352c; --primary-soft: #45301f;
     --income-soft: #203b31; --expense-soft: #412a31; --blue-soft: #25354a;
-    --yellow-soft: #433925; --pink-soft: #422e40; --cyan-soft: #233d40;
-    --purple-soft: #352c50; --shadow: 0 8px 30px rgba(0,0,0,0.35);
+    --warning-soft: #433925; --purple-soft: #352c50;
+    --shadow: 0 8px 30px rgba(0,0,0,0.35);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 html { scroll-behavior: smooth; }
@@ -87,6 +82,7 @@ button { cursor: pointer; }
 .alert-error { background: var(--expense-soft); color: #a94e61; border: 1px solid rgba(237,113,132,.22); }
 .alert-success { background: var(--income-soft); color: #287c5a; border: 1px solid rgba(66,184,131,.22); }
 .alert-info { background: var(--blue-soft); color: #4d73a8; border: 1px solid rgba(93,156,236,.22); }
+.alert-warning { background: var(--warning-soft); color: #8b7a1a; border: 1px solid rgba(230,173,79,.22); }
 .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; box-shadow: var(--shadow-hover); font-size: 13px; font-weight: 600; z-index: 10000; opacity: 0; transition: all .3s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; align-items: center; gap: 12px; max-width: 90%; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
@@ -105,6 +101,36 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 .card-title h2 { font-size: 16px; }
 .card-title p { font-size: 12px; color: var(--text-soft); }
 
+/* Budget Bar */
+.budget-bar { background: var(--warning-soft); border: 1px solid rgba(230,173,79,.3); border-radius: 14px; padding: 16px; margin-bottom: 16px; }
+.budget-bar h3 { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+.budget-bar-content { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.budget-stat { font-size: 12px; }
+.budget-stat-label { color: var(--text-soft); margin-bottom: 2px; }
+.budget-stat-value { font-size: 18px; font-weight: 750; color: var(--text); }
+.budget-stat-value.warning { color: var(--warning); }
+.budget-stat-value.danger { color: var(--danger); }
+.budget-progress { height: 8px; background: rgba(0,0,0,.1); border-radius: 99px; overflow: hidden; margin-top: 10px; }
+.budget-progress-fill { height: 100%; background: linear-gradient(90deg, var(--warning), var(--danger)); border-radius: inherit; transition: width .5s; }
+
+/* Meal Prep Status */
+.meal-prep-card { background: var(--primary-soft); border: 1px solid rgba(233,144,91,.2); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+.meal-prep-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.meal-prep-day { font-weight: 680; font-size: 13px; }
+.meal-prep-status { font-size: 11px; color: var(--text-soft); font-weight: 600; }
+.meal-prep-slots { display: flex; gap: 6px; }
+.meal-prep-slot { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 13px; border: 2px solid var(--border); background: var(--surface); cursor: pointer; transition: .2s; }
+.meal-prep-slot.done { background: var(--success); border-color: var(--success); color: white; font-weight: 800; }
+.meal-prep-slot:hover { transform: scale(1.1); }
+
+/* Favorites */
+.favorites-row { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 14px; padding-bottom: 8px; }
+.favorites-row::-webkit-scrollbar { height: 4px; }
+.favorites-row::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+.fav-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 8px 12px; font-size: 12px; font-weight: 700; white-space: nowrap; flex-shrink: 0; transition: .2s; }
+.fav-btn:hover { border-color: var(--primary); color: var(--primary); }
+.fav-emoji { margin-right: 4px; }
+
 /* Week nav */
 .week-nav { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 16px; }
 .week-nav-btn { border: 1px solid var(--border); background: var(--surface); width: 40px; height: 40px; border-radius: 12px; font-size: 16px; color: var(--text-soft); }
@@ -115,16 +141,21 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 .day-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
 .day-title { font-weight: 720; font-size: 13px; margin-bottom: 10px; display: flex; justify-content: space-between; }
 .day-title span { color: var(--text-light); font-weight: 500; }
-.slot-row { display: grid; grid-template-columns: 62px 1fr auto; gap: 8px; align-items: center; margin-bottom: 8px; }
+.slot-row { display: grid; grid-template-columns: 62px 1fr auto auto; gap: 8px; align-items: center; margin-bottom: 8px; }
 .slot-row:last-child { margin-bottom: 0; }
 .slot-time { font-size: 11px; color: var(--text-light); font-weight: 650; }
 .slot-btn { border: 1px dashed var(--border); background: var(--surface); border-radius: 10px; min-height: 40px; padding: 8px 12px; font-size: 12.5px; font-weight: 600; color: var(--text-soft); text-align: left; transition: .2s; }
 .slot-btn:hover { border-color: var(--primary); color: var(--primary); }
 .slot-btn.filled { border-style: solid; border-color: var(--border); background: var(--primary-soft); color: var(--text); }
+.slot-prep { border: 0; background: transparent; color: var(--text-light); width: 32px; height: 32px; border-radius: 8px; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+.slot-prep.done { color: var(--success); }
 .slot-clear { border: 0; background: transparent; color: var(--text-light); width: 30px; height: 30px; border-radius: 8px; }
 .slot-clear:hover { background: var(--expense-soft); color: var(--expense); }
 
 /* Shopping list */
+.shop-categories { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.shop-cat-btn { border: 1px solid var(--border); background: var(--surface); border-radius: 12px; padding: 7px 12px; font-size: 12px; font-weight: 700; color: var(--text-soft); transition: .2s; }
+.shop-cat-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
 .shop-item { display: flex; align-items: center; gap: 10px; padding: 11px 4px; border-bottom: 1px solid var(--border); border-radius: 8px; }
 .shop-item:last-child { border-bottom: 0; }
 .shop-check { width: 26px; height: 26px; border-radius: 8px; border: 2px solid var(--border); background: var(--surface); flex: 0 0 26px; display: flex; align-items: center; justify-content: center; font-size: 14px; color: transparent; transition: .2s; }
@@ -158,7 +189,7 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 .stock-levels { display: flex; gap: 4px; }
 .stock-level-btn { border: 1px solid var(--border); background: var(--surface); color: var(--text-light); border-radius: 999px; padding: 4px 10px; font-size: 10px; font-weight: 700; }
 .stock-level-btn.active.aman { background: var(--income-soft); color: var(--income); border-color: var(--income); }
-.stock-level-btn.active.menipis { background: var(--yellow-soft); color: var(--warning); border-color: var(--warning); }
+.stock-level-btn.active.menipis { background: var(--warning-soft); color: var(--warning); border-color: var(--warning); }
 .stock-level-btn.active.habis { background: var(--expense-soft); color: var(--expense); border-color: var(--expense); }
 .stock-add-shop { border: 0; background: var(--blue-soft); color: var(--blue); border-radius: 8px; padding: 5px 9px; font-size: 11px; font-weight: 700; }
 .stock-del { border: 0; background: transparent; color: var(--text-light); width: 28px; height: 28px; border-radius: 8px; }
@@ -219,8 +250,9 @@ header { display: flex; justify-content: space-between; align-items: center; gap
     .user-pill { display: none; }
     .brand h1 { font-size: 18px; }
     .card { padding: 16px; border-radius: 16px; }
-    .slot-row { grid-template-columns: 52px 1fr auto; }
+    .slot-row { grid-template-columns: 52px 1fr auto auto; }
     .shop-price { width: 82px; }
+    .budget-bar-content { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -233,8 +265,8 @@ header { display: flex; justify-content: space-between; align-items: center; gap
         <div class="login-card">
             <div class="login-logo">
                 <div class="logo-circle">🍽️</div>
-                <h1>MenuKita <span style="font-size:12px; vertical-align:top;">v2</span></h1>
-                <p>Rencana menu & belanja keluarga, sinkron berdua.</p>
+                <h1>MenuKita <span style="font-size:12px; vertical-align:top;">v2.1</span></h1>
+                <p>Menu, budget & belanja keluarga. Sinkron real-time.</p>
             </div>
             <div id="auth-alert"></div>
             <form id="auth-form">
@@ -265,7 +297,7 @@ header { display: flex; justify-content: space-between; align-items: center; gap
         <header>
             <div class="brand">
                 <div class="brand-icon">🍽️</div>
-                <div><h1>MenuKita</h1><p>v2 • Menu, belanja & stok keluarga</p></div>
+                <div><h1>MenuKita</h1><p>v2.1 • Menu, Budget & Belanja</p></div>
             </div>
             <div class="header-actions">
                 <div class="user-pill">👤 <span id="user-email">User</span></div>
@@ -286,6 +318,19 @@ header { display: flex; justify-content: space-between; align-items: center; gap
                         <button id="generate-btn" class="btn btn-primary btn-sm">🛒 Buat Daftar Belanja</button>
                     </div>
                 </div>
+
+                <!-- FAVORITES QUICK ADD -->
+                <div style="margin-bottom: 14px;">
+                    <div style="font-size: 12px; font-weight: 650; color: var(--text-soft); margin-bottom: 8px;">⭐ Resep Sering Dipakai</div>
+                    <div id="favorites-row" class="favorites-row"></div>
+                </div>
+
+                <!-- MEAL PREP STATUS -->
+                <div style="margin-bottom: 14px;">
+                    <div style="font-size: 12px; font-weight: 650; color: var(--text-soft); margin-bottom: 8px;">👨‍🍳 Status Memasak Hari Ini</div>
+                    <div id="meal-prep-today" style="font-size: 12px; color: var(--text-soft); background: var(--primary-soft); border-radius: 12px; padding: 10px; text-align: center;"></div>
+                </div>
+
                 <div class="week-nav">
                     <button id="week-prev" class="week-nav-btn">←</button>
                     <div id="week-label" class="week-label">-</div>
@@ -297,15 +342,24 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 
         <!-- TAB BELANJA -->
         <div id="tab-belanja" class="tab-section">
+            <!-- BUDGET TRACKING -->
+            <div id="budget-card" class="card hidden">
+                <div id="budget-content"></div>
+            </div>
+
             <div class="card">
                 <div class="card-title">
                     <div><h2>🛒 Daftar Belanja</h2><p id="shop-week-label">-</p></div>
                     <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                        <button id="export-pdf-btn" class="btn btn-secondary btn-sm" title="Download PDF">📥 Unduh PDF</button>
                         <button id="check-all-btn" class="btn btn-secondary btn-sm" title="Centang semua">✅ Semua</button>
                         <button id="clear-checked-btn" class="btn btn-secondary btn-sm" title="Hapus item tercentang">🧹 Bersihkan</button>
                         <button id="record-btn" class="btn btn-success btn-sm">📒 Catat ke AuditDompet</button>
                     </div>
                 </div>
+
+                <div id="shop-categories" class="shop-categories hidden"></div>
+
                 <div class="shop-progress"><div id="shop-progress-fill" class="shop-progress-fill" style="width:0%"></div></div>
                 <div class="shop-total-row">
                     <span id="shop-progress-text">0/0 dibeli</span>
@@ -344,6 +398,16 @@ header { display: flex; justify-content: space-between; align-items: center; gap
         <div id="tab-setting" class="tab-section">
             <div class="card">
                 <div class="card-title">
+                    <div><h2>💰 Budget Mingguan</h2><p>Set target budget belanja per minggu</p></div>
+                </div>
+                <div class="form-group">
+                    <label>Target Budget (Rp)</label>
+                    <input type="number" id="budget-limit" min="0" step="any" inputmode="decimal" placeholder="Contoh: 500000">
+                </div>
+                <button id="save-budget-btn" class="btn btn-primary btn-full">💾 Simpan Target</button>
+            </div>
+            <div class="card">
+                <div class="card-title">
                     <div><h2>🏪 Resep Saya</h2><p>Tambahkan resep keluarga sendiri</p></div>
                 </div>
                 <div class="form-group"><label>Nama Masakan</label><input type="text" id="rec-name" placeholder="Contoh: Sop Buntut Mama" maxlength="50"></div>
@@ -370,7 +434,7 @@ header { display: flex; justify-content: space-between; align-items: center; gap
                 </div>
             </div>
         </div>
-        <div style="text-align:center; color:var(--text-light); font-size:11px; margin-top:15px;">MenuKita • v2.0 • Pasangan & Keluarga</div>
+        <div style="text-align:center; color:var(--text-light); font-size:11px; margin-top:15px;">MenuKita • v2.1 • Menu, Budget & Belanja Keluarga</div>
     </div>
 </div>
 
@@ -435,7 +499,7 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 
 <script type="module">
 // =========================================================
-// FIREBASE (PROJECT SAMA DENGAN AUDITDOMPET)
+// FIREBASE CONFIGURATION
 // =========================================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
 import {
@@ -492,16 +556,20 @@ const autofillBtn = document.getElementById("autofill-btn");
 const generateBtn = document.getElementById("generate-btn");
 const recommendBtn = document.getElementById("recommend-btn");
 const recommendListEl = document.getElementById("recommend-list");
+const favoritesRowEl = document.getElementById("favorites-row");
+const mealPrepTodayEl = document.getElementById("meal-prep-today");
 const shopWeekLabel = document.getElementById("shop-week-label");
 const shopProgressFill = document.getElementById("shop-progress-fill");
 const shopProgressText = document.getElementById("shop-progress-text");
 const shopTotalEl = document.getElementById("shop-total");
+const shopCategoriesEl = document.getElementById("shop-categories");
 const addShopName = document.getElementById("add-shop-name");
 const addShopQty = document.getElementById("add-shop-qty");
 const addShopBtn = document.getElementById("add-shop-btn");
 const shoppingListEl = document.getElementById("shopping-list");
 const checkAllBtn = document.getElementById("check-all-btn");
 const clearCheckedBtn = document.getElementById("clear-checked-btn");
+const exportPdfBtn = document.getElementById("export-pdf-btn");
 const recordBtn = document.getElementById("record-btn");
 const recordHistoryEl = document.getElementById("record-history");
 const addStockName = document.getElementById("add-stock-name");
@@ -509,6 +577,10 @@ const addStockBtn = document.getElementById("add-stock-btn");
 const stockListEl = document.getElementById("stock-list");
 const shopBadge = document.getElementById("shop-badge");
 const stockBadge = document.getElementById("stock-badge");
+const budgetLimit = document.getElementById("budget-limit");
+const saveBudgetBtn = document.getElementById("save-budget-btn");
+const budgetCard = document.getElementById("budget-card");
+const budgetContent = document.getElementById("budget-content");
 const recName = document.getElementById("rec-name");
 const recEmoji = document.getElementById("rec-emoji");
 const recIngs = document.getElementById("rec-ings");
@@ -540,11 +612,14 @@ let customRecipes = [];
 let wallets = [];
 let profiles = [];
 let records = [];
+let mealPrep = {};
 let priceMemory = {};
+let userBudget = 0;
 let weekOffset = 0;
 let pendingSlotKey = null;
 let stockAlertShown = false;
 let recordPhotoBase64 = null;
+let currentShopCategory = "all";
 
 const DAYS = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
 const SLOTS = [
@@ -553,8 +628,17 @@ const SLOTS = [
     { key: "malam", label: "🌙 Malam" }
 ];
 
+const CATEGORIES = {
+    "sayur": ["bayam", "kangkung", "labu", "kol", "wortel", "kentang", "buncis", "kacang", "tauge", "brokoli", "seledri"],
+    "daging": ["daging", "ayam", "ikan", "udang", "cumi", "sapi", "buntut", "dada", "paha"],
+    "bumbu": ["bawang", "kunyit", "cabai", "serai", "garam", "gula", "kecap", "santan", "minyak", "mentega", "ketumbar", "kemiri"],
+    "tepung": ["tepung", "beras", "sagu", "maizena", "roti"],
+    "telur": ["telur", "putih", "kuning"],
+    "lainnya": []
+};
+
 // =========================================================
-// RESEP BAWAAN (90 masakan rumahan Indonesia)
+// RESEP BAWAAN (90 masakan)
 // =========================================================
 const R = (id, name, emoji, rows) => ({ id, name, emoji, ingredients: rows.map(r => ({ n: r[0], q: r[1], u: r[2] })) });
 const BUILTIN_RECIPES = [
@@ -677,6 +761,9 @@ function currentWeekKey() {
     monday.setDate(monday.getDate() + (weekOffset * 7));
     return toDateStr(monday);
 }
+function todayDateStr() {
+    return toDateStr(new Date());
+}
 function weekRangeLabel(weekKey) {
     const start = new Date(`${weekKey}T00:00:00`);
     const end = new Date(start);
@@ -688,6 +775,26 @@ function getAllRecipes() {
 }
 function getRecipe(id) {
     return getAllRecipes().find(r => r.id === id);
+}
+function getMostUsedRecipes(limit = 5) {
+    const counts = {};
+    Object.values(weeks).forEach(slots => {
+        Object.values(slots).forEach(val => {
+            if (val && !val.startsWith("custom::")) counts[val] = (counts[val] || 0) + 1;
+        });
+    });
+    return Object.entries(counts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, limit)
+        .map(([id]) => getRecipe(id))
+        .filter(Boolean);
+}
+function getItemCategory(itemName) {
+    const lower = (itemName || "").toLowerCase();
+    for (const [cat, keywords] of Object.entries(CATEGORIES)) {
+        if (keywords.some(kw => lower.includes(kw))) return cat;
+    }
+    return "lainnya";
 }
 function showToast(message, type = "info") {
     const toast = document.createElement("div");
@@ -783,7 +890,7 @@ onAuthStateChanged(auth, (user) => {
         initUserData(user.uid);
     } else {
         currentUser = null;
-        weeks = {}; shopping = []; stocks = []; customRecipes = []; wallets = []; profiles = []; records = []; priceMemory = {};
+        weeks = {}; shopping = []; stocks = []; customRecipes = []; wallets = []; profiles = []; records = []; priceMemory = {}; mealPrep = {}; userBudget = 0;
         authPanel.classList.remove("hidden");
         dashboard.classList.add("hidden");
         bottomNav.classList.add("hidden");
@@ -791,13 +898,15 @@ onAuthStateChanged(auth, (user) => {
 });
 
 // =========================================================
-// DATA LISTENERS (REAL-TIME)
+// DATA LISTENERS
 // =========================================================
 function initUserData(uid) {
     onSnapshot(collection(db, "users", uid, "mk_weeks"), (snap) => {
         weeks = {};
         snap.forEach(d => { weeks[d.id] = d.data().slots || {}; });
         renderMenu();
+        renderMealPrepToday();
+        renderFavorites();
         renderSummary();
     });
     onSnapshot(collection(db, "users", uid, "mk_shopping"), (snap) => {
@@ -805,26 +914,38 @@ function initUserData(uid) {
         snap.forEach(d => shopping.push({ id: d.id, ...d.data() }));
         buildPriceMemory();
         renderShopping();
+        renderBudgetBar();
         renderSummary();
     });
     onSnapshot(collection(db, "users", uid, "mk_stock"), (snap) => {
         stocks = [];
         snap.forEach(d => stocks.push({ id: d.id, ...d.data() }));
         renderStock();
-        if (!stockAlertShown) {
-            const low = stocks.filter(s => s.level === "habis" || s.level === "menipis").length;
-            if (low > 0) { stockAlertShown = true; showToast(`⚠️ ${low} stok dapur menipis/habis`, "error"); }
-        }
+        const low = stocks.filter(s => s.level === "habis" || s.level === "menipis").length;
+        if (low > 0 && !stockAlertShown) { stockAlertShown = true; showToast(`⚠️ ${low} stok dapur menipis/habis`, "error"); }
     });
     onSnapshot(collection(db, "users", uid, "mk_recipes"), (snap) => {
         customRecipes = [];
         snap.forEach(d => customRecipes.push({ id: d.id, ...d.data() }));
         renderMyRecipes();
+        renderFavorites();
     });
     onSnapshot(collection(db, "users", uid, "mk_records"), (snap) => {
         records = [];
         snap.forEach(d => records.push({ id: d.id, ...d.data() }));
         renderHistory();
+    });
+    onSnapshot(collection(db, "users", uid, "mk_settings"), (snap) => {
+        snap.forEach(d => {
+            if (d.id === "budget") userBudget = d.data().limit || 0;
+        });
+        budgetLimit.value = userBudget || "";
+        renderBudgetBar();
+    });
+    onSnapshot(collection(db, "users", uid, "mk_mealprep"), (snap) => {
+        mealPrep = {};
+        snap.forEach(d => { mealPrep[d.id] = d.data().status || {}; });
+        renderMealPrepToday();
     });
     onSnapshot(collection(db, "users", uid, "wallets"), (snap) => {
         wallets = [];
@@ -895,8 +1016,115 @@ function renderSummary() {
     const checked = items.filter(s => s.checked).length;
     const h = new Date().getHours();
     const greet = h < 10 ? "Selamat pagi" : h < 15 ? "Selamat siang" : h < 18 ? "Selamat sore" : "Selamat malam";
-    summaryBar.innerHTML = `👋 <b>${greet}!</b> Minggu ini: <b>${filled}/21</b> menu • <b>${checked}/${items.length}</b> belanja dibeli • 💡 coba "Masak dari Stok".`;
+    summaryBar.innerHTML = `👋 <b>${greet}!</b> Minggu ini: <b>${filled}/21</b> menu • <b>${checked}/${items.length}</b> belanja dibeli • 💰 budget ${userBudget ? `Rp ${formatCurrency(userBudget)}` : "tidak diset"}.`;
 }
+
+// =========================================================
+// FAVORITES & QUICK ADD
+// =========================================================
+function renderFavorites() {
+    const faves = getMostUsedRecipes(6);
+    favoritesRowEl.innerHTML = "";
+    faves.forEach(rec => {
+        const btn = document.createElement("button");
+        btn.className = "fav-btn";
+        btn.innerHTML = `<span class="fav-emoji">${rec.emoji}</span>${rec.name}`;
+        btn.addEventListener("click", async () => {
+            const key = firstEmptySlotKey();
+            if (!key) { showToast("Semua slot sudah terisi", "info"); return; }
+            await saveSlot(key, rec.id);
+            showToast(`⭐ ${rec.emoji} ${rec.name} ditambahkan!`, "success");
+        });
+        favoritesRowEl.appendChild(btn);
+    });
+    if (faves.length === 0) favoritesRowEl.innerHTML = '<div style="font-size:12px; color:var(--text-light); padding:10px;">Belum ada riwayat masakan</div>';
+}
+
+// =========================================================
+// MEAL PREP STATUS
+// =========================================================
+function renderMealPrepToday() {
+    const today = todayDateStr();
+    const todayPrep = mealPrep[today] || {};
+    const dayIndex = new Date().getDay();
+    const dayName = DAYS[(dayIndex + 6) % 7];
+    const weekKey = currentWeekKey();
+    const slots = weeks[weekKey] || {};
+    
+    let html = `<strong>${dayName}, ${today.split("-").reverse().join("/")}</strong><div class="meal-prep-slots">`;
+    SLOTS.forEach(slot => {
+        const key = `${(dayIndex + 6) % 7}-${slot.key}`;
+        const isDone = todayPrep[slot.key];
+        const hasMenu = !!slots[key];
+        html += `<button class="meal-prep-slot ${isDone ? "done" : ""}" data-meal-slot="${slot.key}" title="${slot.label}" ${!hasMenu ? 'disabled style="opacity:.5"' : ''}>${isDone ? "✓" : slot.label.charAt(0)}</button>`;
+    });
+    html += `</div>`;
+    mealPrepTodayEl.innerHTML = html;
+    mealPrepTodayEl.querySelectorAll("[data-meal-slot]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+            if (!currentUser) return;
+            const slotKey = btn.dataset.mealSlot;
+            const newStatus = { ...todayPrep };
+            newStatus[slotKey] = !newStatus[slotKey];
+            try {
+                await setDoc(doc(db, "users", currentUser.uid, "mk_mealprep", today), newStatus);
+            } catch (error) { showToast("Gagal update meal prep", "error"); }
+        });
+    });
+}
+
+// =========================================================
+// BUDGET TRACKING
+// =========================================================
+function renderBudgetBar() {
+    const weekKey = currentWeekKey();
+    const items = shopping.filter(s => s.weekKey === weekKey);
+    const spent = items.reduce((s, i) => s + (Number(i.price) || 0), 0);
+    
+    if (userBudget <= 0) {
+        budgetCard.classList.add("hidden");
+        return;
+    }
+    
+    budgetCard.classList.remove("hidden");
+    const remaining = userBudget - spent;
+    const pct = Math.min(100, (spent / userBudget) * 100);
+    const statusClass = remaining < 0 ? "danger" : pct > 80 ? "warning" : "";
+    
+    budgetContent.innerHTML = `
+        <h3 style="font-size:13px; font-weight:700; color:var(--text); margin-bottom:10px;">💰 Budget Mingguan</h3>
+        <div class="budget-bar-content">
+            <div class="budget-stat">
+                <div class="budget-stat-label">Target</div>
+                <div class="budget-stat-value">Rp ${formatCurrency(userBudget)}</div>
+            </div>
+            <div class="budget-stat">
+                <div class="budget-stat-label">Terpakai</div>
+                <div class="budget-stat-value ${statusClass}">Rp ${formatCurrency(spent)}</div>
+            </div>
+            <div class="budget-stat">
+                <div class="budget-stat-label">Sisa</div>
+                <div class="budget-stat-value ${statusClass}">Rp ${formatCurrency(Math.max(0, remaining))}</div>
+            </div>
+        </div>
+        <div class="budget-progress">
+            <div class="budget-progress-fill" style="width:${pct}%"></div>
+        </div>
+        ${remaining < 0 ? `<div style="color:var(--danger); font-size:12px; margin-top:8px;">⚠️ Budget sudah terlampaui Rp ${formatCurrency(Math.abs(remaining))}</div>` : remaining < userBudget * 0.2 ? `<div style="color:var(--warning); font-size:12px; margin-top:8px;">⚠️ Sisa budget kurang dari 20%</div>` : ""}
+    `;
+}
+
+saveBudgetBtn.addEventListener("click", async () => {
+    if (!currentUser) return;
+    const amount = Number(budgetLimit.value) || 0;
+    if (amount <= 0) { showToast("Masukkan budget lebih dari 0", "error"); return; }
+    saveBudgetBtn.disabled = true;
+    try {
+        await setDoc(doc(db, "users", currentUser.uid, "mk_settings", "budget"), { limit: amount });
+        showToast("Budget tersimpan", "success");
+    } catch (error) { showToast("Gagal menyimpan budget", "error"); }
+    finally { saveBudgetBtn.disabled = false; }
+});
 
 // =========================================================
 // MENU MINGGUAN
@@ -926,10 +1154,14 @@ function renderMenu() {
                     label = rec ? `${rec.emoji} ${escapeHtml(rec.name)}` : `🍽️ ${escapeHtml(val)}`;
                 }
             }
+            const today = todayDateStr();
+            const isToday = toDateStr(dayDate) === today;
+            const mealPrepStatus = isToday ? (mealPrep[today]?.[slot.key] ? "done" : "") : "";
             rowsHtml += `
                 <div class="slot-row">
                     <div class="slot-time">${slot.label}</div>
                     <button class="slot-btn ${filledClass}" data-slot="${key}">${label}</button>
+                    ${val ? `<button class="slot-prep ${mealPrepStatus}" data-meal="${di}-${slot.key}" title="Mark as cooked">${mealPrepStatus ? "✓" : "👨‍🍳"}</button>` : `<button class="slot-prep" disabled style="opacity:.3;">👨‍🍳</button>`}
                     <button class="slot-clear" data-clear="${key}" title="Kosongkan" ${val ? "" : "style='visibility:hidden'"}>×</button>
                 </div>`;
         });
@@ -938,6 +1170,19 @@ function renderMenu() {
     });
     weekGrid.querySelectorAll(".slot-btn").forEach(btn => btn.addEventListener("click", () => openRecipePicker(btn.dataset.slot)));
     weekGrid.querySelectorAll(".slot-clear").forEach(btn => btn.addEventListener("click", () => saveSlot(btn.dataset.clear, null)));
+    weekGrid.querySelectorAll("[data-meal]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+            if (!currentUser) return;
+            const today = todayDateStr();
+            const parts = btn.dataset.meal.split("-");
+            const slotKey = parts[1];
+            const newStatus = { ...mealPrep[today] };
+            newStatus[slotKey] = !newStatus[slotKey];
+            try {
+                await setDoc(doc(db, "users", currentUser.uid, "mk_mealprep", today), newStatus);
+            } catch (error) { showToast("Gagal update", "error"); }
+        });
+    });
 }
 
 weekPrevBtn.addEventListener("click", () => { weekOffset--; renderMenu(); renderShopping(); renderSummary(); });
@@ -1083,7 +1328,7 @@ generateBtn.addEventListener("click", async () => {
             const memPrice = rememberedPrice(item.name);
             if (memPrice > 0) estimated++;
             const ref = doc(collection(db, "users", currentUser.uid, "mk_shopping"));
-            batch.set(ref, { name: item.name, qty: formatQty(item.q, item.u), checked: false, price: memPrice, source: "menu", weekKey, createdAt: serverTimestamp() });
+            batch.set(ref, { name: item.name, qty: formatQty(item.q, item.u), checked: false, price: memPrice, source: "menu", category: getItemCategory(item.name), weekKey, createdAt: serverTimestamp() });
             added++;
         }
     });
@@ -1099,25 +1344,54 @@ generateBtn.addEventListener("click", async () => {
 });
 
 // =========================================================
-// SHOPPING LIST
+// SHOPPING LIST & CATEGORIES
 // =========================================================
 function renderShopping() {
     const weekKey = currentWeekKey();
     shopWeekLabel.textContent = `Minggu ${weekRangeLabel(weekKey)}`;
     const items = shopping.filter(s => s.weekKey === weekKey);
-    const unchecked = items.filter(s => !s.checked).sort((a, b) => (a.name || "").localeCompare(b.name || ""));
-    const checked = items.filter(s => s.checked);
+    
+    // Build categories
+    const catList = new Set();
+    items.forEach(i => catList.add(getItemCategory(i.name)));
+    
+    shopCategoriesEl.innerHTML = "";
+    if (catList.size > 1) {
+        shopCategoriesEl.classList.remove("hidden");
+        const allBtn = document.createElement("button");
+        allBtn.className = `shop-cat-btn ${currentShopCategory === "all" ? "active" : ""}`;
+        allBtn.textContent = "Semua";
+        allBtn.addEventListener("click", () => { currentShopCategory = "all"; renderShopping(); });
+        shopCategoriesEl.appendChild(allBtn);
+        catList.forEach(cat => {
+            const btn = document.createElement("button");
+            btn.className = `shop-cat-btn ${currentShopCategory === cat ? "active" : ""}`;
+            const catLabel = cat === "sayur" ? "🥦 Sayur" : cat === "daging" ? "🍗 Daging" : cat === "bumbu" ? "🌶️ Bumbu" : cat === "tepung" ? "🌾 Tepung" : cat === "telur" ? "🥚 Telur" : "📦 Lainnya";
+            btn.textContent = catLabel;
+            btn.addEventListener("click", () => { currentShopCategory = cat; renderShopping(); });
+            shopCategoriesEl.appendChild(btn);
+        });
+    } else {
+        shopCategoriesEl.classList.add("hidden");
+        currentShopCategory = "all";
+    }
+    
+    const filteredItems = currentShopCategory === "all" ? items : items.filter(i => getItemCategory(i.name) === currentShopCategory);
+    const unchecked = filteredItems.filter(s => !s.checked).sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+    const checked = filteredItems.filter(s => s.checked);
     const total = items.reduce((s, i) => s + (Number(i.price) || 0), 0);
-    const pct = items.length ? Math.round((checked.length / items.length) * 100) : 0;
+    const pct = items.length ? Math.round((items.filter(i => i.checked).length / items.length) * 100) : 0;
     shopProgressFill.style.width = pct + "%";
-    shopProgressText.textContent = `${checked.length}/${items.length} dibeli`;
+    shopProgressText.textContent = `${items.filter(i => i.checked).length}/${items.length} dibeli`;
     shopTotalEl.textContent = formatCurrency(total);
-    shopBadge.textContent = unchecked.length;
-    shopBadge.classList.toggle("hidden", unchecked.length === 0);
+    shopBadge.textContent = items.filter(i => !i.checked).length;
+    shopBadge.classList.toggle("hidden", items.filter(i => !i.checked).length === 0);
 
     shoppingListEl.innerHTML = "";
-    if (items.length === 0) {
-        shoppingListEl.innerHTML = '<div class="empty-state"><div class="empty-icon">🛒</div>Belum ada item. Isi menu lalu klik "🛒 Buat Daftar Belanja".</div>';
+    if (filteredItems.length === 0) {
+        shoppingListEl.innerHTML = currentShopCategory === "all" 
+            ? '<div class="empty-state"><div class="empty-icon">🛒</div>Belum ada item. Isi menu lalu klik "🛒 Buat Daftar Belanja".</div>'
+            : '<div class="empty-state">Tidak ada item di kategori ini</div>';
         return;
     }
     [...unchecked, ...checked].forEach(item => {
@@ -1167,7 +1441,7 @@ addShopBtn.addEventListener("click", async () => {
     const memPrice = rememberedPrice(name);
     try {
         await addDoc(collection(db, "users", currentUser.uid, "mk_shopping"), {
-            name, qty: addShopQty.value.trim(), checked: false, price: memPrice, source: "manual", weekKey: currentWeekKey(), createdAt: serverTimestamp()
+            name, qty: addShopQty.value.trim(), checked: false, price: memPrice, source: "manual", category: getItemCategory(name), weekKey: currentWeekKey(), createdAt: serverTimestamp()
         });
         addShopName.value = "";
         addShopQty.value = "";
@@ -1194,6 +1468,115 @@ clearCheckedBtn.addEventListener("click", async () => {
     checked.forEach(i => batch.delete(doc(db, "users", currentUser.uid, "mk_shopping", i.id)));
     try { await batch.commit(); showToast("Item tercentang dibersihkan", "success"); }
     catch (error) { showToast("Gagal membersihkan", "error"); }
+});
+
+// =========================================================
+// EXPORT TO PDF
+// =========================================================
+exportPdfBtn.addEventListener("click", () => {
+    const weekKey = currentWeekKey();
+    const weekRange = weekRangeLabel(weekKey);
+    const slots = weeks[weekKey] || {};
+    const items = shopping.filter(s => s.weekKey === weekKey);
+    
+    let pdfHtml = `
+        <html>
+        <head>
+            <title>MenuKita - ${weekRange}</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
+                h1 { color: #e9905b; text-align: center; margin-bottom: 10px; }
+                .week-label { text-align: center; color: #999; margin-bottom: 20px; font-size: 12px; }
+                .section { page-break-inside: avoid; margin-bottom: 30px; }
+                .section h2 { font-size: 16px; color: #d97a41; border-bottom: 2px solid #e9905b; padding-bottom: 8px; margin-bottom: 12px; }
+                .day { margin-bottom: 16px; border-left: 3px solid #e9905b; padding-left: 12px; }
+                .day-title { font-weight: bold; margin-bottom: 6px; }
+                .meal { font-size: 13px; margin-left: 8px; color: #555; }
+                .meal-empty { font-size: 13px; margin-left: 8px; color: #ccc; }
+                .shop-item { font-size: 13px; padding: 6px 0; border-bottom: 1px solid #eee; }
+                .shop-item.checked { text-decoration: line-through; color: #999; }
+                .shop-name { font-weight: 500; }
+                .shop-price { float: right; color: #42b883; font-weight: bold; }
+                table { width: 100%; border-collapse: collapse; }
+                td { padding: 8px; border-bottom: 1px solid #eee; }
+                td.price { text-align: right; width: 120px; }
+                .total { text-align: right; font-weight: bold; margin-top: 12px; font-size: 14px; }
+            </style>
+        </head>
+        <body>
+            <h1>🍽️ MenuKita</h1>
+            <div class="week-label">Menu Mingguan & Daftar Belanja</div>
+            <div class="week-label">${weekRange}</div>
+            
+            <div class="section">
+                <h2>📅 Menu Minggu</h2>
+    `;
+    
+    DAYS.forEach((dayName, di) => {
+        const monday = new Date(`${weekKey}T00:00:00`);
+        const dayDate = new Date(monday);
+        dayDate.setDate(monday.getDate() + di);
+        pdfHtml += `<div class="day"><div class="day-title">${dayName}, ${dayDate.toLocaleDateString("id-ID", { day: "numeric", month: "short" })}</div>`;
+        SLOTS.forEach(slot => {
+            const key = `${di}-${slot.key}`;
+            const val = slots[key];
+            if (val) {
+                let label = escapeHtml(val);
+                if (!val.startsWith("custom::")) {
+                    const rec = getRecipe(val);
+                    label = rec ? `${rec.emoji} ${escapeHtml(rec.name)}` : escapeHtml(val);
+                } else {
+                    label = `🍽️ ${escapeHtml(val.replace("custom::", ""))}`;
+                }
+                pdfHtml += `<div class="meal">${slot.label.split(" ")[0]} ${label}</div>`;
+            } else {
+                pdfHtml += `<div class="meal-empty">${slot.label.split(" ")[0]} (belum dipilih)</div>`;
+            }
+        });
+        pdfHtml += `</div>`;
+    });
+    
+    pdfHtml += `
+            </div>
+            <div class="section">
+                <h2>🛒 Daftar Belanja</h2>
+                <table>
+                    <tr style="background:#f5f5f5; font-weight:bold;">
+                        <td>Item</td>
+                        <td>Qty</td>
+                        <td class="price">Harga</td>
+                    </tr>
+    `;
+    
+    let totalPrice = 0;
+    items.forEach(item => {
+        const price = Number(item.price) || 0;
+        totalPrice += price;
+        pdfHtml += `
+            <tr>
+                <td><span class="shop-name">${escapeHtml(item.name)}</span></td>
+                <td>${escapeHtml(item.qty || "-")}</td>
+                <td class="price">${price ? `Rp ${formatCurrency(price)}` : "-"}</td>
+            </tr>
+        `;
+    });
+    
+    pdfHtml += `
+                </table>
+                <div class="total">Total Estimasi: Rp ${formatCurrency(totalPrice)}</div>
+            </div>
+        </body>
+        </html>
+    `;
+    
+    const blob = new Blob([pdfHtml], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `MenuKita-${weekKey}.pdf`;
+    link.click();
+    URL.revokeObjectURL(url);
+    showToast("PDF siap diunduh", "success");
 });
 
 // =========================================================
@@ -1271,7 +1654,7 @@ function renderStock() {
             if (exists) { showToast("Sudah ada di daftar belanja", "info"); return; }
             try {
                 await addDoc(collection(db, "users", currentUser.uid, "mk_shopping"), {
-                    name: item.name, qty: "1", checked: false, price: rememberedPrice(item.name), source: "stock", weekKey, createdAt: serverTimestamp()
+                    name: item.name, qty: "1", checked: false, price: rememberedPrice(item.name), source: "stock", category: getItemCategory(item.name), weekKey, createdAt: serverTimestamp()
                 });
                 showToast(`${item.name} masuk daftar belanja`, "success");
             } catch (error) { showToast("Gagal menambah", "error"); }
@@ -1296,7 +1679,7 @@ addStockBtn.addEventListener("click", async () => {
 });
 
 // =========================================================
-// CUSTOM RECIPES (SETTING)
+// CUSTOM RECIPES
 // =========================================================
 saveRecipeBtn.addEventListener("click", async () => {
     const name = recName.value.trim();
