@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIMONEV - Monitoring Kinerja</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .card { box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: none; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-dark bg-primary mb-4">
+    <div class="container">
+        <span class="navbar-brand mb-0 h1">📊 SIMONEV Pemerintahan</span>
+        <select id="roleSelector" class="form-select w-auto" onchange="changeRole()">
+            <option value="staff">👤 Staff (Budi)</option>
+            <option value="evaluator">👨‍💼 Evaluator (Siti)</option>
+            <option value="admin">👑 Admin Monev (Joko)</option>
+        </select>
+    </div>
+</nav>
+
+<div class="container">
+    <!-- PANEL STAFF -->
+    <div id="panel-staff" class="role-panel">
+        <div class="card p-4 mb-4">
+            <h4>📝 Input Laporan Kinerja Bulanan</h4>
+            <form id="formKinerja">
+                <div class="mb-3">
+                    <label class="form-label">Bulan</label>
+                    <input type="month" class="form-control" id="inputBulan" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Target / Rencana Kerja (SKP)</label>
+                    <textarea class="form-control" id="inputTarget" rows="2" placeholder="Contoh: Menyusun 5 Laporan Bulanan" required></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Realisasi / Bukti Kerja</label>
+                    <textarea class="form-control" id="inputRealisasi" rows="2" placeholder="Contoh: 5 Laporan telah diselesaikan dan diarsipkan" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-success">Submit Laporan</button>
+            </form>
+        </div>
+        <div class="card p-4">
+            <h4>📜 Riwayat Laporan Saya</h4>
+            <ul id="listStaff" class="list-group list-group-flush"></ul>
+        </div>
+    </div>
+
+    <!-- PANEL EVALUATOR -->
+    <div id="panel-evaluator" class="role-panel hidden">
+        <div class="card p-4">
+            <h4>📋 Daftar Laporan Menunggu Evaluasi</h4>
+            <ul id="listEvaluator" class="list-group list-group-flush mt-3"></ul>
+        </div>
+    </div>
+
+    <!-- PANEL ADMIN -->
+    <div id="panel-admin" class="role-panel hidden">
+        <div class="card p-4">
+            <h4>📊 Dashboard Rekapitulasi Seluruh Staff</h4>
+            <div class="table-responsive mt-3">
+                <table class="table table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Nama</th>
+                            <th>Bulan</th>
+                            <th>Target</th>
+                            <th>Realisasi</th>
+                            <th>Status</th>
+                            <th>Nilai</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableAdmin"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Firebase SDK (Versi Compat agar mudah di file HTML tunggal) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+<script>
+    // --- 1. KONFIGURASI FIREBASE (GANTI DENGAN PUNYA ANDA!) ---
+    const firebaseConfig = {
+    apiKey: "AIzaSyDzL4eTr35gl2YsWwhjJ4hGFE0R-5dB3SY",
+    authDomain: "appmonev.firebaseapp.com",
+    projectId: "appmonev",
+    storageBucket: "appmonev.firebasestorage.app",
+    messagingSenderId: "658237847586",
+    appId: "1:658237847586:web:0a423f872a1cf2981e327b"
+    };
+
+    // Inisialisasi Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Data Dummy User (Untuk simulasi login)
+    const users = {
+        staff: { nama: "Budi (Staff)", role: "staff" },
+        evaluator: { nama: "Siti (Kabag)", role: "evaluator" },
+        admin: { nama: "Joko (Admin)", role: "admin" }
+    };
+    let currentUser = users.staff;
+
+    // --- 2. FUNGSI UI & LOGIKA ---
+    function changeRole() {
+        const role = document.getElementById('roleSelector').value;
+        currentUser = users[role];
+        
+        // Sembunyikan semua panel
+        document.querySelectorAll('.role-panel').forEach(el => el.classList.add('hidden'));
+        // Tampilkan panel sesuai role
+        document.getElementById(`panel-${role}`).classList.remove('hidden');
+        
+        // Muat data sesuai role
+        loadData();
+    }
+
+    // Muat Data dari Firestore
+    function loadData() {
+        if (currentUser.role === 'staff') {
+            db.collection("kinerja").where("userId", "==", "staff").orderBy("timestamp", "desc")
+            .onSnapshot(snapshot => {
+                const list = document.getElementById('listStaff');
+                list.innerHTML = "";
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    list.innerHTML += `
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>${data.bulan}</strong><br>
+                                <small>${data.target}</small><br>
+                                <span class="badge bg-${data.status === 'Dinilai' ? 'success' : 'warning'}">${data.status}</span>
+                            </div>
+                            <span class="badge bg-primary rounded-pill">${data.nilai ? data.nilai : '-'}</span>
+                        </li>`;
+                });
+            });
+        } 
+        else if (currentUser.role === 'evaluator') {
+            db.collection("kinerja").where("status", "==", "Menunggu Evaluasi")
+            .onSnapshot(snapshot => {
+                const list = document.getElementById('listEvaluator');
+                list.innerHTML = "";
+                if(snapshot.empty) list.innerHTML = "<p class='text-success'>🎉 Tidak ada laporan yang perlu dinilai.</p>";
+                
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    list.innerHTML += `
+                        <li class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">Staff: ${data.userName} | Periode: ${data.bulan}</h6>
+                            </div>
+                            <p class="mb-1"><strong>Target:</strong> ${data.target}</p>
+                            <p class="mb-1"><strong>Realisasi:</strong> ${data.realisasi}</p>
+                            <div class="input-group mt-2" style="max-width: 300px;">
+                                <input type="number" class="form-control" id="nilai-${doc.id}" placeholder="0-100" min="0" max="100">
+                                <button class="btn btn-primary" onclick="beriNilai('${doc.id}')">Nilai</button>
+                            </div>
+                        </li>`;
+                });
+            });
+        } 
+        else if (currentUser.role === 'admin') {
+            db.collection("kinerja").orderBy("timestamp", "desc")
+            .onSnapshot(snapshot => {
+                const tbody = document.getElementById('tableAdmin');
+                tbody.innerHTML = "";
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${data.userName}</td>
+                            <td>${data.bulan}</td>
+                            <td>${data.target}</td>
+                            <td>${data.realisasi}</td>
+                            <td><span class="badge bg-${data.status === 'Dinilai' ? 'success' : 'warning'}">${data.status}</span></td>
+                            <td><strong>${data.nilai ? data.nilai : '-'}</strong></td>
+                        </tr>`;
+                });
+            });
+        }
+    }
+
+    // Submit Laporan (Staff)
+    document.getElementById('formKinerja').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const bulan = document.getElementById('inputBulan').value;
+        const target = document.getElementById('inputTarget').value;
+        const realisasi = document.getElementById('inputRealisasi').value;
+
+        await db.collection("kinerja").add({
+            userId: "staff", // Di aplikasi nyata, ini ID user unik
+            userName: currentUser.nama,
+            bulan: bulan,
+            target: target,
+            realisasi: realisasi,
+            status: "Menunggu Evaluasi",
+            nilai: null,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        alert("Laporan berhasil disubmit!");
+        e.target.reset();
+    });
+
+    // Beri Nilai (Evaluator)
+    window.beriNilai = async (docId) => {
+        const nilaiInput = document.getElementById(`nilai-${docId}`).value;
+        if (!nilaiInput || nilaiInput < 0 || nilaiInput > 100) {
+            alert("Masukkan nilai antara 0 - 100");
+            return;
+        }
+
+        await db.collection("kinerja").doc(docId).update({
+            status: "Dinilai",
+            nilai: parseInt(nilaiInput)
+        });
+        alert("Penilaian berhasil disimpan!");
+    };
+
+    // Jalankan saat pertama kali load
+    changeRole();
+</script>
+</body>
+</html>
