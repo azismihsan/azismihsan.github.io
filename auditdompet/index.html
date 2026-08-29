@@ -1004,6 +1004,17 @@ function getWalletBalance(walletId) {
     });
     return balance;
 }
+function getWalletDelta(walletId) {
+  let d = 0;
+  allTransactions.forEach(t => {
+    if (t.type === "transfer") {
+      if (t.fromWallet === walletId) d -= getTransactionAmount(t);
+      if (t.toWallet === walletId) d += getTransactionAmount(t);
+    } else if (t.type === "expense" && t.walletId === walletId) d -= getTransactionAmount(t);
+    else if (t.type === "income" && t.walletId === walletId) d += getTransactionAmount(t);
+  });
+  return d;
+}
 function getProfile(profileId) { return profiles.find(p => p.id === profileId); }
 function getProfileBadge(profileId) { const p = getProfile(profileId); if (!p) return ''; return `<span class="profile-badge" style="background:${p.color}20; color:${p.color};">${p.emoji} ${escapeHtml(p.name)}</span>`; }
 // Dompet lama tanpa pemilik dianggap milik Suami
@@ -1658,18 +1669,18 @@ function renderWallets() {
     walletsGrid.querySelectorAll(".edit-wallet-btn").forEach(btn => {
         btn.addEventListener("click", () => {
             const wallet = wallets.find(w => w.id === btn.dataset.id);
-            if (wallet) {
-                walletNameInput.value = wallet.name;
-                populateWalletOwnerSelect();
-                walletOwnerSelect.value = getWalletOwner(wallet);
-                walletTypeSelect.value = wallet.type;
-                walletBalanceInput.value = wallet.balance;
-                walletIconSelect.value = wallet.icon;
-                walletColorInput.value = wallet.color;
-                walletNameInput.dataset.editId = wallet.id;
-                document.getElementById("wallet-modal").classList.add("active");
-                document.querySelector("#wallet-modal h3").textContent = "✏️ Edit Dompet";
-            }
+         if (wallet) {
+           walletNameInput.value = wallet.name;
+           populateWalletOwnerSelect();
+           walletOwnerSelect.value = getWalletOwner(wallet);
+           walletTypeSelect.value = wallet.type;
+           walletBalanceInput.value = getWalletBalance(wallet.id); // isi saldo tampil, bukan base
+           walletIconSelect.value = wallet.icon;
+           walletColorInput.value = wallet.color;
+           walletNameInput.dataset.editId = wallet.id;
+           document.getElementById("wallet-modal").classList.add("active");
+           document.querySelector("#wallet-modal h3").textContent = "✏️ Edit Dompet";
+         }
         });
     });
     walletsGrid.querySelectorAll(".delete-wallet-btn").forEach(btn => {
@@ -2256,27 +2267,29 @@ addWalletBtn.addEventListener("click", () => {
     document.getElementById("wallet-modal").classList.add("active");
 });
 saveWalletBtn.addEventListener("click", async () => {
-    if (!currentUser) return;
-    const name = walletNameInput.value.trim();
-    const owner = walletOwnerSelect.value || "joint";
-    const type = walletTypeSelect.value;
-    const balance = Number(walletBalanceInput.value) || 0;
-    const icon = walletIconSelect.value;
-    const color = walletColorInput.value;
-    if (!name) { showToast("Nama dompet wajib diisi", "error"); return; }
-    saveWalletBtn.disabled = true;
-    try {
-        if (walletNameInput.dataset.editId) {
-            await updateDoc(doc(db, "users", currentUser.uid, "wallets", walletNameInput.dataset.editId), { name, owner, type, balance, icon, color, updatedAt: serverTimestamp() });
-            delete walletNameInput.dataset.editId;
-            showToast("Dompet diperbarui", "success");
-        } else {
-            await addDoc(collection(db, "users", currentUser.uid, "wallets"), { name, owner, type, balance, icon, color, createdAt: serverTimestamp() });
-            showToast("Dompet ditambahkan", "success");
-        }
-        document.getElementById("wallet-modal").classList.remove("active");
-    } catch (error) { console.error("Wallet error:", error); showToast("Gagal menyimpan dompet", "error"); }
-    finally { saveWalletBtn.disabled = false; }
+  if (!currentUser) return;
+  const name = walletNameInput.value.trim();
+  const owner = walletOwnerSelect.value || "joint";
+  const type = walletTypeSelect.value;
+  const entered = Number(walletBalanceInput.value) || 0;   // saldo yang ingin tampil
+  const icon = walletIconSelect.value;
+  const color = walletColorInput.value;
+  if (!name) { showToast("Nama dompet wajib diisi", "error"); return; }
+  saveWalletBtn.disabled = true;
+  try {
+    if (walletNameInput.dataset.editId) {
+      const delta = getWalletDelta(walletNameInput.dataset.editId);
+      const base = entered - delta;   // base agar tampil = entered
+      await updateDoc(doc(db, "users", currentUser.uid, "wallets", walletNameInput.dataset.editId), { name, owner, type, balance: base, icon, color, updatedAt: serverTimestamp() });
+      delete walletNameInput.dataset.editId;
+      showToast("Dompet diperbarui", "success");
+    } else {
+      await addDoc(collection(db, "users", currentUser.uid, "wallets"), { name, owner, type, balance: entered, icon, color, createdAt: serverTimestamp() });
+      showToast("Dompet ditambahkan", "success");
+    }
+    document.getElementById("wallet-modal").classList.remove("active");
+  } catch (error) { console.error("Wallet error:", error); showToast("Gagal menyimpan dompet", "error"); }
+  finally { saveWalletBtn.disabled = false; }
 });
 
 // DEBT
