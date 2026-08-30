@@ -165,7 +165,16 @@
                   <div class="mb-3"><label class="form-label">Aktivitas / Pekerjaan</label><textarea class="form-control" id="logAktivitas" rows="3" placeholder="Contoh: Menyusun laporan bulanan seksi Monev" required></textarea></div>
                   <div class="mb-3">
                     <label class="form-label fw-bold">📷 Foto Bukti Aktivitas (opsional, maks 2MB)</label>
-                    <input type="file" class="form-control" id="logFile" accept="image/*">
+                    <div class="d-flex gap-2 mb-2">
+                      <button type="button" class="btn btn-outline-primary flex-fill" onclick="document.getElementById('logFileCamera').click()">
+                        <i class="fas fa-camera me-1"></i>Ambil Foto
+                      </button>
+                      <button type="button" class="btn btn-outline-secondary flex-fill" onclick="document.getElementById('logFileGallery').click()">
+                        <i class="fas fa-images me-1"></i>Dari Galeri/File
+                      </button>
+                    </div>
+                    <input type="file" id="logFileCamera" accept="image/*" capture="environment" class="hidden">
+                    <input type="file" id="logFileGallery" accept="image/*" class="hidden">
                     <div id="logFileAnalysis"></div>
                   </div>
                   <button class="btn btn-primary w-100 fw-bold"><i class="fas fa-plus me-2"></i>Simpan Logbook</button>
@@ -452,21 +461,32 @@ document.getElementById('inputFile').addEventListener('change', e => {
   if(!okSize){ selectedFile = null; e.target.value = ''; }
 });
 
-// ---------- ANALISIS FOTO LOGBOOK (BARU) ----------
-document.getElementById('logFile').addEventListener('change', e => {
+// ---------- PILIH FOTO: KAMERA / GALERI (BARU) ----------
+function handleLogFileSelect(e){
   const f = e.target.files[0];
   selectedLogFile = f || null;
   const box = document.getElementById('logFileAnalysis');
   if(!f){ box.innerHTML=''; return; }
   const isImg = f.type.startsWith('image/');
   const okSize = f.size <= 2*1024*1024;
+  const sumber = e.target.id === 'logFileCamera' ? '📷 Kamera' : '🖼️ Galeri/File';
   let preview = '';
   if(isImg) preview = `<br><img src="${URL.createObjectURL(f)}" style="max-height:110px;border-radius:8px;" class="mt-2">`;
   box.innerHTML = `<div class="alert ${okSize&&isImg?'alert-light border':'alert-danger'} mt-2 mb-0 p-3">
     <strong>🔍 Analisis Foto:</strong><br>
-    <small>Nama: <strong>${f.name}</strong><br>Ukuran: ${formatSize(f.size)} ${okSize?'✅':'❌ (maks 2MB)'} ${isImg?'':'❌ (harus berupa gambar)'}</small>${preview}</div>`;
+    <small>Sumber: ${sumber}<br>Nama: <strong>${f.name}</strong><br>Ukuran: ${formatSize(f.size)} ${okSize?'✅':'❌ (maks 2MB)'} ${isImg?'':'❌ (harus berupa gambar)'}</small>${preview}
+    ${okSize&&isImg?`<br><button type="button" class="btn btn-sm btn-outline-danger mt-2" onclick="clearLogFile()"><i class="fas fa-trash me-1"></i>Hapus Foto</button>`:''}</div>`;
   if(!okSize || !isImg){ selectedLogFile = null; e.target.value = ''; }
-});
+}
+document.getElementById('logFileCamera').addEventListener('change', handleLogFileSelect);
+document.getElementById('logFileGallery').addEventListener('change', handleLogFileSelect);
+
+window.clearLogFile = () => {
+  selectedLogFile = null;
+  document.getElementById('logFileCamera').value = '';
+  document.getElementById('logFileGallery').value = '';
+  document.getElementById('logFileAnalysis').innerHTML = '';
+};
 
 // ---------- LIHAT FOTO (MODAL) ----------
 window.lihatFoto = url => {
@@ -500,7 +520,6 @@ function loadData(){
       updateStaffAnalytics();
     });
 
-    // LOGBOOK + FOTO (BARU)
     db.collection("logbook").where("userId","==",currentUserData.uid).onSnapshot(snap => {
       let items = []; snap.forEach(d=>items.push(d.data()));
       items.sort((a,b)=> (b.tanggal||'').localeCompare(a.tanggal||''));
@@ -710,7 +729,7 @@ document.getElementById('formKinerja').addEventListener('submit', async e => {
   btn.disabled = false; btn.innerHTML = oldHtml;
 });
 
-// ---------- SUBMIT LOGBOOK + FOTO (BARU) ----------
+// ---------- SUBMIT LOGBOOK + FOTO ----------
 document.getElementById('formLogbook').addEventListener('submit', async e => {
   e.preventDefault();
   const btn = e.target.querySelector('button[type="submit"]');
@@ -734,7 +753,7 @@ document.getElementById('formLogbook').addEventListener('submit', async e => {
       tanggal:document.getElementById('logTanggal').value, aktivitas:document.getElementById('logAktivitas').value,
       fotoUrl, timestamp:firebase.firestore.FieldValue.serverTimestamp() });
     showToast('✅ Logbook + foto bukti tersimpan!');
-    e.target.reset(); selectedLogFile = null; document.getElementById('logFileAnalysis').innerHTML = '';
+    e.target.reset(); clearLogFile();
     document.getElementById('logTanggal').valueAsDate = new Date();
   } catch(err){ showToast('❌ Gagal: '+err.message,'danger'); }
   btn.disabled = false; btn.innerHTML = oldHtml;
@@ -777,7 +796,7 @@ document.getElementById('formKomentar').addEventListener('submit', async e => {
   bukaKomentar(komentarDocId);
 });
 
-// ---------- LOGBOOK MODAL (dengan FOTO) ----------
+// ---------- LOGBOOK MODAL ----------
 window.lihatLogbook = (userId, bulan, nama) => {
   document.getElementById('logbookModalTitle').innerText = `📒 Logbook ${nama} — ${formatBulan(bulan)}`;
   db.collection("logbook").where("userId","==",userId).get().then(snap => {
