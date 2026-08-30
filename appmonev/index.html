@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SIMONEV - Monitoring & Evaluasi Kinerja</title>
+<title>SIMONEV v2 - Monitoring & Evaluasi Kinerja (Enhanced AI)</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -26,11 +26,23 @@
   .komentar-bubble { background:#f1f5f9; border-radius:12px; padding:.6rem .9rem; margin-bottom:.5rem; }
   .foto-thumb { max-height:90px; border-radius:8px; cursor:pointer; margin-top:6px; border:2px solid #e2e8f0; transition:transform .2s; }
   .foto-thumb:hover { transform:scale(1.05); }
+  .ai-header { background:linear-gradient(90deg,#7c3aed,#2563eb); color:#fff; }
+  .flag-anomali { position:absolute; top:10px; right:10px; padding:4px 8px; border-radius:6px; font-size:.75rem; font-weight:bold; }
+  .flag-turun { background:#fecaca; color:#991b1b; border-left:4px solid #dc2626; }
+  .flag-inkonsisten { background:#fed7aa; color:#92400e; border-left:4px solid #ea580c; }
+  .flag-data-minimal { background:#dbeafe; color:#1e40af; border-left:4px solid #2563eb; }
+  .rubrik-table { font-size:.85rem; }
+  .rubrik-table td { padding:6px 8px; }
+  .badge-trend { font-size:.75rem; padding:4px 6px; }
+  .progress-mini { height:6px; }
   #printArea { display:none; }
   @media print {
     #app-container, #auth-container, #toastWrap { display:none !important; }
     #printArea { display:block !important; }
   }
+  .batch-progress { display:flex; gap:10px; align-items:center; }
+  .batch-progress-bar { flex:1; height:20px; border-radius:10px; background:#e2e8f0; overflow:hidden; }
+  .batch-progress-fill { height:100%; background:linear-gradient(90deg,#2563eb,#7c3aed); transition:width .3s; }
 </style>
 </head>
 <body>
@@ -41,8 +53,8 @@
     <div class="card auth-card">
       <div class="text-center p-4 text-white" style="background:linear-gradient(135deg,#1e3a8a,#2563eb);">
         <i class="fas fa-chart-line fa-2x mb-2"></i>
-        <h3 class="fw-bold mb-0">SIMONEV</h3>
-        <small>Sistem Monitoring & Evaluasi Kinerja</small>
+        <h3 class="fw-bold mb-0">SIMONEV v2</h3>
+        <small>Sistem Monitoring & Evaluasi Kinerja (Enhanced AI)</small>
       </div>
       <div class="p-4">
         <div id="login-form">
@@ -80,7 +92,7 @@
 <div id="app-container" class="hidden">
   <nav class="navbar navbar-dark navbar-custom">
     <div class="container-fluid px-3 px-md-4">
-      <span class="navbar-brand fw-bold"><i class="fas fa-chart-line me-2"></i>SIMONEV</span>
+      <span class="navbar-brand fw-bold"><i class="fas fa-chart-line me-2"></i>SIMONEV v2</span>
       <div class="d-flex align-items-center text-white">
         <span class="user-chip me-2" id="userAvatar">?</span>
         <span id="userDisplayName" class="me-3 d-none d-md-block fw-semibold small"></span>
@@ -240,7 +252,12 @@
         <div id="sec-adm-analisis" class="app-section hidden">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h5 class="fw-bold mb-0">📈 Analisis Kinerja</h5>
-            <select id="filterBulan" class="form-select w-auto" onchange="updateAnalisis()"><option value="all">Semua Bulan</option></select>
+            <div class="btn-group" role="group">
+              <select id="filterBulan" class="form-select w-auto me-2" onchange="updateAnalisis()" style="max-width:150px;">
+                <option value="all">Semua Bulan</option>
+              </select>
+              <button onclick="bukaModalBatchAnalysis()" class="btn btn-primary btn-sm"><i class="fas fa-robot me-1"></i>Batch AI Analysis</button>
+            </div>
           </div>
           <div class="row mb-3">
             <div class="col-md-6"><div class="card p-3"><h6 class="fw-bold">Tren Kinerja Bulanan</h6><div class="chart-container"><canvas id="chartTren"></canvas></div></div></div>
@@ -309,6 +326,71 @@
   <div class="modal-body text-center"><img id="fotoModalImg" style="max-width:100%;border-radius:12px;"></div>
 </div></div></div>
 
+<!-- MODAL ANALISIS AI -->
+<div class="modal fade" id="aiModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
+  <div class="modal-header ai-header">
+    <h6 class="modal-title fw-bold"><i class="fas fa-robot me-2"></i>Analisis AI (Gemini 2.0)</h6>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+  </div>
+  <div class="modal-body" id="aiModalBody"></div>
+</div></div></div>
+
+<!-- MODAL BATCH ANALYSIS (BARU) -->
+<div class="modal fade" id="batchAnalysisModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
+  <div class="modal-header ai-header">
+    <h6 class="modal-title fw-bold"><i class="fas fa-robot me-2"></i>Batch Analysis AI</h6>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+  </div>
+  <div class="modal-body">
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <label class="form-label fw-bold">Filter Periode</label>
+        <select id="batchFilterBulan" class="form-select">
+          <option value="all">Semua Bulan</option>
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-bold">Status Laporan</label>
+        <select id="batchFilterStatus" class="form-select">
+          <option value="Menunggu Evaluasi">Menunggu Evaluasi</option>
+          <option value="all">Semua Status</option>
+        </select>
+      </div>
+    </div>
+    <div id="batchProgressContainer" class="hidden">
+      <div class="batch-progress mb-3">
+        <span class="fw-bold" id="batchCount">0 / 0</span>
+        <div class="batch-progress-bar"><div class="batch-progress-fill" id="batchProgressFill" style="width:0%"></div></div>
+      </div>
+      <div id="batchLog" style="background:#f8f9fa;border-radius:8px;padding:12px;max-height:200px;overflow-y:auto;font-size:.85rem;font-family:monospace;"></div>
+    </div>
+    <div id="batchButtonContainer">
+      <button onclick="startBatchAnalysis()" class="btn btn-primary w-100"><i class="fas fa-play me-1"></i>Mulai Batch Analysis</button>
+    </div>
+  </div>
+</div></div></div>
+
+<!-- MODAL RUBRIK DETAIL -->
+<div class="modal fade" id="rubrikModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
+  <div class="modal-header">
+    <h6 class="modal-title fw-bold"><i class="fas fa-list me-2"></i>Rubrik Penilaian SKP</h6>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+  </div>
+  <div class="modal-body">
+    <table class="table table-bordered rubrik-table">
+      <thead class="table-light"><tr><th>Rentang Nilai</th><th>Predikat</th><th>Indikator Penilaian</th></tr></thead>
+      <tbody>
+        <tr><td><strong>90-100</strong></td><td><span class="badge bg-success">Sangat Baik</span></td><td>✅ Melampaui target; output berkualitas tinggi; inisiatif kuat; tepat waktu; proaktif</td></tr>
+        <tr><td><strong>80-89</strong></td><td><span class="badge bg-primary">Baik</span></td><td>✅ Mencapai target sepenuhnya; kualitas baik; disiplin; responsif; konsisten</td></tr>
+        <tr><td><strong>70-79</strong></td><td><span class="badge bg-info">Cukup</span></td><td>⚠️ Mencapai target namun ada hambatan minor; kualitas standar; perlu supervisi</td></tr>
+        <tr><td><strong>50-69</strong></td><td><span class="badge bg-warning">Kurang</span></td><td>⚠️ Target kurang tercapai; ada kelalaian; perlu peningkatan; banyak revisi</td></tr>
+        <tr><td><strong>0-49</strong></td><td><span class="badge bg-danger">Sangat Kurang</span></td><td>❌ Jauh dari target; kualitas rendah; tidak disiplin; perlu pembinaan intensif</td></tr>
+      </tbody>
+    </table>
+    <div class="alert alert-info mt-3"><i class="fas fa-info-circle me-2"></i><small>Rubrik mengikuti standar Permenpan RB No. 1 Tahun 2023 tentang Penilaian Prestasi Kerja PNS</small></div>
+  </div>
+</div></div></div>
+
 <div id="printArea"></div>
 <div id="toastWrap" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
 
@@ -320,6 +402,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+// ==================== KONFIGURASI ====================
 const firebaseConfig = {
   apiKey: "AIzaSyDzL4eTr35gl2YsWwhjJ4hGFE0R-5dB3SY",
   authDomain: "appmonev.firebaseapp.com",
@@ -328,24 +411,39 @@ const firebaseConfig = {
   messagingSenderId: "658237847586",
   appId: "1:658237847586:web:0a423f872a1cf2981e327b"
 };
+
+// 🔑 PASTE API KEY GEMINI ANDA DI SINI (gratis dari aistudio.google.com/app/apikey)
+const GEMINI_API_KEY = "AQ.Ab8RN6IE9X0lLkUEDL3mNzLL_bHyTt8_Ic-iMj5Myslh-B-j-A";
+const GEMINI_MODEL = "gemini-2.0-flash";
+
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 const storage = firebase.storage();
 
-let currentUserData = null, allKinerjaData = [], myKinerjaData = [], chartInstances = {}, selectedFile = null, selectedLogFile = null;
+let currentUserData = null, allKinerjaData = [], myKinerjaData = [], chartInstances = {}, selectedFile = null, selectedLogFile = null, lastAI = null;
 const MONTH_NAMES = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
 const formatBulan = b => { if(!b) return ''; const p=b.split('-'); return `${MONTH_NAMES[+p[1]-1]} ${p[0]}`; };
 const tsMillis = t => t && t.toMillis ? t.toMillis() : 0;
 const formatSize = b => b/1024 > 1024 ? (b/1024/1024).toFixed(2)+' MB' : (b/1024).toFixed(1)+' KB';
+const esc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+// ==================== RUBRIK PENILAIAN ====================
+const RUBRIK_SKP = {
+  90: { predikat: 'Sangat Baik', indikator: 'Melampaui target; output berkualitas tinggi; inisiatif kuat; tepat waktu; proaktif' },
+  80: { predikat: 'Baik', indikator: 'Mencapai target sepenuhnya; kualitas baik; disiplin; responsif; konsisten' },
+  70: { predikat: 'Cukup', indikator: 'Mencapai target namun ada hambatan minor; kualitas standar; perlu supervisi' },
+  50: { predikat: 'Kurang', indikator: 'Target kurang tercapai; ada kelalaian; perlu peningkatan; banyak revisi' },
+  0: { predikat: 'Sangat Kurang', indikator: 'Jauh dari target; kualitas rendah; tidak disiplin; perlu pembinaan intensif' }
+};
 
 function getPredikat(n){
   if(n==null) return {label:'-', cls:'secondary'};
   if(n>=90) return {label:'Sangat Baik', cls:'success'};
-  if(n>=70) return {label:'Baik', cls:'primary'};
-  if(n>=50) return {label:'Cukup', cls:'warning'};
-  if(n>=30) return {label:'Kurang', cls:'danger'};
-  return {label:'Sangat Kurang', cls:'dark'};
+  if(n>=80) return {label:'Baik', cls:'primary'};
+  if(n>=70) return {label:'Cukup', cls:'info'};
+  if(n>=50) return {label:'Kurang', cls:'warning'};
+  return {label:'Sangat Kurang', cls:'danger'};
 }
 
 function showToast(msg, type='success'){
@@ -391,7 +489,7 @@ function showSection(id, btn){
   Object.values(chartInstances).forEach(ch=>{ try{ch.resize()}catch(e){} });
 }
 
-// ---------- AUTH ----------
+// ==================== AUTHENTICATION ====================
 document.getElementById('formRegister').addEventListener('submit', async e => {
   e.preventDefault();
   try {
@@ -444,7 +542,7 @@ function updateDeadline(){
   document.getElementById('deadlineText').innerHTML = `Batas input laporan: <strong>25 ${d.toLocaleDateString('id-ID',{month:'long'})}</strong> — sisa <strong>${days} hari</strong>.`;
 }
 
-// ---------- ANALISIS FILE LAPORAN ----------
+// ==================== FILE HANDLING ====================
 document.getElementById('inputFile').addEventListener('change', e => {
   const f = e.target.files[0];
   selectedFile = f || null;
@@ -461,7 +559,6 @@ document.getElementById('inputFile').addEventListener('change', e => {
   if(!okSize){ selectedFile = null; e.target.value = ''; }
 });
 
-// ---------- PILIH FOTO: KAMERA / GALERI (BARU) ----------
 function handleLogFileSelect(e){
   const f = e.target.files[0];
   selectedLogFile = f || null;
@@ -488,13 +585,347 @@ window.clearLogFile = () => {
   document.getElementById('logFileAnalysis').innerHTML = '';
 };
 
-// ---------- LIHAT FOTO (MODAL) ----------
 window.lihatFoto = url => {
   document.getElementById('fotoModalImg').src = url;
   new bootstrap.Modal(document.getElementById('fotoModal')).show();
 };
 
-// ---------- LOAD DATA ----------
+// ==================== SMART FLAGGING ====================
+function detectAnomalies(docId, staffName, nilai, prevNilai) {
+  const flags = [];
+  
+  // Flag: Nilai turun drastis (>15 poin)
+  if (prevNilai && nilai && (prevNilai - nilai) > 15) {
+    flags.push({
+      type: 'turun',
+      msg: `📉 Nilai turun ${prevNilai - nilai} poin (dari ${prevNilai} → ${nilai}). Pastikan kualitas evaluasi.`
+    });
+  }
+  
+  // Flag: Inkonsistensi target-realisasi
+  // (akan dideteksi saat AI analysis)
+  
+  // Flag: Data minimal (kurang dari 3 laporan)
+  if (typeof prevNilai === 'undefined') {
+    flags.push({
+      type: 'data-minimal',
+      msg: '📊 Data minimal: penilaian pertama staff ini. Kumpulkan lebih banyak data untuk trend analysis.'
+    });
+  }
+  
+  return flags;
+}
+
+function renderFlags(flags) {
+  if (!flags || flags.length === 0) return '';
+  return flags.map(f => {
+    const cls = f.type === 'turun' ? 'flag-turun' : f.type === 'inkonsisten' ? 'flag-inkonsisten' : 'flag-data-minimal';
+    return `<div class="flag-anomali ${cls}">${f.msg}</div>`;
+  }).join('');
+}
+
+// ==================== TREND ANALYSIS ====================
+function getTrendAnalysis(staffName) {
+  const staffData = allKinerjaData.filter(d => d.userName === staffName && d.nilai != null).sort((a, b) => (a.bulan || '').localeCompare(b.bulan || ''));
+  if (staffData.length < 2) return { trend: 'belum_ada', msg: 'Data kurang untuk analisis tren' };
+  
+  const recent = staffData.slice(-3);
+  const values = recent.map(d => d.nilai);
+  const avgRecent = values.reduce((a, b) => a + b, 0) / values.length;
+  const prevAvg = staffData.slice(0, -3).reduce((a, b) => a + (b.nilai || 0), 0) / Math.max(staffData.length - 3, 1);
+  
+  let trend = 'stabil';
+  if (avgRecent > prevAvg + 5) trend = 'naik';
+  else if (avgRecent < prevAvg - 5) trend = 'turun';
+  
+  const msgs = {
+    naik: `📈 Tren NAIK: dari ${prevAvg.toFixed(1)} → ${avgRecent.toFixed(1)}. Pertahankan momentum!`,
+    turun: `📉 Tren TURUN: dari ${prevAvg.toFixed(1)} → ${avgRecent.toFixed(1)}. Perlu pembinaan.`,
+    stabil: `➖ Tren STABIL: rata-rata ${avgRecent.toFixed(1)}. Konsisten.`
+  };
+  
+  return { trend, msg: msgs[trend], lastValue: values[values.length - 1], avgRecent };
+}
+
+// ==================== GEMINI AI (ENHANCED) ====================
+function blobToBase64(blob){
+  return new Promise((resolve,reject)=>{
+    const r = new FileReader();
+    r.onload = () => resolve(r.result.split(',')[1]);
+    r.onerror = reject;
+    r.readAsDataURL(blob);
+  });
+}
+
+async function callGemini(parts){
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ contents: [{ parts }] })
+  });
+  if (!res.ok) { const t = await res.text(); throw new Error(`Gemini ${res.status}. ${t.slice(0,150)}`); }
+  const data = await res.json();
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+}
+
+function parseAIJson(text){
+  try { return JSON.parse(text); } catch(e) {
+    const m = text.match(/\{[\s\S]*\}/);
+    if (m) { try { return JSON.parse(m[0]); } catch(e2) {} }
+  }
+  return { ringkasan: text };
+}
+
+window.analisisAI = async (docId, fromEvaluator) => {
+  if (!GEMINI_API_KEY) { showToast('⚠️ Isi GEMINI_API_KEY di kode terlebih dahulu (gratis di aistudio.google.com).','warning'); return; }
+  document.getElementById('aiModalBody').innerHTML = `
+    <div class="text-center py-4">
+      <i class="fas fa-robot fa-2x fa-beat text-primary mb-3"></i>
+      <p class="fw-bold mb-1">AI sedang membaca & menganalisis dokumen...</p>
+      <small class="text-muted">Mohon tunggu 5-15 detik. AI membaca target, realisasi, logbook, dan dokumen bukti.</small>
+    </div>`;
+  new bootstrap.Modal(document.getElementById('aiModal')).show();
+
+  try {
+    const doc = await db.collection('kinerja').doc(docId).get();
+    const d = doc.data();
+    
+    // TREND ANALYSIS
+    const trendInfo = getTrendAnalysis(d.userName);
+    
+    // Get logbook context
+    let logbookText = '';
+    const lb = await db.collection('logbook').where('userId','==',d.userId).get();
+    const items = [];
+    lb.forEach(x => { const i = x.data(); if ((i.tanggal||'').startsWith(d.bulan)) items.push(`${i.tanggal}: ${i.aktivitas}`); });
+    if (items.length) logbookText = `\nLogbook harian staff (${items.length} entries):\n- ${items.join('\n- ')}`;
+
+    const ext = (d.fileName||'').toLowerCase();
+    const isWord = ext.endsWith('.doc') || ext.endsWith('.docx');
+
+    // ENHANCED PROMPT (Konteks Pemerintah + Rubrik)
+    const promptText = `Anda adalah asisten AI khusus untuk Sistem Monitoring & Evaluasi Kinerja (SIMONEV) Pegawai Negeri Sipil (PNS).
+
+KONTEKS PENILAIAN:
+Penilaian mengikuti Permenpan RB No. 1 Tahun 2023. Skala: 0-100
+- 90-100: SANGAT BAIK (melampaui target, inisiatif kuat, output berkualitas tinggi)
+- 80-89: BAIK (mencapai target, kualitas baik, disiplin, responsif)
+- 70-79: CUKUP (mencapai target dengan hambatan minor, kualitas standar)
+- 50-69: KURANG (target kurang tercapai, banyak revisi, perlu peningkatan)
+- 0-49: SANGAT KURANG (jauh dari target, kualitas rendah, perlu pembinaan)
+
+DATA PEGAWAI & LAPORAN:
+- Nama: ${d.userName}
+- Periode: ${formatBulan(d.bulan)}
+- Target/SKP: ${d.target}
+- Realisasi/Capaian: ${d.realisasi}
+- Tren Performa: ${trendInfo.msg} (last: ${trendInfo.lastValue}, avg: ${trendInfo.avgRecent?.toFixed(1)})${logbookText}
+${d.fileUrl && !isWord ? 'Dokumen bukti dukung TERLAMPIR — baca secara detail dan cross-check dengan narasi di atas.' : ''}
+${isWord ? '[Dokumen Word tidak dapat dibaca visual, evaluasi berdasarkan deskripsi teks di atas]' : ''}
+
+TUGAS: Berikan penilaian objektif menggunakan rubrik SKP di atas. WAJIB BALAS DENGAN JSON VALID:
+{
+  "ringkasan": "ringkasan 2-3 kalimat tentang capaian pekerjaan & kualitasnya",
+  "kekuatan": "analisis kekuatan pekerjaan (spesifik, terukur)",
+  "kekurangan": "analisis kekurangan & area perbaikan (spesifik, konkret)",
+  "rekomendasi_nilai": angka bulat 0-100 berdasarkan rubrik,
+  "catatan": "rekomendasi tindak lanjut untuk pegawai & evaluator",
+  "konsistensi": "analisis konsistensi target-realisasi (sesuai? ada hambatan? progres logis?)"
+}`;
+
+    const parts = [{ text: promptText }];
+    if (d.fileUrl && !isWord) {
+      const fr = await fetch(d.fileUrl);
+      const blob = await fr.blob();
+      const isPdf = blob.type === 'application/pdf' || ext.endsWith('.pdf');
+      const isImg = blob.type.startsWith('image/');
+      if (isPdf || isImg) parts.push({ inline_data: { mime_type: isPdf ? 'application/pdf' : blob.type, data: await blobToBase64(blob) } });
+    }
+
+    const out = await callGemini(parts);
+    const ai = parseAIJson(out);
+    const rec = (ai.rekomendasi_nilai != null && !isNaN(ai.rekomendasi_nilai)) ? Math.round(ai.rekomendasi_nilai) : null;
+    const p = getPredikat(rec);
+    
+    // ANOMALY DETECTION
+    const prevData = allKinerjaData.filter(x => x.userName === d.userName && x.bulan < d.bulan && x.nilai != null).sort((a, b) => (b.bulan || '').localeCompare(a.bulan || ''))[0];
+    const anomalies = detectAnomalies(docId, d.userName, rec, prevData?.nilai);
+    const flagsHtml = renderFlags(anomalies);
+    
+    lastAI = { docId, rec, catatan: ai.catatan || '' };
+
+    document.getElementById('aiModalBody').innerHTML = `
+      ${flagsHtml}
+      <h6 class="fw-bold mt-3">📋 Ringkasan Pekerjaan</h6>
+      <p>${esc(ai.ringkasan) || '-'}</p>
+      
+      <div class="row">
+        <div class="col-md-6">
+          <h6 class="fw-bold text-success">✅ Kekuatan</h6>
+          <p>${esc(ai.kekuatan) || '-'}</p>
+        </div>
+        <div class="col-md-6">
+          <h6 class="fw-bold text-danger">⚠️ Kekurangan</h6>
+          <p>${esc(ai.kekurangan) || '-'}</p>
+        </div>
+      </div>
+      
+      <div class="row">
+        <div class="col-md-6">
+          <h6 class="fw-bold text-info">🔄 Konsistensi Target-Realisasi</h6>
+          <p><small>${esc(ai.konsistensi) || '-'}</small></p>
+        </div>
+        <div class="col-md-6">
+          <h6 class="fw-bold">📊 Analisis Tren</h6>
+          <p><small>${trendInfo.msg}</small></p>
+        </div>
+      </div>
+      
+      ${rec != null ? `
+      <div class="alert alert-light border d-flex justify-content-between align-items-center">
+        <span>
+          <strong>🎯 Rekomendasi Nilai (Rubrik):</strong> 
+          <span class="badge bg-${p.cls} fs-6">${rec}</span>
+          <span class="badge bg-${p.cls}">${p.label}</span>
+        </span>
+        ${fromEvaluator ? `<button class="btn btn-sm btn-primary" onclick="pakaiNilaiAI()"><i class="fas fa-check me-1"></i>Pakai Nilai Ini</button>` : ''}
+      </div>` : ''}
+      
+      <h6 class="fw-bold">💬 Rekomendasi Tindak Lanjut</h6>
+      <p class="mb-2">${esc(ai.catatan) || '-'}</p>
+      
+      <button onclick="new bootstrap.Modal(document.getElementById('rubrikModal')).show()" class="btn btn-sm btn-outline-secondary mb-3"><i class="fas fa-list me-1"></i>Lihat Rubrik SKP</button>
+      
+      <p class="text-muted mb-0" style="font-size:.75rem;">
+        ⚡ Powered by Google Gemini 2.0 Flash AI<br>
+        ✓ Analisis cerdas berdasarkan rubrik Permenpan RB 2023<br>
+        ✓ Konsultasikan dengan supervisor sebelum finalisasi nilai
+      </p>`;
+  } catch(err) {
+    bootstrap.Modal.getInstance(document.getElementById('aiModal'))?.hide();
+    showToast('❌ Analisis AI gagal: ' + err.message, 'danger');
+  }
+};
+
+window.pakaiNilaiAI = () => {
+  if (!lastAI || lastAI.rec == null) return;
+  const nEl = document.getElementById(`nilai-${lastAI.docId}`);
+  const cEl = document.getElementById(`catatan-${lastAI.docId}`);
+  if (nEl) nEl.value = lastAI.rec;
+  if (cEl && !cEl.value) cEl.value = lastAI.catatan;
+  bootstrap.Modal.getInstance(document.getElementById('aiModal'))?.hide();
+  showToast(`✅ Nilai ${lastAI.rec} terisi otomatis dari AI. Tekan "Simpan" untuk menyimpan.`);
+};
+
+// ==================== BATCH ANALYSIS ====================
+window.bukaModalBatchAnalysis = () => {
+  const modal = new bootstrap.Modal(document.getElementById('batchAnalysisModal'));
+  const select = document.getElementById('batchFilterBulan');
+  select.innerHTML = '<option value="all">Semua Bulan</option>';
+  [...new Set(allKinerjaData.map(d=>d.bulan))].sort().forEach(b=>select.innerHTML+=`<option value="${b}">${formatBulan(b)}</option>`);
+  modal.show();
+};
+
+window.startBatchAnalysis = async () => {
+  if (!GEMINI_API_KEY) { showToast('⚠️ Isi GEMINI_API_KEY terlebih dahulu.','warning'); return; }
+  
+  const bulan = document.getElementById('batchFilterBulan').value;
+  const status = document.getElementById('batchFilterStatus').value;
+  
+  let filtered = allKinerjaData;
+  if (bulan !== 'all') filtered = filtered.filter(d => d.bulan === bulan);
+  if (status !== 'all') filtered = filtered.filter(d => d.status === status);
+  
+  if (filtered.length === 0) { showToast('⚠️ Tidak ada dokumen yang cocok untuk dianalisis.', 'warning'); return; }
+  
+  document.getElementById('batchButtonContainer').classList.add('hidden');
+  document.getElementById('batchProgressContainer').classList.remove('hidden');
+  const logEl = document.getElementById('batchLog');
+  logEl.innerHTML = '';
+  
+  let success = 0, failed = 0;
+  for (let i = 0; i < filtered.length; i++) {
+    const d = filtered[i];
+    const progress = Math.round((i / filtered.length) * 100);
+    document.getElementById('batchProgressFill').style.width = progress + '%';
+    document.getElementById('batchCount').innerText = `${i} / ${filtered.length}`;
+    
+    logEl.innerHTML += `<div>[${i+1}/${filtered.length}] ${d.userName} - ${formatBulan(d.bulan)}...</div>`;
+    logEl.scrollTop = logEl.scrollHeight;
+    
+    try {
+      const doc = await db.collection('kinerja').doc(d.id).get();
+      const docData = doc.data();
+      
+      // Construct prompt
+      const ext = (docData.fileName||'').toLowerCase();
+      const isWord = ext.endsWith('.doc') || ext.endsWith('.docx');
+      const trendInfo = getTrendAnalysis(d.userName);
+      
+      let logbookText = '';
+      const lb = await db.collection('logbook').where('userId','==',docData.userId).get();
+      const items = [];
+      lb.forEach(x => { const i = x.data(); if ((i.tanggal||'').startsWith(d.bulan)) items.push(`${i.tanggal}: ${i.aktivitas}`); });
+      if (items.length) logbookText = `\nLogbook: ${items.length} entries`;
+      
+      const prompt = `[BATCH MODE] Analisis SKP PNS: ${d.userName}, ${formatBulan(d.bulan)}
+Target: ${docData.target}
+Realisasi: ${docData.realisasi}
+Tren: ${trendInfo.msg}${logbookText}
+Rubrik: 90-100=Sangat Baik, 80-89=Baik, 70-79=Cukup, 50-69=Kurang, <50=Sangat Kurang
+Balas HANYA: {"nilai":XX,"ringkasan":"...","catatan":"..."}`;
+
+      const parts = [{ text: prompt }];
+      if (docData.fileUrl && !isWord) {
+        try {
+          const fr = await fetch(docData.fileUrl);
+          const blob = await fr.blob();
+          const isPdf = blob.type === 'application/pdf' || ext.endsWith('.pdf');
+          const isImg = blob.type.startsWith('image/');
+          if ((isPdf || isImg) && blob.size < 20*1024*1024) {
+            parts.push({ inline_data: { mime_type: isPdf ? 'application/pdf' : blob.type, data: await blobToBase64(blob) } });
+          }
+        } catch(e) { /* skip file */ }
+      }
+      
+      const out = await callGemini(parts);
+      const result = parseAIJson(out);
+      const nilai = result.nilai ? Math.round(result.nilai) : null;
+      
+      if (nilai && nilai >= 0 && nilai <= 100) {
+        const st = nilai < 70 ? "Perlu Revisi" : "Dinilai";
+        await db.collection("kinerja").doc(d.id).update({
+          status: st,
+          nilai: nilai,
+          catatan: result.catatan || '',
+          predikat: getPredikat(nilai).label,
+          aiAnalyzed: true,
+          aiAnalyzedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        logEl.innerHTML += `<div style="color:#16a34a;">✅ ${d.userName} → ${nilai} (${getPredikat(nilai).label})</div>`;
+        success++;
+      } else {
+        logEl.innerHTML += `<div style="color:#ea580c;">⚠️ ${d.userName} → Nilai tidak valid: ${nilai}</div>`;
+        failed++;
+      }
+    } catch(err) {
+      logEl.innerHTML += `<div style="color:#dc2626;">❌ ${d.userName} → ${err.message.slice(0,50)}</div>`;
+      failed++;
+    }
+    
+    logEl.scrollTop = logEl.scrollHeight;
+    await new Promise(r => setTimeout(r, 1500)); // Rate limit
+  }
+  
+  document.getElementById('batchProgressFill').style.width = '100%';
+  document.getElementById('batchCount').innerText = `${filtered.length} / ${filtered.length}`;
+  logEl.innerHTML += `<div style="color:#1e40af;font-weight:bold;margin-top:10px;">✅ SELESAI: ${success} berhasil, ${failed} gagal</div>`;
+  logEl.scrollTop = logEl.scrollHeight;
+  
+  showToast(`✅ Batch analysis selesai: ${success} dokumen dianalisis`, 'success');
+};
+
+// ==================== LOAD DATA ====================
 function loadData(){
   const role = currentUserData.role;
 
@@ -508,10 +939,12 @@ function loadData(){
         const sc = d.status==='Dinilai'?'success':d.status==='Perlu Revisi'?'danger':'warning';
         const p = getPredikat(d.nilai);
         const lampiran = d.fileUrl ? `<br><a href="${d.fileUrl}" target="_blank" class="small text-decoration-none"><i class="fas fa-paperclip"></i> ${d.fileName||'Lampiran'}</a>` : '';
-        tb.innerHTML += `<tr><td>${formatBulan(d.bulan)}</td><td><small>${d.target}</small>${lampiran}</td>
+        const aiBadge = d.aiAnalyzed ? `<br><span class="badge bg-purple" style="background:#9333ea;"><i class="fas fa-robot me-1"></i>AI</span>` : '';
+        tb.innerHTML += `<tr><td>${formatBulan(d.bulan)}</td><td><small>${d.target}</small>${lampiran}${aiBadge}</td>
           <td><span class="badge bg-${sc}">${d.status}</span></td><td class="fw-bold">${d.nilai??'-'}</td>
           <td><span class="badge bg-${p.cls}">${p.label}</span></td>
           <td class="aksi">
+            <button class="btn btn-sm btn-outline-success" title="Analisis AI" onclick="analisisAI('${d.id}', false)"><i class="fas fa-robot"></i></button>
             <button class="btn btn-sm btn-outline-primary" title="Komentar" onclick="bukaKomentar('${d.id}')"><i class="fas fa-comments"></i></button>
             <button class="btn btn-sm btn-outline-secondary" title="Cetak SKP" onclick="cetakSKP('${d.id}')"><i class="fas fa-print"></i></button>
             ${d.status==='Perlu Revisi'?`<button class="btn btn-sm btn-outline-danger" onclick="ajukanRevisi('${d.id}')"><i class="fas fa-rotate"></i></button>`:''}
@@ -553,17 +986,25 @@ function loadData(){
         const list = document.getElementById('listEvaluator');
         list.innerHTML = pending.length ? '' : `<div class="card"><div class="empty-state"><i class="fas fa-check-circle fa-2x mb-2 text-success"></i><br>Semua laporan sudah dievaluasi. 🎉</div></div>`;
         pending.forEach(d => {
+          const trendInfo = getTrendAnalysis(d.userName);
+          const prevData = allKinerjaData.filter(x => x.userName === d.userName && x.bulan < d.bulan && x.nilai != null).sort((a, b) => (b.bulan || '').localeCompare(a.bulan || ''))[0];
+          const anomalies = detectAnomalies(d.id, d.userName, d.nilai, prevData?.nilai);
+          const flagsHtml = renderFlags(anomalies);
+          
           list.innerHTML += `<div class="card p-4 mb-3">
+            ${flagsHtml}
             <div class="d-flex justify-content-between"><h6 class="fw-bold text-primary">${d.userName}</h6><span class="badge bg-secondary">${formatBulan(d.bulan)}</span></div>
+            <small class="text-muted mb-2">${trendInfo.msg}</small>
             ${d.status==='Perlu Revisi'?'<span class="badge bg-danger mb-2">Laporan Revisi</span>':''}
             <p class="mb-1"><strong>Target:</strong> ${d.target}</p>
             <p class="mb-1"><strong>Realisasi:</strong> ${d.realisasi}</p>
             ${d.buktiDukung?`<p class="mb-1"><a href="${d.buktiDukung}" target="_blank"><i class="fas fa-link me-1"></i>Bukti Dukung (Link)</a></p>`:''}
             ${d.fileUrl?`<p class="mb-2"><a href="${d.fileUrl}" target="_blank" class="text-decoration-none"><i class="fas fa-paperclip me-1"></i><strong>${d.fileName||'Lampiran Dokumen'}</strong></a></p>`:''}
-            <div class="row g-2 align-items-center mt-1">
+            <div class="row g-2 align-items-center mt-2">
               <div class="col-md-2"><input type="number" class="form-control" id="nilai-${d.id}" placeholder="0-100" min="0" max="100" value="${d.nilai??''}"></div>
-              <div class="col-md-5"><input type="text" class="form-control" id="catatan-${d.id}" placeholder="Catatan evaluasi" value="${d.catatan||''}"></div>
+              <div class="col-md-4"><input type="text" class="form-control" id="catatan-${d.id}" placeholder="Catatan evaluasi" value="${d.catatan||''}"></div>
               <div class="col-md-2"><button class="btn btn-primary w-100" onclick="beriNilai('${d.id}')"><i class="fas fa-save me-1"></i>Simpan</button></div>
+              <div class="col-auto"><button class="btn btn-outline-success" onclick="analisisAI('${d.id}', true)" title="AI Analysis"><i class="fas fa-robot"></i> AI</button></div>
               <div class="col-auto"><button class="btn btn-outline-primary" onclick="bukaKomentar('${d.id}')" title="Komentar"><i class="fas fa-comments"></i></button></div>
               <div class="col-auto"><button class="btn btn-outline-secondary" onclick="lihatLogbook('${d.userId}','${d.bulan}','${d.userName}')" title="Logbook"><i class="fas fa-book"></i></button></div>
               <div class="col-auto"><button class="btn btn-outline-secondary" onclick="cetakSKP('${d.id}')" title="Cetak"><i class="fas fa-print"></i></button></div>
@@ -616,7 +1057,7 @@ function loadData(){
   }
 }
 
-// ---------- ANALISIS STAFF ----------
+// ==================== STAFF ANALYTICS ====================
 function updateStaffAnalytics(){
   const total = myKinerjaData.length;
   const dinilaiArr = myKinerjaData.filter(d=>d.status==='Dinilai'&&d.nilai!=null);
@@ -655,12 +1096,13 @@ function updateStaffAnalytics(){
   document.getElementById('myInsightText').innerHTML = html;
 }
 
-// ---------- ANALISIS ADMIN ----------
+// ==================== ADMIN ANALYTICS ====================
 function updateFilterBulan(){
   const f = document.getElementById('filterBulan');
   f.innerHTML = '<option value="all">Semua Bulan</option>';
   [...new Set(allKinerjaData.map(d=>d.bulan))].sort().forEach(b=>f.innerHTML+=`<option value="${b}">${formatBulan(b)}</option>`);
 }
+
 function updateCharts(){
   const dinilai=allKinerjaData.filter(d=>d.status==='Dinilai'), men=allKinerjaData.filter(d=>d.status==='Menunggu Evaluasi'), rev=allKinerjaData.filter(d=>d.status==='Perlu Revisi');
   if(chartInstances.status) chartInstances.status.destroy();
@@ -670,6 +1112,7 @@ function updateCharts(){
   if(chartInstances.staff) chartInstances.staff.destroy();
   chartInstances.staff = new Chart(document.getElementById('chartStaff'),{type:'bar',data:{labels:sl.map(s=>s.split(' ')[0]),datasets:[{label:'Rata-rata',data:sa,backgroundColor:'#2563eb'}]},options:{scales:{y:{beginAtZero:true,max:100}}}});
 }
+
 function updateAnalisis(){
   const fb=document.getElementById('filterBulan').value;
   const filtered = fb==='all'?allKinerjaData:allKinerjaData.filter(d=>d.bulan===fb);
@@ -697,7 +1140,7 @@ function updateAnalisis(){
   document.getElementById('insightText').innerHTML=ins;
 }
 
-// ---------- SUBMIT LAPORAN ----------
+// ==================== SUBMIT LAPORAN ====================
 document.getElementById('formKinerja').addEventListener('submit', async e => {
   e.preventDefault();
   const btn = e.target.querySelector('button[type="submit"]');
@@ -729,7 +1172,7 @@ document.getElementById('formKinerja').addEventListener('submit', async e => {
   btn.disabled = false; btn.innerHTML = oldHtml;
 });
 
-// ---------- SUBMIT LOGBOOK + FOTO ----------
+// ==================== SUBMIT LOGBOOK ====================
 document.getElementById('formLogbook').addEventListener('submit', async e => {
   e.preventDefault();
   const btn = e.target.querySelector('button[type="submit"]');
@@ -775,7 +1218,7 @@ window.ajukanRevisi = async docId => {
   }
 };
 
-// ---------- KOMENTAR ----------
+// ==================== KOMENTAR ====================
 let komentarDocId = null;
 window.bukaKomentar = docId => {
   komentarDocId = docId;
@@ -796,7 +1239,7 @@ document.getElementById('formKomentar').addEventListener('submit', async e => {
   bukaKomentar(komentarDocId);
 });
 
-// ---------- LOGBOOK MODAL ----------
+// ==================== LOGBOOK MODAL ====================
 window.lihatLogbook = (userId, bulan, nama) => {
   document.getElementById('logbookModalTitle').innerText = `📒 Logbook ${nama} — ${formatBulan(bulan)}`;
   db.collection("logbook").where("userId","==",userId).get().then(snap => {
@@ -812,7 +1255,7 @@ window.lihatLogbook = (userId, bulan, nama) => {
   });
 };
 
-// ---------- MANAJEMEN USER ----------
+// ==================== MANAJEMEN USER ====================
 window.changeRoleUser = async (uid, role) => { await db.collection('users').doc(uid).update({role}); showToast('✅ Role user diperbarui.'); };
 window.toggleUserStatus = async (uid, st) => {
   const baru = st==='nonaktif' ? 'aktif' : 'nonaktif';
@@ -822,37 +1265,40 @@ window.toggleUserStatus = async (uid, st) => {
   }
 };
 
-// ---------- CETAK SKP ----------
+// ==================== CETAK SKP ====================
 window.cetakSKP = docId => {
   db.collection("kinerja").doc(docId).get().then(doc => {
     const d = doc.data(), p = getPredikat(d.nilai);
+    const trendInfo = getTrendAnalysis(d.userName);
     document.getElementById('printArea').innerHTML = `
       <div style="font-family:Arial;padding:20px;">
-        <h3 style="text-align:center;margin-bottom:4px;">LEMBAR EVALUASI KINERJA PEGAWAI</h3>
-        <p style="text-align:center;margin-top:0;">Sistem Monitoring & Evaluasi Kinerja (SIMONEV)</p>
+        <h3 style="text-align:center;margin-bottom:4px;">LEMBAR EVALUASI KINERJA PEGAWAI (SKP)</h3>
+        <p style="text-align:center;margin-top:0;">SIMONEV v2 - Sistem Monitoring & Evaluasi Kinerja</p>
+        <p style="text-align:center;font-size:0.85rem;color:#666;">Berdasarkan Permenpan RB No. 1 Tahun 2023</p>
         <hr>
         <table width="100%" cellpadding="8" border="1" style="border-collapse:collapse;">
           <tr><td width="30%"><strong>Nama Pegawai</strong></td><td>${d.userName}</td></tr>
           <tr><td><strong>Periode</strong></td><td>${formatBulan(d.bulan)}</td></tr>
-          <tr><td><strong>Target / Rencana Kerja</strong></td><td>${d.target}</td></tr>
+          <tr><td><strong>Target / Rencana Kerja (SKP)</strong></td><td>${d.target}</td></tr>
           <tr><td><strong>Realisasi / Capaian</strong></td><td>${d.realisasi}</td></tr>
           <tr><td><strong>Bukti Dukung</strong></td><td>${d.buktiDukung||'-'} ${d.fileName?`<br>Lampiran: ${d.fileName}`:''}</td></tr>
-          <tr><td><strong>Nilai</strong></td><td><strong>${d.nilai??'-'}</strong></td></tr>
+          <tr><td><strong>Nilai</strong></td><td><strong style="font-size:1.2rem;">${d.nilai??'-'}</strong></td></tr>
           <tr><td><strong>Predikat</strong></td><td><strong>${p.label}</strong></td></tr>
           <tr><td><strong>Catatan Evaluator</strong></td><td>${d.catatan||'-'}</td></tr>
+          <tr><td><strong>Analisis Tren</strong></td><td>${trendInfo.msg}</td></tr>
         </table>
-        <br><br>
+        <br><p style="font-size:0.85rem;color:#666;"><strong>Rubrik Penilaian SKP:</strong> 90-100=Sangat Baik | 80-89=Baik | 70-79=Cukup | 50-69=Kurang | <50=Sangat Kurang</p><br><br>
         <table width="100%"><tr>
           <td style="text-align:center;">Pegawai yang dinilai,<br><br><br><br><br>( <strong>${d.userName}</strong> )</td>
           <td style="text-align:center;">Mengetahui,<br>Atasan Langsung / Evaluator<br><br><br><br>( .................................... )</td>
         </tr></table>
-        <p style="text-align:right;margin-top:20px;"><small>Dicetak dari SIMONEV pada ${new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}</small></p>
+        <p style="text-align:right;margin-top:20px;"><small>Dicetak dari SIMONEV v2 pada ${new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})}</small></p>
       </div>`;
     window.print();
   });
 };
 
-// ---------- EXPORT ----------
+// ==================== EXPORT ====================
 window.exportToExcel = (tableId, name) => {
   const clone = document.getElementById(tableId).cloneNode(true);
   clone.querySelectorAll('.aksi').forEach(el=>el.remove());
