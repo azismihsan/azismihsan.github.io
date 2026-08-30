@@ -29,12 +29,9 @@
   .ai-header { background:linear-gradient(90deg,#7c3aed,#2563eb); color:#fff; }
   .flag-anomali { position:absolute; top:10px; right:10px; padding:4px 8px; border-radius:6px; font-size:.75rem; font-weight:bold; }
   .flag-turun { background:#fecaca; color:#991b1b; border-left:4px solid #dc2626; }
-  .flag-inkonsisten { background:#fed7aa; color:#92400e; border-left:4px solid #ea580c; }
   .flag-data-minimal { background:#dbeafe; color:#1e40af; border-left:4px solid #2563eb; }
   .rubrik-table { font-size:.85rem; }
   .rubrik-table td { padding:6px 8px; }
-  .badge-trend { font-size:.75rem; padding:4px 6px; }
-  .progress-mini { height:6px; }
   #printArea { display:none; }
   @media print {
     #app-container, #auth-container, #toastWrap { display:none !important; }
@@ -130,7 +127,7 @@
           <div class="card p-3 mt-3 bg-white"><h6 class="fw-bold"><i class="fas fa-lightbulb me-2 text-warning"></i>Insight Kinerja</h6><div id="myInsightText"></div></div>
         </div>
 
-        <!-- STAFF: LAPORAN (HANYA DOKUMEN: CSV/WORD/PDF) -->
+        <!-- STAFF: LAPORAN -->
         <div id="sec-staff-laporan" class="app-section hidden">
           <h5 class="fw-bold mb-3">📝 Laporan Kinerja Bulanan</h5>
           <div class="row">
@@ -143,9 +140,9 @@
                   <div class="mb-3"><label class="form-label">Realisasi / Capaian</label><textarea class="form-control" id="inputRealisasi" rows="3" required></textarea></div>
                   <div class="mb-3"><label class="form-label">Link Bukti Dukung (opsional)</label><input type="url" class="form-control" id="inputBukti" placeholder="https://drive.google.com/..."></div>
                   <div class="mb-3">
-                    <label class="form-label fw-bold">📎 Upload Dokumen Bukti (CSV/Word/PDF, maks 5MB)</label>
-                    <input type="file" class="form-control" id="inputFile" accept=".csv,.doc,.docx,.pdf,.txt">
-                    <div class="form-text">Format yang diterima: CSV, Word (.doc/.docx), PDF, TXT</div>
+                    <label class="form-label fw-bold">📎 Upload Dokumen Bukti (maks 10MB)</label>
+                    <input type="file" class="form-control" id="inputFile" accept=".csv,.xls,.xlsx,.doc,.docx,.pdf,.txt">
+                    <div class="form-text">Format: Excel, Word, PDF, CSV, TXT — tersimpan aman di Cloudinary</div>
                     <div id="fileAnalysis"></div>
                   </div>
                   <button class="btn btn-primary w-100 fw-bold"><i class="fas fa-paper-plane me-2"></i>Submit Laporan</button>
@@ -166,7 +163,7 @@
           </div>
         </div>
 
-        <!-- STAFF: LOGBOOK (HANYA FOTO) -->
+        <!-- STAFF: LOGBOOK -->
         <div id="sec-staff-logbook" class="app-section hidden">
           <h5 class="fw-bold mb-3">📒 Logbook Harian</h5>
           <div class="row">
@@ -188,7 +185,7 @@
                     </div>
                     <input type="file" id="logFileCamera" accept="image/*" capture="environment" class="hidden">
                     <input type="file" id="logFileGallery" accept="image/*" class="hidden">
-                    <div class="form-text">Format: JPG, PNG, WebP. Gunakan kamera HP untuk foto langsung di lokasi.</div>
+                    <div class="form-text">Format: JPG, PNG, WebP</div>
                     <div id="logFileAnalysis"></div>
                   </div>
                   <button class="btn btn-primary w-100 fw-bold"><i class="fas fa-plus me-2"></i>Simpan Logbook</button>
@@ -328,7 +325,7 @@
   <div class="modal-body text-center"><img id="fotoModalImg" style="max-width:100%;border-radius:12px;"></div>
 </div></div></div>
 
-<!-- MODAL ANALISIS AI -->
+<!-- MODAL AI -->
 <div class="modal fade" id="aiModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
   <div class="modal-header ai-header">
     <h6 class="modal-title fw-bold"><i class="fas fa-robot me-2"></i>Analisis AI (Gemini 2.0)</h6>
@@ -337,7 +334,7 @@
   <div class="modal-body" id="aiModalBody"></div>
 </div></div></div>
 
-<!-- MODAL BATCH ANALYSIS -->
+<!-- MODAL BATCH -->
 <div class="modal fade" id="batchAnalysisModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
   <div class="modal-header ai-header">
     <h6 class="modal-title fw-bold"><i class="fas fa-robot me-2"></i>Batch Analysis AI</h6>
@@ -370,7 +367,7 @@
   </div>
 </div></div></div>
 
-<!-- MODAL RUBRIK DETAIL -->
+<!-- MODAL RUBRIK -->
 <div class="modal fade" id="rubrikModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
   <div class="modal-header">
     <h6 class="modal-title fw-bold"><i class="fas fa-list me-2"></i>Rubrik Penilaian SKP</h6>
@@ -387,7 +384,7 @@
         <tr><td><strong>0-49</strong></td><td><span class="badge bg-danger">Sangat Kurang</span></td><td>❌ Jauh dari target; kualitas rendah; tidak disiplin; perlu pembinaan intensif</td></tr>
       </tbody>
     </table>
-    <div class="alert alert-info mt-3"><i class="fas fa-info-circle me-2"></i><small>Rubrik mengikuti standar Permenpan RB No. 1 Tahun 2023 tentang Penilaian Prestasi Kerja PNS</small></div>
+    <div class="alert alert-info mt-3"><i class="fas fa-info-circle me-2"></i><small>Rubrik mengikuti standar Permenpan RB No. 1 Tahun 2023</small></div>
   </div>
 </div></div></div>
 
@@ -397,7 +394,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -412,18 +408,20 @@ const firebaseConfig = {
   appId: "1:658237847586:web:0a423f872a1cf2981e327b"
 };
 
-// 🔑 PASTE API KEY GEMINI ANDA (harus diawali "AIzaSy...")
-const GEMINI_API_KEY = "AQ.Ab8RN6K7q5y1HcLI137Mue9BukFZI9MOV50YElSWidHq9bJ25Q"; // <-- ISI DI SINI
+// 🔑 KEY GEMINI (format AQ... atau AIzaSy...)
+const GEMINI_API_KEY = "";
 const GEMINI_MODEL = "gemini-2.0-flash";
 
-// Batas ukuran file
-const MAX_FILE_REPORT = 5 * 1024 * 1024;   // 5MB untuk laporan (CSV/Word/PDF)
-const MAX_FILE_LOGBOOK = 2 * 1024 * 1024;  // 2MB untuk logbook (foto)
+// ☁️ CLOUDINARY (gratis 25GB) — isi dari dashboard Cloudinary Anda
+const CLOUDINARY_CLOUD_NAME = "hkzdhfeo";  // contoh: "dxyz123"
+const CLOUDINARY_UPLOAD_PRESET = "appmonev"; // preset dengan Signing Mode = Unsigned
+
+const MAX_FILE_REPORT = 10 * 1024 * 1024;
+const MAX_FILE_LOGBOOK = 2 * 1024 * 1024;
 
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-const storage = firebase.storage();
 
 let currentUserData = null, allKinerjaData = [], myKinerjaData = [], chartInstances = {}, selectedFile = null, selectedLogFile = null, lastAI = null;
 const MONTH_NAMES = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
@@ -431,6 +429,15 @@ const formatBulan = b => { if(!b) return ''; const p=b.split('-'); return `${MON
 const tsMillis = t => t && t.toMillis ? t.toMillis() : 0;
 const formatSize = b => b/1024 > 1024 ? (b/1024/1024).toFixed(2)+' MB' : (b/1024).toFixed(1)+' KB';
 const esc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+const fileIconFor = name => {
+  const e = (name||'').toLowerCase();
+  if (e.endsWith('.csv')||e.endsWith('.xls')||e.endsWith('.xlsx')) return '📊';
+  if (e.endsWith('.pdf')) return '📄';
+  if (e.endsWith('.doc')||e.endsWith('.docx')) return '📝';
+  if (e.match(/\.(jpg|jpeg|png|webp)$/)) return '🖼️';
+  return '📁';
+};
 
 function getPredikat(n){
   if(n==null) return {label:'-', cls:'secondary'};
@@ -537,70 +544,66 @@ function updateDeadline(){
   document.getElementById('deadlineText').innerHTML = `Batas input laporan: <strong>25 ${d.toLocaleDateString('id-ID',{month:'long'})}</strong> — sisa <strong>${days} hari</strong>.`;
 }
 
-// ==================== FILE HANDLING (DIPERBAIKI) ====================
+// ==================== UPLOAD CLOUDINARY (BARU) ====================
+async function uploadToCloudinary(file){
+  if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_UPLOAD_PRESET) {
+    throw new Error('Isi CLOUDINARY_CLOUD_NAME & CLOUDINARY_UPLOAD_PRESET di kode terlebih dahulu.');
+  }
+  const isImage = file.type.startsWith('image/');
+  const type = isImage ? 'image' : 'raw';
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${type}/upload`, { method:'POST', body: fd });
+  if (!res.ok) throw new Error('Upload Cloudinary gagal (' + res.status + ')');
+  const data = await res.json();
+  return data.secure_url;
+}
 
-// LAPORAN: hanya dokumen (CSV/Word/PDF/TXT), maks 5MB
+// ==================== FILE HANDLING ====================
 document.getElementById('inputFile').addEventListener('change', e => {
   const f = e.target.files[0];
   selectedFile = f || null;
   const box = document.getElementById('fileAnalysis');
   if(!f){ box.innerHTML=''; return; }
-  
   const ext = (f.name.split('.').pop()||'').toLowerCase();
-  const validExts = ['csv','doc','docx','pdf','txt'];
+  const validExts = ['csv','xls','xlsx','doc','docx','pdf','txt'];
   const isValidExt = validExts.includes(ext);
-  
-  let jenisIcon = '📁', jenisLabel = 'Lainnya';
-  if (ext === 'csv') { jenisIcon = '📊'; jenisLabel = 'Data CSV (Tabel)'; }
-  else if (ext === 'pdf') { jenisIcon = '📄'; jenisLabel = 'Dokumen PDF'; }
-  else if (ext === 'doc' || ext === 'docx') { jenisIcon = '📝'; jenisLabel = 'Dokumen Word'; }
-  else if (ext === 'txt') { jenisIcon = '📃'; jenisLabel = 'Teks Biasa'; }
-  
+  let jenisLabel = 'Lainnya';
+  if (['csv','xls','xlsx'].includes(ext)) jenisLabel = 'Dokumen Excel / Data';
+  else if (ext === 'pdf') jenisLabel = 'Dokumen PDF';
+  else if (ext === 'doc' || ext === 'docx') jenisLabel = 'Dokumen Word';
+  else if (ext === 'txt') jenisLabel = 'Teks Biasa';
   const okSize = f.size <= MAX_FILE_REPORT;
   const okAll = okSize && isValidExt;
-  
   box.innerHTML = `<div class="alert ${okAll?'alert-light border':'alert-danger'} mt-2 mb-0 p-3">
     <strong>🔍 Analisis Dokumen:</strong><br>
-    <small>
-      Nama: <strong>${f.name}</strong><br>
-      Jenis: ${jenisIcon} ${jenisLabel} ${isValidExt?'✅':'❌ (format tidak didukung)'}<br>
-      Ukuran: ${formatSize(f.size)} ${okSize?'✅':'❌ (maksimal 5MB)'}
-    </small>
-    ${!isValidExt ? '<br><small class="text-danger">⚠️ Format harus CSV, Word, PDF, atau TXT</small>' : ''}
+    <small>Nama: <strong>${f.name}</strong><br>
+    Jenis: ${fileIconFor(f.name)} ${jenisLabel} ${isValidExt?'✅':'❌'}<br>
+    Ukuran: ${formatSize(f.size)} ${okSize?'✅':'❌ (maksimal 10MB)'}</small>
+    ${!isValidExt ? '<br><small class="text-danger">⚠️ Format: Excel, Word, PDF, CSV, TXT</small>' : ''}
   </div>`;
-  
   if(!okAll){ selectedFile = null; e.target.value = ''; }
 });
 
-// LOGBOOK: hanya foto, maks 2MB
 function handleLogFileSelect(e){
   const f = e.target.files[0];
   selectedLogFile = f || null;
   const box = document.getElementById('logFileAnalysis');
   if(!f){ box.innerHTML=''; return; }
-  
   const isImg = f.type.startsWith('image/');
   const okSize = f.size <= MAX_FILE_LOGBOOK;
   const okAll = isImg && okSize;
   const sumber = e.target.id === 'logFileCamera' ? '📷 Kamera' : '🖼️ Galeri';
-  
   let preview = '';
   if(isImg) preview = `<br><img src="${URL.createObjectURL(f)}" style="max-height:110px;border-radius:8px;" class="mt-2">`;
-  
   box.innerHTML = `<div class="alert ${okAll?'alert-light border':'alert-danger'} mt-2 mb-0 p-3">
     <strong>🔍 Analisis Foto:</strong><br>
-    <small>
-      Sumber: ${sumber}<br>
-      Nama: <strong>${f.name}</strong><br>
-      Ukuran: ${formatSize(f.size)} ${okSize?'✅':'❌ (maks 2MB)'}<br>
-      Tipe: ${f.type} ${isImg?'✅':'❌ (harus berupa gambar)'}
-    </small>${preview}
+    <small>Sumber: ${sumber}<br>Nama: <strong>${f.name}</strong><br>Ukuran: ${formatSize(f.size)} ${okSize?'✅':'❌ (maks 2MB)'} ${isImg?'✅':'❌ (harus gambar)'}</small>${preview}
     ${okAll?`<br><button type="button" class="btn btn-sm btn-outline-danger mt-2" onclick="clearLogFile()"><i class="fas fa-trash me-1"></i>Hapus Foto</button>`:''}
   </div>`;
-  
   if(!okAll){ selectedLogFile = null; e.target.value = ''; }
 }
-
 document.getElementById('logFileCamera').addEventListener('change', handleLogFileSelect);
 document.getElementById('logFileGallery').addEventListener('change', handleLogFileSelect);
 
@@ -616,42 +619,28 @@ window.lihatFoto = url => {
   new bootstrap.Modal(document.getElementById('fotoModal')).show();
 };
 
-// ==================== SMART FLAGGING ====================
+// ==================== FLAGGING & TREND ====================
 function detectAnomalies(docId, staffName, nilai, prevNilai) {
   const flags = [];
-  if (prevNilai && nilai && (prevNilai - nilai) > 15) {
-    flags.push({ type: 'turun', msg: `📉 Nilai turun ${prevNilai - nilai} poin (dari ${prevNilai} → ${nilai}).` });
-  }
-  if (typeof prevNilai === 'undefined') {
-    flags.push({ type: 'data-minimal', msg: '📊 Penilaian pertama staff ini.' });
-  }
+  if (prevNilai && nilai && (prevNilai - nilai) > 15) flags.push({ type:'turun', msg:`📉 Nilai turun ${prevNilai - nilai} poin.` });
+  if (typeof prevNilai === 'undefined') flags.push({ type:'data-minimal', msg:'📊 Penilaian pertama staff ini.' });
   return flags;
 }
-
 function renderFlags(flags) {
-  if (!flags || flags.length === 0) return '';
-  return flags.map(f => {
-    const cls = f.type === 'turun' ? 'flag-turun' : f.type === 'inkonsisten' ? 'flag-inkonsisten' : 'flag-data-minimal';
-    return `<div class="flag-anomali ${cls}">${f.msg}</div>`;
-  }).join('');
+  if (!flags || !flags.length) return '';
+  return flags.map(f => `<div class="flag-anomali ${f.type==='turun'?'flag-turun':'flag-data-minimal'}">${f.msg}</div>`).join('');
 }
-
 function getTrendAnalysis(staffName) {
-  const staffData = allKinerjaData.filter(d => d.userName === staffName && d.nilai != null).sort((a, b) => (a.bulan || '').localeCompare(b.bulan || ''));
-  if (staffData.length < 2) return { trend: 'belum_ada', msg: 'Data kurang untuk analisis tren', lastValue: null, avgRecent: null };
+  const staffData = allKinerjaData.filter(d => d.userName === staffName && d.nilai != null).sort((a,b) => (a.bulan||'').localeCompare(b.bulan||''));
+  if (staffData.length < 2) return { trend:'belum_ada', msg:'Data kurang untuk analisis tren', lastValue:null, avgRecent:null };
   const recent = staffData.slice(-3);
   const values = recent.map(d => d.nilai);
-  const avgRecent = values.reduce((a, b) => a + b, 0) / values.length;
-  const prevAvg = staffData.slice(0, -3).reduce((a, b) => a + (b.nilai || 0), 0) / Math.max(staffData.length - 3, 1);
-  let trend = 'stabil';
-  if (avgRecent > prevAvg + 5) trend = 'naik';
-  else if (avgRecent < prevAvg - 5) trend = 'turun';
-  const msgs = {
-    naik: `📈 Tren NAIK: ${prevAvg.toFixed(1)} → ${avgRecent.toFixed(1)}`,
-    turun: `📉 Tren TURUN: ${prevAvg.toFixed(1)} → ${avgRecent.toFixed(1)}`,
-    stabil: `➖ Tren STABIL: rata-rata ${avgRecent.toFixed(1)}`
-  };
-  return { trend, msg: msgs[trend], lastValue: values[values.length - 1], avgRecent };
+  const avgRecent = values.reduce((a,b)=>a+b,0)/values.length;
+  const prevAvg = staffData.slice(0,-3).reduce((a,b)=>a+(b.nilai||0),0)/Math.max(staffData.length-3,1);
+  let trend='stabil';
+  if (avgRecent > prevAvg+5) trend='naik'; else if (avgRecent < prevAvg-5) trend='turun';
+  const msgs = { naik:`📈 Tren NAIK: ${prevAvg.toFixed(1)} → ${avgRecent.toFixed(1)}`, turun:`📉 Tren TURUN: ${prevAvg.toFixed(1)} → ${avgRecent.toFixed(1)}`, stabil:`➖ Tren STABIL: rata-rata ${avgRecent.toFixed(1)}` };
+  return { trend, msg:msgs[trend], lastValue:values[values.length-1], avgRecent };
 }
 
 // ==================== GEMINI AI ====================
@@ -663,15 +652,37 @@ function blobToBase64(blob){
     r.readAsDataURL(blob);
   });
 }
-
-// Baca CSV/TXT sebagai string teks
 function readTextFile(blob){
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve,reject)=>{
     const r = new FileReader();
     r.onload = () => resolve(r.result);
     r.onerror = reject;
     r.readAsText(blob);
   });
+}
+
+async function buildFileParts(fileUrl, fileName){
+  const parts = [];
+  try {
+    const fr = await fetch(fileUrl);
+    const blob = await fr.blob();
+    const ext = (fileName||'').toLowerCase().split('.').pop();
+    if (ext === 'pdf' || blob.type === 'application/pdf') {
+      parts.push({ inline_data: { mime_type:'application/pdf', data: await blobToBase64(blob) } });
+    } else if (blob.type.startsWith('image/')) {
+      parts.push({ inline_data: { mime_type: blob.type, data: await blobToBase64(blob) } });
+    } else if (ext === 'xls' || ext === 'xlsx') {
+      const buf = await blob.arrayBuffer();
+      const wb = XLSX.read(buf, { type:'array' });
+      let csvAll = '';
+      wb.SheetNames.forEach(name => { csvAll += `\n[Sheet: ${name}]\n` + XLSX.utils.sheet_to_csv(wb.Sheets[name]); });
+      parts.push({ text: `\n\n--- ISI FILE EXCEL (${fileName}) ---\n${csvAll.slice(0, 15000)}\n--- AKHIR FILE ---` });
+    } else if (ext === 'csv' || ext === 'txt') {
+      const txt = await readTextFile(blob);
+      parts.push({ text: `\n\n--- ISI FILE ${ext.toUpperCase()} (${fileName}) ---\n${txt.slice(0, 15000)}\n--- AKHIR FILE ---` });
+    }
+  } catch(e) {}
+  return parts;
 }
 
 async function callGemini(parts){
@@ -694,7 +705,7 @@ function parseAIJson(text){
 }
 
 window.analisisAI = async (docId, fromEvaluator) => {
-  if (!GEMINI_API_KEY) { showToast('⚠️ Isi GEMINI_API_KEY di kode terlebih dahulu (harus diawali "AIzaSy...").','warning'); return; }
+  if (!GEMINI_API_KEY) { showToast('⚠️ Isi GEMINI_API_KEY di kode terlebih dahulu.','warning'); return; }
   document.getElementById('aiModalBody').innerHTML = `
     <div class="text-center py-4">
       <i class="fas fa-robot fa-2x fa-beat text-primary mb-3"></i>
@@ -707,7 +718,6 @@ window.analisisAI = async (docId, fromEvaluator) => {
     const doc = await db.collection('kinerja').doc(docId).get();
     const d = doc.data();
     const trendInfo = getTrendAnalysis(d.userName);
-    
     let logbookText = '';
     const lb = await db.collection('logbook').where('userId','==',d.userId).get();
     const items = [];
@@ -716,76 +726,41 @@ window.analisisAI = async (docId, fromEvaluator) => {
 
     const ext = (d.fileName||'').toLowerCase();
     const isWord = ext.endsWith('.doc') || ext.endsWith('.docx');
-    const isCsv = ext.endsWith('.csv') || ext.endsWith('.txt');
-    const isPdf = ext.endsWith('.pdf');
 
-    const promptText = `Anda adalah asisten AI khusus untuk Sistem Monitoring & Evaluasi Kinerja (SIMONEV) Pegawai Negeri Sipil (PNS).
+    const promptText = `Anda adalah asisten AI untuk Sistem Monitoring & Evaluasi Kinerja (SIMONEV) PNS.
 
-KONTEKS PENILAIAN:
-Penilaian mengikuti Permenpan RB No. 1 Tahun 2023. Skala: 0-100
-- 90-100: SANGAT BAIK
-- 80-89: BAIK
-- 70-79: CUKUP
-- 50-69: KURANG
-- 0-49: SANGAT KURANG
+KONTEKS PENILAIAN (Permenpan RB No. 1 Tahun 2023, skala 0-100):
+90-100 SANGAT BAIK | 80-89 BAIK | 70-79 CUKUP | 50-69 KURANG | 0-49 SANGAT KURANG
 
-DATA PEGAWAI & LAPORAN:
+DATA:
 - Nama: ${d.userName}
 - Periode: ${formatBulan(d.bulan)}
 - Target/SKP: ${d.target}
-- Realisasi/Capaian: ${d.realisasi}
-- Tren Performa: ${trendInfo.msg} (last: ${trendInfo.lastValue}, avg: ${trendInfo.avgRecent?.toFixed(1)})${logbookText}
-${d.fileUrl && !isWord ? 'Dokumen bukti dukung TERLAMPIR — baca secara detail dan cross-check dengan narasi di atas.' : ''}
-${isWord ? '[Dokumen Word tidak dapat dibaca visual; evaluasi berdasarkan teks laporan + logbook]' : ''}
+- Realisasi: ${d.realisasi}
+- Tren: ${trendInfo.msg}${logbookText}
+${d.fileUrl && !isWord ? 'Dokumen bukti (Excel/PDF/CSV) TERLAMPIR — baca isinya dan cross-check dengan narasi.' : ''}
+${isWord ? '[Dokumen Word tidak dapat dibaca langsung; nilai berdasarkan teks laporan + logbook]' : ''}
 
-TUGAS: Berikan penilaian objektif. WAJIB BALAS DENGAN JSON VALID:
-{
-  "ringkasan": "ringkasan 2-3 kalimat tentang capaian pekerjaan",
-  "kekuatan": "analisis kekuatan pekerjaan (spesifik, terukur)",
-  "kekurangan": "analisis kekurangan & area perbaikan",
-  "rekomendasi_nilai": angka bulat 0-100,
-  "catatan": "rekomendasi tindak lanjut",
-  "konsistensi": "analisis konsistensi target-realisasi (sesuai? ada hambatan?)"
-}`;
+WAJIB BALAS JSON VALID:
+{"ringkasan":"...","kekuatan":"...","kekurangan":"...","rekomendasi_nilai":0-100,"catatan":"...","konsistensi":"..."}`;
 
     const parts = [{ text: promptText }];
-    
     if (d.fileUrl && !isWord) {
-      try {
-        const fr = await fetch(d.fileUrl);
-        const blob = await fr.blob();
-        
-        if (isCsv && blob.size < 500*1024) {
-          // CSV kecil: baca sebagai teks dan kirim sebagai text part
-          const csvText = await readTextFile(blob);
-          parts.push({ text: `\n\n--- ISI FILE CSV/TXT ---\n${csvText.slice(0, 15000)}\n--- AKHIR FILE ---` });
-        } else if (isPdf) {
-          parts.push({ inline_data: { mime_type: 'application/pdf', data: await blobToBase64(blob) } });
-        } else if (blob.type.startsWith('image/')) {
-          parts.push({ inline_data: { mime_type: blob.type, data: await blobToBase64(blob) } });
-        } else if (isCsv) {
-          // CSV besar: baca sebagian
-          const csvText = await readTextFile(blob);
-          parts.push({ text: `\n\n--- ISI CSV (dipotong) ---\n${csvText.slice(0, 15000)}\n--- AKHIR ---` });
-        }
-      } catch(e) { /* skip */ }
+      const extra = await buildFileParts(d.fileUrl, d.fileName);
+      parts.push(...extra);
     }
 
     const out = await callGemini(parts);
     const ai = parseAIJson(out);
     const rec = (ai.rekomendasi_nilai != null && !isNaN(ai.rekomendasi_nilai)) ? Math.round(ai.rekomendasi_nilai) : null;
     const p = getPredikat(rec);
-    
-    const prevData = allKinerjaData.filter(x => x.userName === d.userName && x.bulan < d.bulan && x.nilai != null).sort((a, b) => (b.bulan || '').localeCompare(a.bulan || ''))[0];
-    const anomalies = detectAnomalies(docId, d.userName, rec, prevData?.nilai);
-    const flagsHtml = renderFlags(anomalies);
-    
+    const prevData = allKinerjaData.filter(x => x.userName === d.userName && x.bulan < d.bulan && x.nilai != null).sort((a,b) => (b.bulan||'').localeCompare(a.bulan||''))[0];
+    const flagsHtml = renderFlags(detectAnomalies(docId, d.userName, rec, prevData?.nilai));
     lastAI = { docId, rec, catatan: ai.catatan || '' };
 
     document.getElementById('aiModalBody').innerHTML = `
       ${flagsHtml}
-      <h6 class="fw-bold mt-3">📋 Ringkasan Pekerjaan</h6>
-      <p>${esc(ai.ringkasan) || '-'}</p>
+      <h6 class="fw-bold mt-3">📋 Ringkasan</h6><p>${esc(ai.ringkasan) || '-'}</p>
       <div class="row">
         <div class="col-md-6"><h6 class="fw-bold text-success">✅ Kekuatan</h6><p>${esc(ai.kekuatan) || '-'}</p></div>
         <div class="col-md-6"><h6 class="fw-bold text-danger">⚠️ Kekurangan</h6><p>${esc(ai.kekurangan) || '-'}</p></div>
@@ -799,8 +774,7 @@ TUGAS: Berikan penilaian objektif. WAJIB BALAS DENGAN JSON VALID:
         <span><strong>🎯 Rekomendasi:</strong> <span class="badge bg-${p.cls} fs-6">${rec}</span> <span class="badge bg-${p.cls}">${p.label}</span></span>
         ${fromEvaluator ? `<button class="btn btn-sm btn-primary" onclick="pakaiNilaiAI()"><i class="fas fa-check me-1"></i>Pakai Nilai</button>` : ''}
       </div>` : ''}
-      <h6 class="fw-bold">💬 Tindak Lanjut</h6>
-      <p class="mb-2">${esc(ai.catatan) || '-'}</p>
+      <h6 class="fw-bold">💬 Tindak Lanjut</h6><p class="mb-2">${esc(ai.catatan) || '-'}</p>
       <button onclick="new bootstrap.Modal(document.getElementById('rubrikModal')).show()" class="btn btn-sm btn-outline-secondary mb-3"><i class="fas fa-list me-1"></i>Lihat Rubrik</button>
       <p class="text-muted mb-0" style="font-size:.75rem;">⚡ Powered by Google Gemini 2.0 Flash AI</p>`;
   } catch(err) {
@@ -819,7 +793,7 @@ window.pakaiNilaiAI = () => {
   showToast(`✅ Nilai ${lastAI.rec} terisi otomatis dari AI.`);
 };
 
-// ==================== BATCH ANALYSIS ====================
+// ==================== BATCH ====================
 window.bukaModalBatchAnalysis = () => {
   const modal = new bootstrap.Modal(document.getElementById('batchAnalysisModal'));
   const select = document.getElementById('batchFilterBulan');
@@ -835,64 +809,39 @@ window.startBatchAnalysis = async () => {
   let filtered = allKinerjaData;
   if (bulan !== 'all') filtered = filtered.filter(d => d.bulan === bulan);
   if (status !== 'all') filtered = filtered.filter(d => d.status === status);
-  if (filtered.length === 0) { showToast('⚠️ Tidak ada dokumen untuk dianalisis.', 'warning'); return; }
-  
+  if (!filtered.length) { showToast('⚠️ Tidak ada dokumen untuk dianalisis.','warning'); return; }
   document.getElementById('batchButtonContainer').classList.add('hidden');
   document.getElementById('batchProgressContainer').classList.remove('hidden');
   const logEl = document.getElementById('batchLog');
   logEl.innerHTML = '';
-  
   let success = 0, failed = 0;
   for (let i = 0; i < filtered.length; i++) {
     const d = filtered[i];
-    const progress = Math.round((i / filtered.length) * 100);
-    document.getElementById('batchProgressFill').style.width = progress + '%';
+    document.getElementById('batchProgressFill').style.width = Math.round((i/filtered.length)*100) + '%';
     document.getElementById('batchCount').innerText = `${i} / ${filtered.length}`;
     logEl.innerHTML += `<div>[${i+1}/${filtered.length}] ${d.userName} - ${formatBulan(d.bulan)}...</div>`;
     logEl.scrollTop = logEl.scrollHeight;
-    
     try {
       const doc = await db.collection('kinerja').doc(d.id).get();
       const docData = doc.data();
       const ext = (docData.fileName||'').toLowerCase();
       const isWord = ext.endsWith('.doc') || ext.endsWith('.docx');
-      const isCsv = ext.endsWith('.csv') || ext.endsWith('.txt');
       const trendInfo = getTrendAnalysis(d.userName);
-      
-      let logbookText = '';
-      const lb = await db.collection('logbook').where('userId','==',docData.userId).get();
-      const items = [];
-      lb.forEach(x => { const i = x.data(); if ((i.tanggal||'').startsWith(d.bulan)) items.push(`${i.tanggal}: ${i.aktivitas}`); });
-      if (items.length) logbookText = `\nLogbook: ${items.length} entries`;
-      
       const prompt = `[BATCH] Analisis SKP PNS: ${d.userName}, ${formatBulan(d.bulan)}
 Target: ${docData.target}
 Realisasi: ${docData.realisasi}
-Tren: ${trendInfo.msg}${logbookText}
+Tren: ${trendInfo.msg}
 Rubrik: 90-100=Sangat Baik, 80-89=Baik, 70-79=Cukup, 50-69=Kurang, <50=Sangat Kurang
 Balas HANYA JSON: {"nilai":XX,"catatan":"..."}`;
-
       const parts = [{ text: prompt }];
       if (docData.fileUrl && !isWord) {
-        try {
-          const fr = await fetch(docData.fileUrl);
-          const blob = await fr.blob();
-          if (isCsv) {
-            const csvText = await readTextFile(blob);
-            parts.push({ text: `\n\n--- CSV ---\n${csvText.slice(0, 8000)}\n--- AKHIR ---` });
-          } else if (blob.type === 'application/pdf' || ext.endsWith('.pdf')) {
-            parts.push({ inline_data: { mime_type: 'application/pdf', data: await blobToBase64(blob) } });
-          } else if (blob.type.startsWith('image/')) {
-            parts.push({ inline_data: { mime_type: blob.type, data: await blobToBase64(blob) } });
-          }
-        } catch(e) {}
+        const extra = await buildFileParts(docData.fileUrl, docData.fileName);
+        parts.push(...extra);
       }
-      
       const out = await callGemini(parts);
       const result = parseAIJson(out);
       const nilai = result.nilai ? Math.round(result.nilai) : null;
-      
-      if (nilai && nilai >= 0 && nilai <= 100) {
+      if (nilai != null && nilai >= 0 && nilai <= 100) {
         const st = nilai < 70 ? "Perlu Revisi" : "Dinilai";
         await db.collection("kinerja").doc(d.id).update({
           status: st, nilai, catatan: result.catatan || '',
@@ -912,11 +861,10 @@ Balas HANYA JSON: {"nilai":XX,"catatan":"..."}`;
     logEl.scrollTop = logEl.scrollHeight;
     await new Promise(r => setTimeout(r, 1500));
   }
-  
   document.getElementById('batchProgressFill').style.width = '100%';
   document.getElementById('batchCount').innerText = `${filtered.length} / ${filtered.length}`;
   logEl.innerHTML += `<div style="color:#1e40af;font-weight:bold;margin-top:10px;">✅ SELESAI: ${success} berhasil, ${failed} gagal</div>`;
-  showToast(`✅ Batch analysis selesai: ${success} dokumen dianalisis`, 'success');
+  showToast(`✅ Batch selesai: ${success} dokumen dianalisis`, 'success');
 };
 
 // ==================== LOAD DATA ====================
@@ -932,9 +880,7 @@ function loadData(){
       myKinerjaData.forEach(d => {
         const sc = d.status==='Dinilai'?'success':d.status==='Perlu Revisi'?'danger':'warning';
         const p = getPredikat(d.nilai);
-        const ext = (d.fileName||'').toLowerCase();
-        const fileIcon = ext.endsWith('.csv')?'📊':ext.endsWith('.pdf')?'📄':ext.endsWith('.doc')||ext.endsWith('.docx')?'📝':'📁';
-        const lampiran = d.fileUrl ? `<br><a href="${d.fileUrl}" target="_blank" class="small text-decoration-none">${fileIcon} ${d.fileName||'Lampiran'}</a>` : '';
+        const lampiran = d.fileUrl ? `<br><a href="${d.fileUrl}" target="_blank" class="small text-decoration-none">${fileIconFor(d.fileName)} ${d.fileName||'Lampiran'}</a>` : '';
         const aiBadge = d.aiAnalyzed ? `<br><span class="badge" style="background:#9333ea;"><i class="fas fa-robot me-1"></i>AI</span>` : '';
         tb.innerHTML += `<tr><td>${formatBulan(d.bulan)}</td><td><small>${d.target}</small>${lampiran}${aiBadge}</td>
           <td><span class="badge bg-${sc}">${d.status}</span></td><td class="fw-bold">${d.nilai??'-'}</td>
@@ -982,11 +928,8 @@ function loadData(){
         list.innerHTML = pending.length ? '' : `<div class="card"><div class="empty-state"><i class="fas fa-check-circle fa-2x mb-2 text-success"></i><br>Semua laporan sudah dievaluasi. 🎉</div></div>`;
         pending.forEach(d => {
           const trendInfo = getTrendAnalysis(d.userName);
-          const prevData = allKinerjaData.filter(x => x.userName === d.userName && x.bulan < d.bulan && x.nilai != null).sort((a, b) => (b.bulan || '').localeCompare(a.bulan || ''))[0];
-          const anomalies = detectAnomalies(d.id, d.userName, d.nilai, prevData?.nilai);
-          const flagsHtml = renderFlags(anomalies);
-          const ext = (d.fileName||'').toLowerCase();
-          const fileIcon = ext.endsWith('.csv')?'📊':ext.endsWith('.pdf')?'📄':ext.endsWith('.doc')||ext.endsWith('.docx')?'📝':'📁';
+          const prevData = allKinerjaData.filter(x => x.userName === d.userName && x.bulan < d.bulan && x.nilai != null).sort((a,b) => (b.bulan||'').localeCompare(a.bulan||''))[0];
+          const flagsHtml = renderFlags(detectAnomalies(d.id, d.userName, d.nilai, prevData?.nilai));
           list.innerHTML += `<div class="card p-4 mb-3" style="position:relative;">
             ${flagsHtml}
             <div class="d-flex justify-content-between"><h6 class="fw-bold text-primary">${d.userName}</h6><span class="badge bg-secondary">${formatBulan(d.bulan)}</span></div>
@@ -995,7 +938,7 @@ function loadData(){
             <p class="mb-1"><strong>Target:</strong> ${d.target}</p>
             <p class="mb-1"><strong>Realisasi:</strong> ${d.realisasi}</p>
             ${d.buktiDukung?`<p class="mb-1"><a href="${d.buktiDukung}" target="_blank"><i class="fas fa-link me-1"></i>Link Bukti</a></p>`:''}
-            ${d.fileUrl?`<p class="mb-2"><a href="${d.fileUrl}" target="_blank" class="text-decoration-none">${fileIcon} <strong>${d.fileName||'Lampiran'}</strong></a></p>`:''}
+            ${d.fileUrl?`<p class="mb-2"><a href="${d.fileUrl}" target="_blank" class="text-decoration-none">${fileIconFor(d.fileName)} <strong>${d.fileName||'Lampiran'}</strong></a></p>`:''}
             <div class="row g-2 align-items-center mt-2">
               <div class="col-md-2"><input type="number" class="form-control" id="nilai-${d.id}" placeholder="0-100" min="0" max="100" value="${d.nilai??''}"></div>
               <div class="col-md-4"><input type="text" class="form-control" id="catatan-${d.id}" placeholder="Catatan" value="${d.catatan||''}"></div>
@@ -1021,10 +964,8 @@ function loadData(){
         const ta = document.getElementById('tableAdmin');
         ta.innerHTML = '';
         allKinerjaData.forEach(d => { const p=getPredikat(d.nilai); const sc=d.status==='Dinilai'?'success':d.status==='Perlu Revisi'?'danger':'warning';
-          const ext = (d.fileName||'').toLowerCase();
-          const fileIcon = ext.endsWith('.csv')?'📊':ext.endsWith('.pdf')?'📄':ext.endsWith('.doc')||ext.endsWith('.docx')?'📝':'📁';
           const bukti = [ d.buktiDukung?`<a href="${d.buktiDukung}" target="_blank" title="Link"><i class="fas fa-link"></i></a>`:'',
-                          d.fileUrl?`<a href="${d.fileUrl}" target="_blank" title="${d.fileName||'Lampiran'}">${fileIcon}</a>`:'' ].join(' ') || '-';
+                          d.fileUrl?`<a href="${d.fileUrl}" target="_blank" title="${d.fileName||'Lampiran'}">${fileIconFor(d.fileName)}</a>`:'' ].join(' ') || '-';
           ta.innerHTML += `<tr><td>${d.userName}</td><td>${formatBulan(d.bulan)}</td><td>${d.target}</td><td>${d.realisasi}</td>
           <td>${bukti}</td>
           <td><span class="badge bg-${sc}">${d.status}</span></td><td class="fw-bold">${d.nilai??'-'}</td><td><span class="badge bg-${p.cls}">${p.label}</span></td>
@@ -1091,7 +1032,6 @@ function updateFilterBulan(){
   f.innerHTML = '<option value="all">Semua Bulan</option>';
   [...new Set(allKinerjaData.map(d=>d.bulan))].sort().forEach(b=>f.innerHTML+=`<option value="${b}">${formatBulan(b)}</option>`);
 }
-
 function updateCharts(){
   const dinilai=allKinerjaData.filter(d=>d.status==='Dinilai'), men=allKinerjaData.filter(d=>d.status==='Menunggu Evaluasi'), rev=allKinerjaData.filter(d=>d.status==='Perlu Revisi');
   if(chartInstances.status) chartInstances.status.destroy();
@@ -1101,7 +1041,6 @@ function updateCharts(){
   if(chartInstances.staff) chartInstances.staff.destroy();
   chartInstances.staff = new Chart(document.getElementById('chartStaff'),{type:'bar',data:{labels:sl.map(s=>s.split(' ')[0]),datasets:[{label:'Rata-rata',data:sa,backgroundColor:'#2563eb'}]},options:{scales:{y:{beginAtZero:true,max:100}}}});
 }
-
 function updateAnalisis(){
   const fb=document.getElementById('filterBulan').value;
   const filtered = fb==='all'?allKinerjaData:allKinerjaData.filter(d=>d.bulan===fb);
@@ -1129,27 +1068,18 @@ function updateAnalisis(){
   document.getElementById('insightText').innerHTML=ins;
 }
 
-// ==================== SUBMIT LAPORAN ====================
+// ==================== SUBMIT LAPORAN (CLOUDINARY) ====================
 document.getElementById('formKinerja').addEventListener('submit', async e => {
   e.preventDefault();
-  if (selectedFile && selectedFile.size > MAX_FILE_REPORT) {
-    showToast('❌ File terlalu besar. Maksimal 5MB.', 'danger'); return;
-  }
+  if (selectedFile && selectedFile.size > MAX_FILE_REPORT) { showToast('❌ File terlalu besar. Maksimal 10MB.','danger'); return; }
   const btn = e.target.querySelector('button[type="submit"]');
   const oldHtml = btn.innerHTML;
   btn.disabled = true;
   let fileUrl = '', fileName = '';
   try {
     if (selectedFile) {
-      const ref = storage.ref('bukti/' + currentUserData.uid + '_' + Date.now() + '_' + selectedFile.name);
-      const task = ref.put(selectedFile);
-      await new Promise((resolve, reject) => {
-        task.on('state_changed',
-          s => { btn.innerHTML = `<i class="fas fa-cloud-arrow-up fa-spin me-1"></i>Upload ${Math.round(s.bytesTransferred/s.totalBytes*100)}%`; },
-          err => reject(err),
-          () => resolve());
-      });
-      fileUrl = await ref.getDownloadURL();
+      btn.innerHTML = '<i class="fas fa-cloud-arrow-up fa-spin me-1"></i>Upload dokumen...';
+      fileUrl = await uploadToCloudinary(selectedFile);
       fileName = selectedFile.name;
     }
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Menyimpan...';
@@ -1164,27 +1094,18 @@ document.getElementById('formKinerja').addEventListener('submit', async e => {
   btn.disabled = false; btn.innerHTML = oldHtml;
 });
 
-// ==================== SUBMIT LOGBOOK ====================
+// ==================== SUBMIT LOGBOOK (CLOUDINARY) ====================
 document.getElementById('formLogbook').addEventListener('submit', async e => {
   e.preventDefault();
-  if (selectedLogFile && selectedLogFile.size > MAX_FILE_LOGBOOK) {
-    showToast('❌ Foto terlalu besar. Maksimal 2MB.', 'danger'); return;
-  }
+  if (selectedLogFile && selectedLogFile.size > MAX_FILE_LOGBOOK) { showToast('❌ Foto terlalu besar. Maksimal 2MB.','danger'); return; }
   const btn = e.target.querySelector('button[type="submit"]');
   const oldHtml = btn.innerHTML;
   btn.disabled = true;
   let fotoUrl = '';
   try {
     if (selectedLogFile) {
-      const ref = storage.ref('logbook/' + currentUserData.uid + '_' + Date.now() + '_' + selectedLogFile.name);
-      const task = ref.put(selectedLogFile);
-      await new Promise((resolve, reject) => {
-        task.on('state_changed',
-          s => { btn.innerHTML = `<i class="fas fa-cloud-arrow-up fa-spin me-1"></i>Upload foto ${Math.round(s.bytesTransferred/s.totalBytes*100)}%`; },
-          err => reject(err),
-          () => resolve());
-      });
-      fotoUrl = await ref.getDownloadURL();
+      btn.innerHTML = '<i class="fas fa-cloud-arrow-up fa-spin me-1"></i>Upload foto...';
+      fotoUrl = await uploadToCloudinary(selectedLogFile);
     }
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Menyimpan...';
     await db.collection("logbook").add({ userId:currentUserData.uid, userName:currentUserData.nama,
@@ -1261,8 +1182,6 @@ window.cetakSKP = docId => {
   db.collection("kinerja").doc(docId).get().then(doc => {
     const d = doc.data(), p = getPredikat(d.nilai);
     const trendInfo = getTrendAnalysis(d.userName);
-    const ext = (d.fileName||'').toLowerCase();
-    const fileIcon = ext.endsWith('.csv')?'📊':ext.endsWith('.pdf')?'📄':ext.endsWith('.doc')||ext.endsWith('.docx')?'📝':'📁';
     document.getElementById('printArea').innerHTML = `
       <div style="font-family:Arial;padding:20px;">
         <h3 style="text-align:center;margin-bottom:4px;">LEMBAR EVALUASI KINERJA PEGAWAI (SKP)</h3>
@@ -1274,7 +1193,7 @@ window.cetakSKP = docId => {
           <tr><td><strong>Periode</strong></td><td>${formatBulan(d.bulan)}</td></tr>
           <tr><td><strong>Target / Rencana Kerja (SKP)</strong></td><td>${d.target}</td></tr>
           <tr><td><strong>Realisasi / Capaian</strong></td><td>${d.realisasi}</td></tr>
-          <tr><td><strong>Bukti Dukung</strong></td><td>${d.buktiDukung||'-'} ${d.fileName?`<br>${fileIcon} ${d.fileName}`:''}</td></tr>
+          <tr><td><strong>Bukti Dukung</strong></td><td>${d.buktiDukung||'-'} ${d.fileName?`<br>${fileIconFor(d.fileName)} ${d.fileName}`:''}</td></tr>
           <tr><td><strong>Nilai</strong></td><td><strong style="font-size:1.2rem;">${d.nilai??'-'}</strong></td></tr>
           <tr><td><strong>Predikat</strong></td><td><strong>${p.label}</strong></td></tr>
           <tr><td><strong>Catatan Evaluator</strong></td><td>${d.catatan||'-'}</td></tr>
