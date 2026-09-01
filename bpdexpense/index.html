@@ -37,7 +37,7 @@
 
 <div class="container-fluid py-4" style="max-width:1300px">
 
-  <!-- ============ 1. RINGKASAN DANA (3 KARTU BESAR) ============ -->
+  <!-- ============ 1. RINGKASAN DANA ============ -->
   <div class="row g-3 mb-4">
     <div class="col-md-4">
       <div class="card shadow-sm h-100"><div class="card-body d-flex align-items-center gap-3">
@@ -63,25 +63,25 @@
     </div>
   </div>
 
-  <!-- ============ 2. PEMAKAIAN BUDGET PER KATEGORI ============ -->
-  <div class="d-flex justify-content-between align-items-center mb-2">
+  <!-- ============ 2. BUDGET PER KATEGORI ============ -->
+  <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
     <h6 class="fw-bold mb-0"><i class="bi bi-speedometer2"></i> Pemakaian Budget per Kategori</h6>
-    <button class="btn btn-sm btn-link text-decoration-none" data-bs-toggle="collapse" data-bs-target="#rincianBudget">
-      Lihat rincian dana awal <i class="bi bi-chevron-down"></i>
-    </button>
+    <div class="d-flex gap-2">
+      <button class="btn btn-sm btn-outline-primary" onclick="openBudgetEditor()" data-bs-toggle="modal" data-bs-target="#budgetModal">
+        <i class="bi bi-gear"></i> Atur Budget
+      </button>
+      <button class="btn btn-sm btn-link text-decoration-none" data-bs-toggle="collapse" data-bs-target="#rincianBudget">
+        Rincian dana awal <i class="bi bi-chevron-down"></i>
+      </button>
+    </div>
   </div>
+
   <div class="collapse mb-3" id="rincianBudget">
     <div class="card shadow-sm"><div class="card-body p-2">
       <table class="table table-sm mb-0 small">
         <thead><tr><th>Category</th><th>EmployeeName</th><th>Description</th><th class="text-end">Nominal</th></tr></thead>
-        <tbody>
-          <tr><td>Entertain</td><td>-</td><td>Konsumsi Kustomer</td><td class="text-end">Rp 2.000.000,00</td></tr>
-          <tr><td>Transportation Dalam kota</td><td>Muh. Fhadlan Dinul Haq</td><td>Transport dalam kota 1 x 4 x 50.000</td><td class="text-end">Rp 200.000,00</td></tr>
-          <tr><td>Transportation Dalam kota</td><td>Azis Muhammad Ihsan</td><td>Transport dalam kota 1 x 4 x 50.000</td><td class="text-end">Rp 200.000,00</td></tr>
-          <tr><td>Food & Beverage</td><td>Muh. Fhadlan Dinul Haq</td><td>Reimburse makan 1 orang x 4 hari x Rp 120.000</td><td class="text-end">Rp 480.000,00</td></tr>
-          <tr><td>Food & Beverage</td><td>Azis Muhammad Ihsan</td><td>Reimburse makan 1 orang x 4 hari x Rp 120.000</td><td class="text-end">Rp 480.000,00</td></tr>
-          <tr><td>Transportation Tempat Tujuan</td><td>-</td><td>transportasi ke tempat tujuan</td><td class="text-end">Rp 120.000,00</td></tr>
-        </tbody>
+        <tbody id="rincianBody"></tbody>
+        <tfoot><tr class="table-warning fw-bold"><td colspan="3" class="text-end">TOTAL:</td><td class="text-end" id="rincianTotal"></td></tr></tfoot>
       </table>
     </div></div>
   </div>
@@ -89,7 +89,6 @@
 
   <!-- ============ 3. FORM + TABEL ============ -->
   <div class="row g-4">
-    <!-- FORM -->
     <div class="col-lg-4">
       <div class="card shadow-sm sticky-form">
         <div class="card-header bg-white fw-bold"><i class="bi bi-plus-circle text-primary"></i> Catat Pengeluaran</div>
@@ -97,15 +96,7 @@
           <form id="addForm" class="vstack gap-3">
             <div>
               <label class="form-label small fw-semibold mb-1">Kategori</label>
-              <select name="category" class="form-select">
-                <option value="">(Tanpa Kategori)</option>
-                <option>Entertain</option>
-                <option>Food & Beverage</option>
-                <option>Transportation Dalam kota</option>
-                <option>Transportation Tempat Tujuan</option>
-                <option>Accommodation</option>
-                <option>Other</option>
-              </select>
+              <select name="category" id="fCategory" class="form-select"></select>
             </div>
             <div>
               <label class="form-label small fw-semibold mb-1">Deskripsi <span class="text-danger">*</span></label>
@@ -137,7 +128,6 @@
       </div>
     </div>
 
-    <!-- TABEL -->
     <div class="col-lg-8">
       <div class="card shadow-sm">
         <div class="card-header bg-white">
@@ -153,14 +143,10 @@
                 <input id="search" class="form-control" placeholder="Cari deskripsi...">
               </div>
             </div>
-            <div class="col-md-4">
-              <select id="filterCat" class="form-select form-select-sm"><option value="">Semua Kategori</option></select>
-            </div>
+            <div class="col-md-4"><select id="filterCat" class="form-select form-select-sm"><option value="">Semua Kategori</option></select></div>
             <div class="col-md-3">
               <select id="filterStatus" class="form-select form-select-sm">
-                <option value="semua">Semua Status</option>
-                <option value="aktif">Aktif</option>
-                <option value="dihapus">Dihapus</option>
+                <option value="semua">Semua Status</option><option value="aktif">Aktif</option><option value="dihapus">Dihapus</option>
               </select>
             </div>
           </div>
@@ -168,10 +154,7 @@
         <div class="table-responsive">
           <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
-              <tr>
-                <th>Tanggal</th><th>Kategori</th><th>Deskripsi & Invoice</th>
-                <th class="text-end">Nominal</th><th>Status</th><th class="text-end">Aksi</th>
-              </tr>
+              <tr><th>Tanggal</th><th>Kategori</th><th>Deskripsi & Invoice</th><th class="text-end">Nominal</th><th>Status</th><th class="text-end">Aksi</th></tr>
             </thead>
             <tbody id="tbody"></tbody>
           </table>
@@ -180,9 +163,29 @@
     </div>
   </div>
 
-  <p class="text-center text-muted small mt-4 mb-2">
-    💡 Data tersimpan di browser ini. Rutin klik <b>Backup</b> agar aman. • Dibuat dengan ❤️ untuk tim
-  </p>
+  <p class="text-center text-muted small mt-4 mb-2">💡 Data tersimpan di browser ini. Rutin klik <b>Backup</b> agar aman. • Dibuat dengan ❤️ untuk tim</p>
+</div>
+
+<!-- ============ MODAL ATUR BUDGET ============ -->
+<div class="modal fade" id="budgetModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content" style="border-radius:16px">
+      <div class="modal-header border-0">
+        <h5 class="modal-title fw-bold"><i class="bi bi-gear text-primary"></i> Atur Budget Awal</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="small text-muted mb-3">Tambah, ubah, atau hapus alokasi budget. Setelah disimpan, semua hitungan (sisa dana & bar progres) otomatis menyesuaikan.</p>
+        <div class="vstack gap-2" id="budgetEditor"></div>
+        <button class="btn btn-sm btn-outline-primary mt-3" onclick="addBudgetRow()"><i class="bi bi-plus-lg"></i> Tambah Baris</button>
+      </div>
+      <div class="modal-footer border-0">
+        <button class="btn btn-light me-auto" onclick="resetBudget()"><i class="bi bi-arrow-counterclockwise"></i> Reset ke Default</button>
+        <button class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+        <button class="btn btn-primary" onclick="saveBudget()"><i class="bi bi-save"></i> Simpan Budget</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ============ MODAL HAPUS ============ -->
@@ -214,47 +217,52 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body small">
         <ol class="vstack gap-2 ps-3">
-          <li><b>Catat pengeluaran</b> lewat formulir di kiri (atau atas di HP). Nominal boleh diketik <code>150.000</code>.</li>
-          <li><b>Kartu paling atas</b> menunjukkan Dana Awal, Total Pengeluaran, dan Sisa Dana secara otomatis.</li>
-          <li><b>Bar progres</b> menunjukkan pemakaian budget tiap kategori: 🟢 aman, 🟡 mendekati batas, 🔴 melebihi budget.</li>
-          <li><b>Hapus</b> data wajib pakai alasan — baris akan dicoret tapi bisa <b>Pulihkan</b> kembali.</li>
-          <li><b>Backup</b> mengunduh cadangan (JSON), <b>Restore</b> mengembalikannya. Lakukan rutin!</li>
-          <li><b>Export CSV</b> untuk membuka data di Excel.</li>
+          <li><b>Catat pengeluaran</b> lewat formulir. Nominal boleh diketik <code>150.000</code>.</li>
+          <li><b>Kartu atas</b> menunjukkan Dana Awal, Total Pengeluaran, dan Sisa Dana otomatis.</li>
+          <li><b>⚙️ Atur Budget</b> untuk mengubah dana awal: tambah/ubah/hapus alokasi per kategori & karyawan, atau <b>Reset ke Default</b>.</li>
+          <li><b>Bar progres</b>: 🟢 aman, 🟡 ≥70%, 🔴 melebihi budget.</li>
+          <li><b>Hapus</b> wajib pakai alasan — baris dicoret tapi bisa <b>Pulihkan</b>.</li>
+          <li><b>Backup/Restore</b> untuk cadangan data (termasuk budget). <b>Export CSV</b> untuk Excel.</li>
         </ol>
-        <div class="alert alert-info py-2 mt-2 mb-0">⚠️ Data tersimpan di browser masing-masing (tidak sinkron antar perangkat). Gunakan Backup/Restore untuk memindahkan data.</div>
+        <div class="alert alert-info py-2 mt-2 mb-0">⚠️ Data tersimpan di browser masing-masing. Gunakan Backup/Restore untuk memindahkan data.</div>
       </div>
     </div>
   </div>
 </div>
 
+<datalist id="catList">
+  <option>Entertain</option><option>Food & Beverage</option>
+  <option>Transportation Dalam kota</option><option>Transportation Tempat Tujuan</option>
+  <option>Accommodation</option><option>Other</option>
+</datalist>
 <div id="toastContainer" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 const STORAGE_KEY = "expense_trace_data";
-const BUDGET_AWAL = {
-  "Entertain": 2000000,
-  "Transportation Dalam kota": 400000,
-  "Food & Beverage": 960000,
-  "Transportation Tempat Tujuan": 120000
-};
-const CAT_ICON = {
-  "Entertain":"🎉","Food & Beverage":"🍽️","Transportation Dalam kota":"🚕",
-  "Transportation Tempat Tujuan":"✈️","Accommodation":"🏨","Other":"📦","(Tanpa Kategori)":""
-};
-const CAT_BADGE = {
-  "Entertain":"bg-primary","Food & Beverage":"bg-success",
-  "Transportation Dalam kota":"bg-info text-white","Transportation Tempat Tujuan":"bg-warning text-dark",
-  "Accommodation":"bg-secondary","Other":"bg-secondary","(Tanpa Kategori)":"bg-light text-dark border"
-};
-let data = [], pendingDeleteId = null;
+const BUDGET_KEY  = "expense_trace_budget";
+
+const DEFAULT_BUDGET = [
+  {id:1, category:"Entertain", employee:"-", description:"Konsumsi Kustomer", nominal:2000000},
+  {id:2, category:"Transportation Dalam kota", employee:"Muh. Fhadlan Dinul Haq", description:"Transport dalam kota 1 x 4 x 50.000", nominal:200000},
+  {id:3, category:"Transportation Dalam kota", employee:"Azis Muhammad Ihsan", description:"Transport dalam kota 1 x 4 x 50.000", nominal:200000},
+  {id:4, category:"Food & Beverage", employee:"Muh. Fhadlan Dinul Haq", description:"Reimburse makan 1 orang x 4 hari x Rp 120.000", nominal:480000},
+  {id:5, category:"Food & Beverage", employee:"Azis Muhammad Ihsan", description:"Reimburse makan 1 orang x 4 hari x Rp 120.000", nominal:480000},
+  {id:6, category:"Transportation Tempat Tujuan", employee:"-", description:"transportasi ke tempat tujuan", nominal:120000}
+];
+const CAT_ICON = {"Entertain":"🎉","Food & Beverage":"🍽️","Transportation Dalam kota":"🚕","Transportation Tempat Tujuan":"✈️","Accommodation":"🏨","Other":"📦","(Tanpa Kategori)":""};
+const CAT_BADGE = {"Entertain":"bg-primary","Food & Beverage":"bg-success","Transportation Dalam kota":"bg-info text-white","Transportation Tempat Tujuan":"bg-warning text-dark","Accommodation":"bg-secondary","Other":"bg-secondary","(Tanpa Kategori)":"bg-light text-dark border"};
+
+let data = [], budget = [], budgetDraft = [], pendingDeleteId = null;
 
 /* ---------- util ---------- */
 const $ = id => document.getElementById(id);
+const esc = s => String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 const fmtRp  = n => "Rp " + (Number(n)||0).toLocaleString("id-ID",{minimumFractionDigits:2,maximumFractionDigits:2});
 const fmtRp0 = n => "Rp " + Math.round(Number(n)||0).toLocaleString("id-ID");
 const parseNominal = s => Number(String(s).replace(/[^\d]/g,"")) || 0;
 const fmtDate = iso => { try { return new Date(iso).toLocaleDateString("id-ID",{day:"2-digit",month:"short",year:"numeric"}); } catch(e){ return iso||"-"; } };
+const isUrl = s => /^https?:\/\//i.test(s||"");
 
 function showToast(msg, type="success"){
   const el = document.createElement("div");
@@ -266,7 +274,7 @@ function showToast(msg, type="success"){
   el.addEventListener("hidden.bs.toast",()=>el.remove());
 }
 
-/* ---------- data ---------- */
+/* ---------- load/save ---------- */
 function loadData(){
   try { data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch(e){ data = []; }
   if(!data.length){
@@ -282,8 +290,57 @@ function loadData(){
   }
 }
 const saveData = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+function loadBudget(){
+  try { const b = JSON.parse(localStorage.getItem(BUDGET_KEY)); if(Array.isArray(b)) return b; } catch(e){}
+  return DEFAULT_BUDGET.map(b=>({...b}));
+}
+const persistBudget = () => localStorage.setItem(BUDGET_KEY, JSON.stringify(budget));
 
-/* ---------- render ---------- */
+/* ---------- editor budget ---------- */
+function openBudgetEditor(){
+  budgetDraft = budget.map(b=>({...b}));
+  renderBudgetEditor();
+}
+function renderBudgetEditor(){
+  $("budgetEditor").innerHTML = budgetDraft.length ? budgetDraft.map((b,i)=>`
+    <div class="border rounded-3 p-2 bg-light">
+      <div class="row g-2">
+        <div class="col-md-3"><label class="small text-muted">Kategori *</label>
+          <input class="form-control form-control-sm" list="catList" placeholder="cth: Entertain" value="${esc(b.category)}" oninput="editBudget(${i},'category',this.value)"></div>
+        <div class="col-md-3"><label class="small text-muted">Karyawan (opsional)</label>
+          <input class="form-control form-control-sm" placeholder="cth: Azis Muhammad Ihsan" value="${esc(b.employee)}" oninput="editBudget(${i},'employee',this.value)"></div>
+        <div class="col-md-3"><label class="small text-muted">Deskripsi (opsional)</label>
+          <input class="form-control form-control-sm" placeholder="cth: Reimburse makan" value="${esc(b.description)}" oninput="editBudget(${i},'description',this.value)"></div>
+        <div class="col-md-2"><label class="small text-muted">Nominal *</label>
+          <input class="form-control form-control-sm" inputmode="numeric" placeholder="0" value="${b.nominal||""}" oninput="editBudget(${i},'nominal',parseNominal(this.value))"></div>
+        <div class="col-md-1 d-grid align-items-end">
+          <button class="btn btn-sm btn-outline-danger" title="Hapus baris" onclick="removeBudgetRow(${i})"><i class="bi bi-trash"></i></button></div>
+      </div>
+    </div>`).join("")
+    : `<div class="text-muted small">Belum ada budget. Klik <b>Tambah Baris</b> untuk memulai.</div>`;
+}
+function editBudget(i, field, val){ budgetDraft[i][field] = val; }
+function addBudgetRow(){ budgetDraft.push({id:Date.now(),category:"",employee:"",description:"",nominal:0}); renderBudgetEditor(); }
+function removeBudgetRow(i){ budgetDraft.splice(i,1); renderBudgetEditor(); }
+function resetBudget(){
+  if(confirm("Kembalikan budget ke default perusahaan? (jangan lupa klik Simpan)")){
+    budgetDraft = DEFAULT_BUDGET.map(b=>({...b}));
+    renderBudgetEditor();
+  }
+}
+function saveBudget(){
+  const valid = budgetDraft.filter(b => (b.category||"").trim() && b.nominal > 0)
+                           .map(b => ({...b, category:b.category.trim()}));
+  if(!valid.length){ showToast("Budget tidak boleh kosong!","danger"); return; }
+  if(valid.length !== budgetDraft.length && !confirm("Ada baris tidak valid (kategori/nominal kosong) dan akan dibuang. Lanjutkan?")) return;
+  budget = valid;
+  persistBudget();
+  bootstrap.Modal.getInstance($("budgetModal")).hide();
+  showToast("💰 Budget berhasil diperbarui!");
+  render();
+}
+
+/* ---------- render utama ---------- */
 function render(){
   const q  = $("search").value.toLowerCase();
   const fc = $("filterCat").value;
@@ -298,35 +355,43 @@ function render(){
     }
   });
 
-  /* stat cards */
-  const totalBudget = Object.values(BUDGET_AWAL).reduce((a,b)=>a+b,0);
+  const budgetByCat = {};
+  budget.forEach(b=>{ budgetByCat[b.category] = (budgetByCat[b.category]||0) + Number(b.nominal); });
+  const totalBudget = budget.reduce((a,b)=>a+Number(b.nominal),0);
   const sisa = totalBudget - totalSpent;
-  $("statBudget").textContent   = fmtRp0(totalBudget);
-  $("statSpent").textContent    = fmtRp0(totalSpent);
-  $("statCount").textContent    = activeCount + " transaksi aktif";
+
+  $("statBudget").textContent = fmtRp0(totalBudget);
+  $("statSpent").textContent  = fmtRp0(totalSpent);
+  $("statCount").textContent  = activeCount + " transaksi aktif";
   const rem = $("statRemaining");
   rem.textContent = (sisa<0?"-":"") + fmtRp0(Math.abs(sisa));
   rem.className = "fs-5 fw-bold " + (sisa<0 ? "text-danger" : "text-success");
 
-  /* budget progress cards */
+  /* rincian dana awal */
+  $("rincianBody").innerHTML = budget.map(b=>`
+    <tr><td>${esc(b.category)}</td><td>${esc(b.employee||"-")}</td><td>${esc(b.description||"-")}</td>
+    <td class="text-end">${fmtRp(b.nominal)}</td></tr>`).join("");
+  $("rincianTotal").textContent = fmtRp(totalBudget);
+
+  /* kartu progres */
   let html = "";
-  Object.entries(BUDGET_AWAL).forEach(([cat,budget])=>{
+  Object.entries(budgetByCat).forEach(([cat,bgt])=>{
     const actual = spent[cat]||0;
-    const pct = Math.round(actual/budget*100);
+    const pct = Math.round(actual/bgt*100);
     const color = pct>100 ? "danger" : pct>=70 ? "warning" : "success";
-    const remCat = budget-actual;
+    const remCat = bgt-actual;
     html += `<div class="col-md-6 col-xl-3"><div class="card shadow-sm h-100"><div class="card-body">
       <div class="d-flex justify-content-between align-items-center mb-2">
-        <span class="fw-semibold">${CAT_ICON[cat]||"📦"} ${cat}</span>
+        <span class="fw-semibold">${CAT_ICON[cat]||"📦"} ${esc(cat)}</span>
         <span class="badge text-bg-${color}">${pct}%</span></div>
       <div class="progress mb-2"><div class="progress-bar bg-${color}" style="width:${Math.min(pct,100)}%"></div></div>
-      <div class="small text-muted">Terpakai ${fmtRp0(actual)} dari ${fmtRp0(budget)}</div>
+      <div class="small text-muted">Terpakai ${fmtRp0(actual)} dari ${fmtRp0(bgt)}</div>
       <div class="small fw-semibold ${remCat<0?"text-danger":"text-success"}">${remCat<0?"⚠️ Over "+fmtRp0(Math.abs(remCat)):"Sisa "+fmtRp0(remCat)}</div>
     </div></div></div>`;
   });
-  const outside = Object.entries(spent).filter(([k])=>!(k in BUDGET_AWAL)).reduce((a,[,v])=>a+v,0);
+  const outside = Object.entries(spent).filter(([k])=>!(k in budgetByCat)).reduce((a,[,v])=>a+v,0);
   if(outside>0){
-    html += `<div class="col-md-6 col-xl-3"><div class="card shadow-sm h-100 border border-secondary border-dashed"><div class="card-body">
+    html += `<div class="col-md-6 col-xl-3"><div class="card shadow-sm h-100"><div class="card-body">
       <div class="fw-semibold mb-1">📦 Di Luar Budget</div>
       <div class="small text-muted">Pengeluaran tanpa alokasi budget</div>
       <div class="fs-6 fw-bold text-secondary">${fmtRp0(outside)}</div>
@@ -334,10 +399,14 @@ function render(){
   }
   $("budgetRow").innerHTML = html;
 
-  /* filter dropdown kategori */
-  const cats = [...new Set(data.map(e=>e.category||"(Tanpa Kategori)"))].sort();
-  $("filterCat").innerHTML = `<option value="">Semua Kategori</option>` +
-    cats.map(c=>`<option ${c===fc?"selected":""}>${c}</option>`).join("");
+  /* dropdown kategori (form + filter) */
+  const allCats = [...new Set([...Object.keys(CAT_BADGE).filter(c=>c!=="(Tanpa Kategori)"),
+    ...budget.map(b=>b.category), ...data.map(d=>d.category).filter(Boolean)])].sort();
+  const prevF = $("fCategory").value;
+  $("fCategory").innerHTML = `<option value="">(Tanpa Kategori)</option>` + allCats.map(c=>`<option>${esc(c)}</option>`).join("");
+  $("fCategory").value = prevF;
+  const prevC = fc;
+  $("filterCat").innerHTML = `<option value="">Semua Kategori</option>` + allCats.map(c=>`<option ${c===prevC?"selected":""}>${esc(c)}</option>`).join("");
 
   /* tabel */
   const rows = [...data].sort((a,b)=>(b.dateInvoice||"").localeCompare(a.dateInvoice||"")||b.id-a.id)
@@ -354,10 +423,10 @@ function render(){
     const cat = e.category||"(Tanpa Kategori)";
     return `<tr class="${e.deleteReason?"deleted":""}">
       <td class="text-nowrap small">${fmtDate(e.dateInvoice)}</td>
-      <td><span class="badge ${CAT_BADGE[cat]||"bg-secondary"}">${cat}</span></td>
-      <td><div class="desc fw-semibold">${e.description}</div>
-        ${e.invoiceUrl?`<a class="link-invoice" href="${e.invoiceUrl}" target="_blank"><i class="bi bi-paperclip"></i> Lihat Invoice</a>`:""}
-        ${e.deleteReason?`<div class="small text-danger">🗑️ Alasan: ${e.deleteReason}</div>`:""}</td>
+      <td><span class="badge ${CAT_BADGE[cat]||"bg-secondary"}">${esc(cat)}</span></td>
+      <td><div class="desc fw-semibold">${esc(e.description)}</div>
+        ${isUrl(e.invoiceUrl)?`<a class="link-invoice" href="${esc(e.invoiceUrl)}" target="_blank"><i class="bi bi-paperclip"></i> Lihat Invoice</a>`:""}
+        ${e.deleteReason?`<div class="small text-danger">🗑️ Alasan: ${esc(e.deleteReason)}</div>`:""}</td>
       <td class="text-end fw-semibold text-nowrap">${fmtRp(e.nominal)}</td>
       <td>${e.deleteReason?'<span class="badge bg-danger bg-opacity-10 text-danger">Dihapus</span>':'<span class="badge bg-success bg-opacity-10 text-success">Aktif</span>'}</td>
       <td class="text-end text-nowrap">
@@ -368,7 +437,7 @@ function render(){
   }).join("") : `<tr><td colspan="6" class="text-center text-muted py-4">Tidak ada data yang cocok 😊</td></tr>`;
 }
 
-/* ---------- aksi ---------- */
+/* ---------- aksi pengeluaran ---------- */
 $("addForm").addEventListener("submit", e=>{
   e.preventDefault();
   const f = new FormData(e.target);
@@ -381,7 +450,6 @@ $("addForm").addEventListener("submit", e=>{
   showToast("✅ Pengeluaran berhasil disimpan!");
   render();
 });
-
 function requestDelete(id){
   pendingDeleteId = id;
   const item = data.find(x=>x.id===id);
@@ -414,8 +482,9 @@ function exportCSV(){
   a.click(); showToast("📄 CSV berhasil diunduh.");
 }
 function exportJSON(){
-  const a = Object.assign(document.createElement("a"),{href:URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"})),download:"expense_trace_backup.json"});
-  a.click(); showToast("💾 Backup berhasil diunduh.");
+  const payload = {version:2, expenses:data, budget};
+  const a = Object.assign(document.createElement("a"),{href:URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:"application/json"})),download:"expense_trace_backup.json"});
+  a.click(); showToast("💾 Backup (data + budget) berhasil diunduh.");
 }
 function importJSON(e){
   const file = e.target.files[0]; if(!file) return;
@@ -423,10 +492,15 @@ function importJSON(e){
   r.onload = ev=>{
     try{
       const imp = JSON.parse(ev.target.result);
-      if(!Array.isArray(imp)) throw 0;
-      if(confirm(`Impor ${imp.length} data? Data saat ini akan ditimpa.`)){
-        data = imp; saveData(); render(); showToast("📥 Backup berhasil dipulihkan.");
-      }
+      if(Array.isArray(imp)){
+        if(confirm(`Impor ${imp.length} data? Data saat ini akan ditimpa.`)){ data = imp; saveData(); }
+      } else if(Array.isArray(imp.expenses)){
+        if(confirm(`Impor ${imp.expenses.length} data + budget? Data saat ini akan ditimpa.`)){
+          data = imp.expenses; saveData();
+          if(Array.isArray(imp.budget)){ budget = imp.budget; persistBudget(); }
+        }
+      } else throw 0;
+      render(); showToast("📥 Backup berhasil dipulihkan.");
     }catch(err){ showToast("File backup tidak valid.","danger"); }
   };
   r.readAsText(file); e.target.value="";
@@ -441,6 +515,7 @@ $("fNominal").addEventListener("input", e=>{
 ["search","filterCat","filterStatus"].forEach(id=>$(id).addEventListener("input",render));
 setDefaultDate();
 loadData();
+budget = loadBudget();
 render();
 </script>
 </body>
