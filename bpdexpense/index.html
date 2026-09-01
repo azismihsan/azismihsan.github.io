@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Expense Trace — azismihsan</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+  body { background: #f5f6fa; }
+  tr.deleted td { color: #adb5bd; text-decoration: line-through; background: #f8f9fa !important; }
+  .summary-card { border-left: 4px solid #0d6efd; }
+  .total-card   { border-left: 4px solid #198754; }
+  .view-link { color: #0d6efd; text-decoration: none; font-weight: 500; }
+  .view-link:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div class="container-fluid py-4" style="max-width:1300px">
+  <h3 class="mb-2">📊 Expense Trace</h3>
+  <p class="text-muted mb-4">Aplikasi web sederhana untuk mencatat & men-trace pengeluaran.</p>
+
+  <div class="alert alert-warning py-2 small">
+    ⚠️ <strong>Perhatian:</strong> Data tersimpan di <em>localStorage</em> browser Anda. 
+    Jika Anda menghapus cache browser, data akan hilang. Data di HP dan di laptop juga tidak sinkron.
+    <button class="btn btn-sm btn-outline-dark ms-2" onclick="exportJSON()">💾 Backup Data (JSON)</button>
+    <button class="btn btn-sm btn-outline-dark ms-1" onclick="document.getElementById('importFile').click()">📥 Restore Backup</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
+  </div>
+
+  <!-- FORM TAMBAH -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-white fw-bold">➕ Tambah Pengeluaran</div>
+    <div class="card-body">
+      <form id="addForm" class="row g-3">
+        <div class="col-md-2">
+          <label class="form-label">Category</label>
+          <select name="category" class="form-select">
+            <option value="">(Kosong)</option>
+            <option>Food & Beverages</option>
+            <option>Entertain</option>
+            <option>Transportation Dalam kota</option>
+            <option>Transportation Tempat Tujuan</option>
+            <option>Accommodation</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Description</label>
+          <input type="text" name="description" class="form-control" required placeholder="cth: Transport Bandara ke Hotel">
+        </div>
+        <div class="col-md-1">
+          <label class="form-label">Currency</label>
+          <select name="currency" class="form-select">
+            <option>IDR</option>
+            <option>USD</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Nominal</label>
+          <input type="number" name="nominal" class="form-control" required min="0" step="any">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">dateInvoice</label>
+          <input type="date" name="dateInvoice" class="form-control" required>
+        </div>
+        <div class="col-md-9">
+          <label class="form-label">InvoiceUrl</label>
+          <input type="url" name="invoiceUrl" class="form-control" placeholder="https://drive.google.com/... atau link invoice">
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+          <button class="btn btn-primary w-100">+ Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- RINGKASAN -->
+  <div id="summaryRow" class="row g-3 mb-4"></div>
+
+  <!-- TABEL -->
+  <div class="card shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <span class="fw-bold">📋 Daftar Pengeluaran</span>
+      <div>
+        <input id="search" class="form-control form-control-sm d-inline-block w-auto me-2" placeholder="🔍 Cari...">
+        <button class="btn btn-sm btn-outline-success" onclick="exportCSV()">📄 Export CSV</button>
+      </div>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-sm table-striped table-hover align-middle mb-0">
+        <thead class="table-dark">
+          <tr>
+            <th>Category</th>
+            <th>Description</th>
+            <th>Delete Reason</th>
+            <th>Currency</th>
+            <th class="text-end">Nominal</th>
+            <th>dateInvoice</th>
+            <th>InvoiceUrl</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Konfirmasi Hapus -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Hapus Pengeluaran</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <label class="form-label">Alasan penghapusan <span class="text-danger">(wajib)</span></label>
+        <textarea id="deleteReason" class="form-control" rows="3" placeholder="cth: Salah input nominal"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button type="button" class="btn btn-danger" onclick="confirmDelete()">Hapus</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const STORAGE_KEY = "expense_trace_data";
+const CATEGORIES = ["(Tanpa Kategori)","Food & Beverages","Entertain","Transportation Dalam kota","Transportation Tempat Tujuan","Accommodation","Other"];
+let data = [];
+let pendingDeleteId = null;
+
+// ========== LOAD & SAVE ==========
+function loadData(){
+  try { data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+  catch(e){ data = []; }
+  if(data.length === 0){
+    // Sampel awal sesuai gambar
+    data = [
+      {id:1, category:"", description:"Transport Bandara ke Hotel", deleteReason:"", currency:"IDR", nominal:139000, dateInvoice:"2025-09-29", invoiceUrl:""},
+      {id:2, category:"", description:"Transport Hotel ke KPU BI", deleteReason:"", currency:"IDR", nominal:17000, dateInvoice:"2025-10-02", invoiceUrl:""},
+      {id:3, category:"Food & Beverages", description:"Makan Siang Azis dan Dinul", deleteReason:"", currency:"IDR", nominal:44000, dateInvoice:"2025-09-29", invoiceUrl:""},
+      {id:4, category:"Food & Beverages", description:"Cemilan Azis dan Dinul", deleteReason:"", currency:"IDR", nominal:36000, dateInvoice:"2025-09-29", invoiceUrl:""},
+      {id:5, category:"Entertain", description:"Makan Bersama 3 orang BI", deleteReason:"", currency:"IDR", nominal:528600, dateInvoice:"2025-09-30", invoiceUrl:""},
+      {id:6, category:"Entertain", description:"Sisa BPD", deleteReason:"", currency:"IDR", nominal:538500, dateInvoice:"2025-10-12", invoiceUrl:""}
+    ];
+    saveData();
+  }
+}
+function saveData(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+
+// ========== FORMAT ==========
+function fmtRp(n){
+  return "Rp " + (Number(n)||0).toLocaleString("id-ID",{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function fmtDate(iso){
+  if(!iso) return "-";
+  try{ return new Date(iso).toLocaleDateString("id-ID",{day:"2-digit",month:"short",year:"numeric"}); }
+  catch(e){ return iso; }
+}
+
+// ========== RENDER ==========
+function render(filter=""){
+  const tbody = document.getElementById("tbody");
+  tbody.innerHTML = "";
+  const summary = {};
+  let total = 0;
+
+  data.forEach(e=>{
+    const match = (e.category + " " + e.description + " " + (e.deleteReason||"") + " " + e.invoiceUrl)
+                  .toLowerCase().includes(filter.toLowerCase());
+
+    // Tambah ke ringkasan hanya yang aktif
+    if(!e.deleteReason){
+      const key = e.category || "(Tanpa Kategori)";
+      summary[key] = (summary[key] || 0) + Number(e.nominal);
+      total += Number(e.nominal);
+    }
+
+    if(match){
+      const tr = document.createElement("tr");
+      if(e.deleteReason) tr.className = "deleted";
+      tr.innerHTML = `
+        <td>${e.category || ""}</td>
+        <td>${e.description}</td>
+        <td>${e.deleteReason || ""}</td>
+        <td>${e.currency}</td>
+        <td class="text-end">${fmtRp(e.nominal)}</td>
+        <td>${fmtDate(e.dateInvoice)}</td>
+        <td>${e.invoiceUrl ? `<a href="${e.invoiceUrl}" target="_blank" class="view-link">View File</a>` : "-"}</td>
+        <td class="text-end">
+          ${!e.deleteReason 
+            ? `<button class="btn btn-sm btn-outline-danger" onclick="requestDelete(${e.id})">Hapus</button>`
+            : `<button class="btn btn-sm btn-outline-secondary" onclick="restore(${e.id})">Pulihkan</button>`
+          }
+        </td>`;
+      tbody.appendChild(tr);
+    }
+  });
+
+  // Render ringkasan
+  const row = document.getElementById("summaryRow");
+  row.innerHTML = "";
+  Object.entries(summary).sort((a,b)=>a[0].localeCompare(b[0])).forEach(([cat,tot])=>{
+    row.innerHTML += `
+      <div class="col-md-3 col-6">
+        <div class="card shadow-sm summary-card"><div class="card-body py-2">
+          <div class="text-muted small">${cat}</div>
+          <div class="fw-bold">${fmtRp(tot)}</div>
+        </div></div>
+      </div>`;
+  });
+  row.innerHTML += `
+    <div class="col-md-3 col-6">
+      <div class="card shadow-sm total-card"><div class="card-body py-2">
+        <div class="text-muted small">TOTAL KESELURUHAN</div>
+        <div class="fw-bold text-success">${fmtRp(total)}</div>
+      </div></div>
+    </div>`;
+}
+
+// ========== CRUD ==========
+document.getElementById("addForm").addEventListener("submit", e=>{
+  e.preventDefault();
+  const f = new FormData(e.target);
+  data.push({
+    id: Date.now(),
+    category: f.get("category"),
+    description: f.get("description").trim(),
+    deleteReason: "",
+    currency: f.get("currency"),
+    nominal: parseFloat(f.get("nominal")) || 0,
+    dateInvoice: f.get("dateInvoice"),
+    invoiceUrl: f.get("invoiceUrl").trim()
+  });
+  saveData();
+  e.target.reset();
+  render(document.getElementById("search").value);
+});
+
+function requestDelete(id){
+  pendingDeleteId = id;
+  document.getElementById("deleteReason").value = "";
+  new bootstrap.Modal(document.getElementById("deleteModal")).show();
+}
+function confirmDelete(){
+  const reason = document.getElementById("deleteReason").value.trim();
+  if(!reason){ alert("Alasan penghapusan wajib diisi!"); return; }
+  const item = data.find(x=>x.id===pendingDeleteId);
+  if(item){ item.deleteReason = reason; saveData(); }
+  bootstrap.Modal.getInstance(document.getElementById("deleteModal")).hide();
+  render(document.getElementById("search").value);
+}
+function restore(id){
+  const item = data.find(x=>x.id===id);
+  if(item){ item.deleteReason = ""; saveData(); }
+  render(document.getElementById("search").value);
+}
+
+// ========== EXPORT / IMPORT ==========
+function exportCSV(){
+  const header = ["Category","Description","Delete Reason","Currency","Nominal","dateInvoice","InvoiceUrl"];
+  const rows = [header];
+  data.forEach(e=>rows.push([e.category,e.description,e.deleteReason||"",e.currency,e.nominal,e.dateInvoice,e.invoiceUrl]));
+  const csv = rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(",")).join("\n");
+  const blob = new Blob([csv], {type:"text/csv"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "expense_trace.csv";
+  a.click();
+}
+function exportJSON(){
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "expense_trace_backup.json";
+  a.click();
+}
+function importJSON(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev=>{
+    try{
+      const imported = JSON.parse(ev.target.result);
+      if(Array.isArray(imported)){
+        if(confirm(`Impor ${imported.length} data? (data saat ini akan ditimpa)`)){
+          data = imported; saveData(); render();
+        }
+      } else alert("Format file tidak valid.");
+    }catch(err){ alert("File tidak bisa dibaca: "+err.message); }
+  };
+  reader.readAsText(file);
+}
+
+// ========== INIT ==========
+document.getElementById("search").addEventListener("input", e=>render(e.target.value));
+loadData();
+render();
+</script>
+</body>
+</html>
