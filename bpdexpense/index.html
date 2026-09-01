@@ -10,15 +10,19 @@
   tr.deleted td { color: #adb5bd; text-decoration: line-through; background: #f8f9fa !important; }
   .summary-card { border-left: 4px solid #0d6efd; }
   .total-card   { border-left: 4px solid #198754; }
+  .budget-card  { border-left: 4px solid #ffc107; }
+  .remaining-card { border-left: 4px solid #dc3545; }
   .view-link { color: #0d6efd; text-decoration: none; font-weight: 500; }
   .view-link:hover { text-decoration: underline; }
+  .over-budget { color: #dc3545 !important; font-weight: bold; }
+  .under-budget { color: #198754 !important; font-weight: bold; }
 </style>
 </head>
 <body>
 
 <div class="container-fluid py-4" style="max-width:1300px">
   <h3 class="mb-2">📊 Expense Trace</h3>
-  <p class="text-muted mb-4">Aplikasi web sederhana untuk mencatat & men-trace pengeluaran.</p>
+  <p class="text-muted mb-4">Aplikasi web sederhana untuk mencatat & men-trace pengeluaran perusahaan.</p>
 
   <div class="alert alert-warning py-2 small">
     ⚠️ <strong>Perhatian:</strong> Data tersimpan di <em>localStorage</em> browser Anda. 
@@ -27,6 +31,42 @@
     <button class="btn btn-sm btn-outline-dark ms-1" onclick="document.getElementById('importFile').click()">📥 Restore Backup</button>
     <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
   </div>
+
+  <!-- DANA AWAL PERUSAHAAN -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-warning fw-bold">💰 Dana Awal Perusahaan (Budget)</div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-sm table-bordered mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Category</th>
+              <th>EmployeeName</th>
+              <th>Description</th>
+              <th class="text-end">Nominal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Entertain</td><td>-</td><td>Konsumsi Kustomer</td><td class="text-end">Rp 2.000.000,00</td></tr>
+            <tr><td>Transportation Dalam kota</td><td>Muh. Fhadlan Dinul Haq</td><td>Transport dalam kota 1 x 4 x 50.000</td><td class="text-end">Rp 200.000,00</td></tr>
+            <tr><td>Transportation Dalam kota</td><td>Azis Muhammad Ihsan</td><td>Transport dalam kota 1 x 4 x 50.000</td><td class="text-end">Rp 200.000,00</td></tr>
+            <tr><td>Food & Beverage</td><td>Muh. Fhadlan Dinul Haq</td><td>Reimburse makan 1 orang x 4 hari x Rp 120.000</td><td class="text-end">Rp 480.000,00</td></tr>
+            <tr><td>Food & Beverage</td><td>Azis Muhammad Ihsan</td><td>Reimburse makan 1 orang x 4 hari x Rp 120.000</td><td class="text-end">Rp 480.000,00</td></tr>
+            <tr><td>Transportation Tempat Tujuan</td><td>-</td><td>transportasi ke tempat tujuan</td><td class="text-end">Rp 120.000,00</td></tr>
+          </tbody>
+          <tfoot>
+            <tr class="table-warning fw-bold">
+              <td colspan="3" class="text-end">TOTAL DANA AWAL:</td>
+              <td class="text-end">Rp 3.480.000,00</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- PERBANDINGAN BUDGET VS AKTUAL -->
+  <div id="budgetComparison" class="row g-3 mb-4"></div>
 
   <!-- FORM TAMBAH -->
   <div class="card shadow-sm mb-4">
@@ -37,8 +77,8 @@
           <label class="form-label">Category</label>
           <select name="category" class="form-select">
             <option value="">(Kosong)</option>
-            <option>Food & Beverages</option>
             <option>Entertain</option>
+            <option>Food & Beverage</option>
             <option>Transportation Dalam kota</option>
             <option>Transportation Tempat Tujuan</option>
             <option>Accommodation</option>
@@ -75,7 +115,7 @@
     </div>
   </div>
 
-  <!-- RINGKASAN -->
+  <!-- RINGKASAN PENGELUARAN -->
   <div id="summaryRow" class="row g-3 mb-4"></div>
 
   <!-- TABEL -->
@@ -130,7 +170,15 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 const STORAGE_KEY = "expense_trace_data";
-const CATEGORIES = ["(Tanpa Kategori)","Food & Beverages","Entertain","Transportation Dalam kota","Transportation Tempat Tujuan","Accommodation","Other"];
+
+// ========== BUDGET AWAL PERUSAHAAN ==========
+const BUDGET_AWAL = {
+  "Entertain": 2000000,
+  "Transportation Dalam kota": 400000, // 200k + 200k
+  "Food & Beverage": 960000, // 480k + 480k
+  "Transportation Tempat Tujuan": 120000
+};
+
 let data = [];
 let pendingDeleteId = null;
 
@@ -139,12 +187,12 @@ function loadData(){
   try { data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
   catch(e){ data = []; }
   if(data.length === 0){
-    // Sampel awal sesuai gambar
+    // Sampel awal sesuai gambar pengeluaran
     data = [
       {id:1, category:"", description:"Transport Bandara ke Hotel", deleteReason:"", currency:"IDR", nominal:139000, dateInvoice:"2025-09-29", invoiceUrl:""},
       {id:2, category:"", description:"Transport Hotel ke KPU BI", deleteReason:"", currency:"IDR", nominal:17000, dateInvoice:"2025-10-02", invoiceUrl:""},
-      {id:3, category:"Food & Beverages", description:"Makan Siang Azis dan Dinul", deleteReason:"", currency:"IDR", nominal:44000, dateInvoice:"2025-09-29", invoiceUrl:""},
-      {id:4, category:"Food & Beverages", description:"Cemilan Azis dan Dinul", deleteReason:"", currency:"IDR", nominal:36000, dateInvoice:"2025-09-29", invoiceUrl:""},
+      {id:3, category:"Food & Beverage", description:"Makan Siang Azis dan Dinul", deleteReason:"", currency:"IDR", nominal:44000, dateInvoice:"2025-09-29", invoiceUrl:""},
+      {id:4, category:"Food & Beverage", description:"Cemilan Azis dan Dinul", deleteReason:"", currency:"IDR", nominal:36000, dateInvoice:"2025-09-29", invoiceUrl:""},
       {id:5, category:"Entertain", description:"Makan Bersama 3 orang BI", deleteReason:"", currency:"IDR", nominal:528600, dateInvoice:"2025-09-30", invoiceUrl:""},
       {id:6, category:"Entertain", description:"Sisa BPD", deleteReason:"", currency:"IDR", nominal:538500, dateInvoice:"2025-10-12", invoiceUrl:""}
     ];
@@ -202,7 +250,10 @@ function render(filter=""){
     }
   });
 
-  // Render ringkasan
+  // Render perbandingan budget vs aktual
+  renderBudgetComparison(summary);
+
+  // Render ringkasan pengeluaran
   const row = document.getElementById("summaryRow");
   row.innerHTML = "";
   Object.entries(summary).sort((a,b)=>a[0].localeCompare(b[0])).forEach(([cat,tot])=>{
@@ -217,8 +268,54 @@ function render(filter=""){
   row.innerHTML += `
     <div class="col-md-3 col-6">
       <div class="card shadow-sm total-card"><div class="card-body py-2">
-        <div class="text-muted small">TOTAL KESELURUHAN</div>
+        <div class="text-muted small">TOTAL PENGELUARAN AKTUAL</div>
         <div class="fw-bold text-success">${fmtRp(total)}</div>
+      </div></div>
+    </div>`;
+}
+
+// ========== PERBANDINGAN BUDGET ==========
+function renderBudgetComparison(actualSpending){
+  const container = document.getElementById("budgetComparison");
+  container.innerHTML = "";
+  
+  let totalBudget = 0;
+  let totalActual = 0;
+  let totalRemaining = 0;
+
+  // Hitung per kategori
+  Object.entries(BUDGET_AWAL).forEach(([category, budget])=>{
+    totalBudget += budget;
+    const actual = actualSpending[category] || 0;
+    totalActual += actual;
+    const remaining = budget - actual;
+    totalRemaining += remaining;
+    
+    const statusClass = remaining < 0 ? "over-budget" : "under-budget";
+    const statusText = remaining < 0 ? "⚠️ OVER BUDGET" : "✅ Tersisa";
+    
+    container.innerHTML += `
+      <div class="col-md-3 col-6">
+        <div class="card shadow-sm"><div class="card-body py-2">
+          <div class="fw-bold text-center mb-2">${category}</div>
+          <div class="small">Budget: <strong>${fmtRp(budget)}</strong></div>
+          <div class="small">Aktual: <strong>${fmtRp(actual)}</strong></div>
+          <div class="small ${statusClass}">Sisa: <strong>${fmtRp(Math.abs(remaining))}</strong> ${statusText}</div>
+        </div></div>
+      </div>`;
+  });
+
+  // Total keseluruhan
+  const totalStatusClass = totalRemaining < 0 ? "over-budget" : "under-budget";
+  const totalStatusText = totalRemaining < 0 ? "⚠️ OVER BUDGET" : "✅ Tersisa";
+  
+  container.innerHTML += `
+    <div class="col-md-3 col-6">
+      <div class="card shadow-sm border-3 border-dark"><div class="card-body py-2">
+        <div class="fw-bold text-center mb-2">TOTAL KESELURUHAN</div>
+        <div class="small">Budget: <strong>${fmtRp(totalBudget)}</strong></div>
+        <div class="small">Aktual: <strong>${fmtRp(totalActual)}</strong></div>
+        <div class="small ${totalStatusClass}">Sisa: <strong>${fmtRp(Math.abs(totalRemaining))}</strong> ${totalStatusText}</div>
       </div></div>
     </div>`;
 }
