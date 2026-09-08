@@ -281,6 +281,12 @@ header { display: flex; justify-content: space-between; align-items: center; gap
                     <span id="shop-progress-text">0/0 dibeli</span>
                     <span>Estimasi: Rp <span id="shop-total">0</span></span>
                 </div>
+                <div style="display:flex; gap:8px; align-items:center; margin:14px 0 4px;">
+                    <label for="shop-budget" style="font-size:12px; color:var(--text-soft); flex:1;">Budget belanja minggu ini</label>
+                    <input type="number" id="shop-budget" class="shop-price" min="0" step="any" inputmode="decimal" placeholder="Rp 0">
+                    <button id="save-shop-budget" class="btn btn-secondary btn-sm">Simpan</button>
+                </div>
+                <div id="shop-budget-status" style="font-size:11px; color:var(--text-light); margin-bottom:10px;"></div>
                 <div style="display:flex; gap:8px; margin:14px 0;">
                     <input type="text" id="add-shop-name" class="filter-control" placeholder="Tambah item manual (mis. Garam)" style="flex:1;">
                     <input type="text" id="add-shop-qty" class="filter-control" placeholder="Jumlah" style="width:90px;">
@@ -587,6 +593,9 @@ const shopWeekLabel = document.getElementById("shop-week-label");
 const shopProgressFill = document.getElementById("shop-progress-fill");
 const shopProgressText = document.getElementById("shop-progress-text");
 const shopTotalEl = document.getElementById("shop-total");
+const shopBudgetInput = document.getElementById("shop-budget");
+const saveShopBudgetBtn = document.getElementById("save-shop-budget");
+const shopBudgetStatus = document.getElementById("shop-budget-status");
 const addShopName = document.getElementById("add-shop-name");
 const addShopQty = document.getElementById("add-shop-qty");
 const addShopBtn = document.getElementById("add-shop-btn");
@@ -634,6 +643,7 @@ let customRecipes = [];
 let wallets = [];
 let profiles = [];
 let records = [];
+let weeklyBudgets = {};
 let priceMemory = {};
 let weekOffset = 0;
 let pendingSlotKey = null;
@@ -769,7 +779,7 @@ onAuthStateChanged(auth, (user) => {
         initUserData(user.uid);
     } else {
         currentUser = null;
-        weeks = {}; shopping = []; stocks = []; customRecipes = []; wallets = []; profiles = []; records = []; priceMemory = {};
+        weeks = {}; shopping = []; stocks = []; customRecipes = []; wallets = []; profiles = []; records = []; weeklyBudgets = {}; priceMemory = {};
         authPanel.classList.remove("hidden");
         dashboard.classList.add("hidden");
         bottomNav.classList.add("hidden");
@@ -806,6 +816,12 @@ function initUserData(uid) {
     onSnapshot(collection(db, "users", uid, "mk_records"), (snap) => {
         records = [];
         snap.forEach(d => records.push({ id: d.id, ...d.data() }));
+    });
+    onSnapshot(collection(db, "users", uid, "mk_budgets"), (snap) => {
+        weeklyBudgets = {};
+        snap.forEach(d => { weeklyBudgets[d.id] = Number(d.data().amount) || 0; });
+        renderShopping();
+        renderSummary();
     });
     onSnapshot(collection(db, "users", uid, "wallets"), (snap) => {
         wallets = [];
@@ -1129,6 +1145,18 @@ function renderShopping() {
     shopProgressFill.style.width = pct + "%";
     shopProgressText.textContent = `${checked.length}/${items.length} dibeli`;
     shopTotalEl.textContent = formatCurrency(total);
+    const budget = weeklyBudgets[weekKey] || 0;
+    shopBudgetInput.value = budget || "";
+    if (!budget) {
+        shopBudgetStatus.textContent = "Belum ada batas budget untuk minggu ini.";
+        shopBudgetStatus.style.color = "var(--text-light)";
+    } else {
+        const remaining = budget - total;
+        shopBudgetStatus.textContent = remaining >= 0
+            ? `Sisa budget: Rp ${formatCurrency(remaining)} (${Math.round((total / budget) * 100)}% terpakai)`
+            : `Melebihi budget: Rp ${formatCurrency(Math.abs(remaining))}`;
+        shopBudgetStatus.style.color = remaining < 0 ? "var(--danger)" : total / budget >= 0.8 ? "var(--warning)" : "var(--success)";
+    }
     shopBadge.textContent = unchecked.length;
     shopBadge.classList.toggle("hidden", unchecked.length === 0);
 
@@ -1180,6 +1208,30 @@ function renderShopping() {
         });
     });
 }
+
+saveShopBudgetBtn.addEventListener("click", async () => {
+    if (!currentUser) return;
+    const amount = Number(shopBudgetInput.value);
+    if (!Number.isFinite(amount) || amount < 0) {
+        showToast("Budget harus berupa angka 0 atau lebih", "error");
+        return;
+    }
+    saveShopBudgetBtn.disabled = true;
+    try {
+        const weekKey = currentWeekKey();
+        await setDoc(doc(db, "users", currentUser.uid, "mk_budgets", weekKey), {
+            amount,
+            weekKey,
+            updatedAt: serverTimestamp()
+        });
+        showToast("Budget minggu ini disimpan", "success");
+    } catch (error) {
+        console.error("Save budget error:", error);
+        showToast("Gagal menyimpan budget", "error");
+    } finally {
+        saveShopBudgetBtn.disabled = false;
+    }
+});
 
 addShopBtn.addEventListener("click", async () => {
     const name = addShopName.value.trim();
