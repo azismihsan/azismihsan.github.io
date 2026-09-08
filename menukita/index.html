@@ -260,6 +260,22 @@ header { display: flex; justify-content: space-between; align-items: center; gap
                     <div id="week-label" class="week-label">-</div>
                     <button id="week-next" class="week-nav-btn">→</button>
                 </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px;">
+                    <div>
+                        <label for="family-portions" style="display:block; font-size:11px; color:var(--text-soft); margin-bottom:5px;">👨‍👩‍👧 Jumlah porsi</label>
+                        <input type="number" id="family-portions" class="filter-control" min="1" max="30" step="1" inputmode="numeric" value="1">
+                    </div>
+                    <div>
+                        <label for="dietary-filter" style="display:block; font-size:11px; color:var(--text-soft); margin-bottom:5px;">🚫 Pantangan protein</label>
+                        <select id="dietary-filter" class="filter-control" multiple size="3">
+                            <option value="ayam">Ayam</option><option value="ikan">Ikan</option><option value="udang">Udang</option><option value="daging">Daging</option><option value="cumi">Cumi</option><option value="telur">Telur</option><option value="tempe">Tempe</option><option value="tahu">Tahu</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:8px; margin-bottom:14px;">
+                    <button id="save-menu-preferences" class="btn btn-secondary btn-sm">Simpan Preferensi</button>
+                    <button id="copy-previous-week" class="btn btn-secondary btn-sm">📋 Salin Minggu Lalu</button>
+                </div>
                 <div id="week-grid"></div>
             </div>
         </div>
@@ -304,6 +320,7 @@ header { display: flex; justify-content: space-between; align-items: center; gap
                 </div>
                 <div style="display:flex; gap:8px; margin-bottom:14px;">
                     <input type="text" id="add-stock-name" class="filter-control" placeholder="Contoh: Beras, Minyak, Gas" style="flex:1;">
+                    <input type="number" id="add-stock-qty" class="filter-control" min="0" step="any" placeholder="Jumlah" style="width:90px;">
                     <button id="add-stock-btn" class="btn btn-primary btn-sm" style="min-height:45px;">+ Tambah</button>
                 </div>
                 <div id="stock-list"></div>
@@ -466,6 +483,7 @@ function getDayProtein(dayIndex, weekKey) {
 
 function canAddProteinToDay(dayIndex, recipeId, weekKey) {
     const protein = getProteinType(recipeId);
+    if (protein && menuPreferences.blockedProteins.includes(protein)) return false;
     if (!protein) return true; // Sayur/bumbu: bisa semua hari
     const dayProtein = getDayProtein(dayIndex, weekKey);
     return !dayProtein || dayProtein === protein; // Bisa kalo belum ada protein atau sama protein
@@ -587,6 +605,10 @@ const weekGrid = document.getElementById("week-grid");
 const weekLabel = document.getElementById("week-label");
 const weekPrevBtn = document.getElementById("week-prev");
 const weekNextBtn = document.getElementById("week-next");
+const familyPortionsInput = document.getElementById("family-portions");
+const dietaryFilter = document.getElementById("dietary-filter");
+const saveMenuPreferencesBtn = document.getElementById("save-menu-preferences");
+const copyPreviousWeekBtn = document.getElementById("copy-previous-week");
 const autofillBtn = document.getElementById("autofill-btn");
 const generateBtn = document.getElementById("generate-btn");
 const shopWeekLabel = document.getElementById("shop-week-label");
@@ -604,6 +626,7 @@ const checkAllBtn = document.getElementById("check-all-btn");
 const clearCheckedBtn = document.getElementById("clear-checked-btn");
 const recordBtn = document.getElementById("record-btn");
 const addStockName = document.getElementById("add-stock-name");
+const addStockQty = document.getElementById("add-stock-qty");
 const addStockBtn = document.getElementById("add-stock-btn");
 const stockListEl = document.getElementById("stock-list");
 const shopBadge = document.getElementById("shop-badge");
@@ -644,6 +667,7 @@ let wallets = [];
 let profiles = [];
 let records = [];
 let weeklyBudgets = {};
+let menuPreferences = { portions: 1, blockedProteins: [] };
 let priceMemory = {};
 let weekOffset = 0;
 let pendingSlotKey = null;
@@ -779,7 +803,7 @@ onAuthStateChanged(auth, (user) => {
         initUserData(user.uid);
     } else {
         currentUser = null;
-        weeks = {}; shopping = []; stocks = []; customRecipes = []; wallets = []; profiles = []; records = []; weeklyBudgets = {}; priceMemory = {};
+        weeks = {}; shopping = []; stocks = []; customRecipes = []; wallets = []; profiles = []; records = []; weeklyBudgets = {}; menuPreferences = { portions: 1, blockedProteins: [] }; priceMemory = {};
         authPanel.classList.remove("hidden");
         dashboard.classList.add("hidden");
         bottomNav.classList.add("hidden");
@@ -822,6 +846,16 @@ function initUserData(uid) {
         snap.forEach(d => { weeklyBudgets[d.id] = Number(d.data().amount) || 0; });
         renderShopping();
         renderSummary();
+    });
+    onSnapshot(doc(db, "users", uid, "mk_settings", "menu"), (snap) => {
+        const data = snap.exists() ? snap.data() : {};
+        menuPreferences = {
+            portions: Math.max(1, Math.min(30, Number(data.portions) || 1)),
+            blockedProteins: Array.isArray(data.blockedProteins) ? data.blockedProteins : []
+        };
+        familyPortionsInput.value = menuPreferences.portions;
+        Array.from(dietaryFilter.options).forEach(option => { option.selected = menuPreferences.blockedProteins.includes(option.value); });
+        renderMenu();
     });
     onSnapshot(collection(db, "users", uid, "wallets"), (snap) => {
         wallets = [];
@@ -944,6 +978,39 @@ function renderMenu() {
 weekPrevBtn.addEventListener("click", () => { weekOffset--; renderMenu(); renderShopping(); renderSummary(); });
 weekNextBtn.addEventListener("click", () => { weekOffset++; renderMenu(); renderShopping(); renderSummary(); });
 
+saveMenuPreferencesBtn.addEventListener("click", async () => {
+    if (!currentUser) return;
+    const portions = Math.max(1, Math.min(30, Number(familyPortionsInput.value) || 1));
+    const blockedProteins = Array.from(dietaryFilter.selectedOptions).map(option => option.value);
+    try {
+        await setDoc(doc(db, "users", currentUser.uid, "mk_settings", "menu"), { portions, blockedProteins, updatedAt: serverTimestamp() });
+        menuPreferences = { portions, blockedProteins };
+        renderMenu();
+        showToast("Preferensi menu disimpan", "success");
+    } catch (error) {
+        console.error("Save menu preferences error:", error);
+        showToast("Gagal menyimpan preferensi", "error");
+    }
+});
+
+copyPreviousWeekBtn.addEventListener("click", async () => {
+    if (!currentUser) return;
+    const currentKey = currentWeekKey();
+    const previousDate = new Date(`${currentKey}T00:00:00`);
+    previousDate.setDate(previousDate.getDate() - 7);
+    const previousKey = toDateStr(previousDate);
+    const previousSlots = weeks[previousKey] || {};
+    if (Object.keys(previousSlots).length === 0) { showToast("Menu minggu lalu belum tersedia", "info"); return; }
+    if (Object.keys(weeks[currentKey] || {}).length > 0 && !confirm("Timpa menu minggu ini dengan menu minggu lalu?")) return;
+    try {
+        await setDoc(doc(db, "users", currentUser.uid, "mk_weeks", currentKey), { slots: { ...previousSlots }, copiedFrom: previousKey, updatedAt: serverTimestamp() });
+        showToast("Menu minggu lalu berhasil disalin", "success");
+    } catch (error) {
+        console.error("Copy week error:", error);
+        showToast("Gagal menyalin menu", "error");
+    }
+});
+
 async function saveSlot(key, value) {
     if (!currentUser) return;
     const weekKey = currentWeekKey();
@@ -977,7 +1044,7 @@ function showRecipeDetail(recipeId, slotKey) {
         ingHtml += `
             <div class="ing-item">
                 <div class="ing-name">${escapeHtml(ing.n)}</div>
-                <div class="ing-qty">${formatQty(ing.q, ing.u)}</div>
+                <div class="ing-qty">${formatQty((Number(ing.q) || 0) * menuPreferences.portions, ing.u)}</div>
             </div>
         `;
     });
@@ -1099,7 +1166,7 @@ generateBtn.addEventListener("click", async () => {
         rec.ingredients.forEach(ing => {
             const keyName = ing.n.toLowerCase();
             if (!agg[keyName]) agg[keyName] = { name: ing.n, q: 0, u: ing.u };
-            agg[keyName].q += Number(ing.q) || 0;
+            agg[keyName].q += (Number(ing.q) || 0) * menuPreferences.portions;
         });
     });
     
@@ -1114,7 +1181,7 @@ generateBtn.addEventListener("click", async () => {
         if (!exists) {
             const memPrice = rememberedPrice(item.name);
             const ref = doc(collection(db, "users", currentUser.uid, "mk_shopping"));
-            batch.set(ref, { name: item.name, qty: formatQty(item.q, item.u), checked: false, price: memPrice, source: "menu", weekKey, createdAt: serverTimestamp() });
+            batch.set(ref, { name: item.name, qty: formatQty(item.q, item.u), qtyValue: item.q, unit: item.u, checked: false, price: memPrice, source: "menu", weekKey, createdAt: serverTimestamp() });
             added++;
         }
     });
@@ -1187,8 +1254,10 @@ function renderShopping() {
             try {
                 await updateDoc(doc(db, "users", currentUser.uid, "mk_shopping", item.id), {
                     checked: !item.checked,
-                    checkedBy: !item.checked ? (currentUser.email?.split("@")[0] || "user") : null
+                    checkedBy: !item.checked ? (currentUser.email?.split("@")[0] || "user") : null,
+                    stockConsumed: item.checked ? item.stockConsumed || false : true
                 });
+                if (!item.checked && !item.stockConsumed) await consumeStockForShoppingItem(item);
             } catch (error) { showToast("Gagal memperbarui", "error"); }
         });
     });
@@ -1252,8 +1321,8 @@ checkAllBtn.addEventListener("click", async () => {
     const unchecked = shopping.filter(s => s.weekKey === weekKey && !s.checked);
     if (unchecked.length === 0) { showToast("Tidak ada item yang belum dicentang", "info"); return; }
     const batch = writeBatch(db);
-    unchecked.forEach(i => batch.update(doc(db, "users", currentUser.uid, "mk_shopping", i.id), { checked: true, checkedBy: currentUser.email?.split("@")[0] || "user" }));
-    try { await batch.commit(); showToast(`✅ ${unchecked.length} item dicentang`, "success"); }
+    unchecked.forEach(i => batch.update(doc(db, "users", currentUser.uid, "mk_shopping", i.id), { checked: true, checkedBy: currentUser.email?.split("@")[0] || "user", stockConsumed: true }));
+    try { await batch.commit(); await Promise.all(unchecked.filter(i => !i.stockConsumed).map(consumeStockForShoppingItem)); showToast(`✅ ${unchecked.length} item dicentang`, "success"); }
     catch (error) { showToast("Gagal mencentang", "error"); }
 });
 
@@ -1281,7 +1350,7 @@ function renderStock() {
         const row = document.createElement("div");
         row.className = "stock-item";
         row.innerHTML = `
-            <div class="stock-name">${escapeHtml(item.name)}</div>
+            <div class="stock-name">${escapeHtml(item.name)} <span style="font-size:11px; color:var(--text-light);">${item.qty ? `• ${formatQty(item.qty, item.unit)}` : ""}</span></div>
             <button class="stock-del" data-sdel="${item.id}">🗑️</button>`;
         stockListEl.appendChild(row);
     });
@@ -1293,12 +1362,22 @@ function renderStock() {
     });
 }
 
+async function consumeStockForShoppingItem(item) {
+    const stock = stocks.find(s => (s.name || "").trim().toLowerCase() === (item.name || "").trim().toLowerCase());
+    const used = Number(item.qtyValue) || 0;
+    if (!stock || !used || !Number(stock.qty)) return;
+    const remaining = Math.max(0, Number(stock.qty) - used);
+    await updateDoc(doc(db, "users", currentUser.uid, "mk_stock", stock.id), { qty: remaining, updatedAt: serverTimestamp() });
+}
+
 addStockBtn.addEventListener("click", async () => {
     const name = addStockName.value.trim();
     if (!name) { showToast("Nama stok wajib diisi", "error"); return; }
+    const qty = Number(addStockQty.value) || 0;
     try {
-        await addDoc(collection(db, "users", currentUser.uid, "mk_stock"), { name, createdAt: serverTimestamp() });
+        await addDoc(collection(db, "users", currentUser.uid, "mk_stock"), { name, qty, unit: "porsi", createdAt: serverTimestamp() });
         addStockName.value = "";
+        addStockQty.value = "";
         showToast("Stok ditambahkan", "success");
     } catch (error) { showToast("Gagal menambah stok", "error"); }
 });
